@@ -48,7 +48,7 @@ JagsConfig::JagsConfig() {
   if (!fin) {
     g_print("Copying sample config to your home-dir\n");
     system("mkdir ~/.jags");
-    gchar *command = g_strdup_printf("cp -R /usr/local/share/jags/* ~/.jags");
+    gchar *command = g_strdup_printf("cp -R /usr/share/jags/* ~/.jags");
     system(command);
     system("mv ~/.jags/jags.conf.sample ~/.jags/jags.conf");
     g_print("Config files successflly copied to your home-dir....\n");

@@ -67,7 +67,7 @@ GtkWidget *xpm_label_box(GtkWidget *parent, gchar *xpm_filename, gchar *label_te
   pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
 
   if (!pixmap) {
-    path = g_strdup_printf("/usr/local/share/jags/pixmaps/");
+    path = g_strdup_printf("/usr/share/jags/pixmaps/");
     filename = g_strdup_printf("%s%s", path, xpm_filename);
     
     pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
@@ -213,7 +213,7 @@ GtkWidget *gtk_icon2widget(gchar *xpm, GtkWidget *parent) {
   pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, NULL, filename);
 
   if (!pixmap) {
-    path = g_strdup_printf("/usr/local/share/jags/pixmaps/");
+    path = g_strdup_printf("/usr/share/jags/pixmaps/");
     filename = g_strdup_printf("%s%s", path, xpm);
     
     //    pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);

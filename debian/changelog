@@ -1,0 +1,51 @@
+jags (0.20.2-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Remco van de Meent <remco@debian.org>  Sun, 15 Jul 2001 18:32:53 +0200
+
+jags (0.20.1-1) unstable; urgency=low
+
+  * New upstream release (closes: #103844)
+
+ -- Remco van de Meent <remco@debian.org>  Mon,  9 Jul 2001 20:37:06 +0200
+
+jags (0.20-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Remco van de Meent <remco@debian.org>  Tue, 22 May 2001 21:59:47 +0200
+
+jags (0.19-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Remco van de Meent <remco@debian.org>  Sat, 12 May 2001 23:59:46 +0200
+
+jags (0.18.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Remco van de Meent <remco@debian.org>  Sat,  5 May 2001 19:59:12 +0200
+
+jags (0.18-2) unstable; urgency=low
+
+  * Added automake build-depends (closes: #92764)
+
+ -- Remco van de Meent <remco@debian.org>  Wed, 18 Apr 2001 22:40:54 +0200
+
+jags (0.18-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Remco van de Meent <remco@debian.org>  Mon, 26 Mar 2001 16:04:54 +0200
+
+jags (0.17-1) unstable; urgency=low
+
+  * Initial Release (closes: #88955)
+
+ -- Remco van de Meent <remco@debian.org>  Thu,  8 Mar 2001 20:33:33 +0100
+
+Local variables:
+mode: debian-changelog
+End:

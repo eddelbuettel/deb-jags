@@ -1,0 +1,15 @@
+Source: jags
+Section: net
+Priority: optional
+Maintainer: Remco van de Meent <remco@debian.org>
+Build-Depends: debhelper (>> 2.0.0), libgtk1.2-dev, automake
+Standards-Version: 3.2.1
+
+Package: jags
+Architecture: any
+Depends: smbclient, samba-common, smbfs, ${shlibs:Depends}
+Description: Just Another GTK+ Samba Client
+ Jags is a Gtk+ based "windows network neighbourhood browser". The program
+ parses the output from smbclient (part of the samba-package) and use this
+ to display a graphic view of the network. This program does the parsing
+ with help from shell- scripts.
