@@ -8,3 +8,13 @@
 # grep, cut & sh.
 #
 smbumount "$1"
+rmdir "$1"
+echo "rmdir $1"
+
+flag=$(ls "$2")
+if [ -z "$flag" ]; then
+    rmdir "$2"
+    echo "rmdir $2"
+else
+    echo "Not currently removing $2"
+fi

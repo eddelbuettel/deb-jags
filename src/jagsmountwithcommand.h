@@ -1,6 +1,5 @@
 /*
- **  JagsMountWithCommand v0.1
- **  Copyright (C) 2000 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg <sumpan@sumpan.com>
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,18 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** jagsmountwithcommand.h
- ** 
+ ** Jags contact information:
  ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
+ ** E-Mail:     sumpan@sumpan.com
+ ** Homepage:   http://jags.sf.net
  ** 
- ** Started on  Thu Oct  5 17:09:00 2000 Daniel Sundberg 
- ** Last update Thu Oct  5 17:09:00 2000 Daniel Sundberg
+ ** ChangeLog:
+ **
+ **   Sat Aug 9 2003 Daniel Sundberg <sumpan@sumpan.com>
+ **     - Coding style
+ **
+ **   Mon June 30 2003 Anatoly Demchishin <demch@iptelecom.net.ua>
+ **     - Various updates
  */
 
 #include "jagsconfig.h"
@@ -32,7 +35,8 @@
 #define __JAGSMOUNTWITHCOMMAND_H
 
 
-class JagsMountWithCommand {
+class JagsMountWithCommand
+{
  private:
   friend gint on_mount_with_command_ok(GtkWidget *, JagsMountWithCommand *);
   friend gint on_mount_with_command_cancel(GtkWidget *, JagsMountWithCommand *);

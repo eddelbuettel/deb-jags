@@ -1,12 +1,11 @@
 BUGS
 ----
 
-There are no current bugs but Jags lacks some features...:-)
+Known bugs:
+- blank name shares happen to list (Wrong charset)
+- cancel in "mount with command" dialog doesn't unshade popup items
+- search dialog met "first TreeItem hiding problem", killed somehow
 
-Please report bugs to: dansun-8@student.luth.se
+Please report bugs to: sumpan@sumpan.com
 
-AND PLEASE REMEMBER:
-If you thikn you've found a bug, please make sure it's 
-a bug and not a feature. 
-
-http://sumpan.campus.luth.se/software/jags/
+http://jags.sf.net

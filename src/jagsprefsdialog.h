@@ -1,6 +1,5 @@
 /*
- **  Jags v0.1
- **  Copyright (C) 2000 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg <sumpan@sumpan.com>
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,18 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  ** 
- ** jagsprefsdialog.h 0.1
- **
+ ** Jags contact information:
  ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
+ ** E-Mail:     sumpan@sumpan.com
+ ** Homepage:   http://jags.sf.net
  ** 
- ** Started on  Tue Jul  11 20:12:00 2000 Daniel Sundberg 
- ** Last update Thu Aug  24 13:42:00 2000 Daniel Sundberg
+ ** ChangeLog:
+ **
+ **   Sat Aug 9 2003 Daniel Sundberg <sumpan@sumpan.com>
+ **     - Coding style
+ **
+ **   Mon June 30 2003 Anatoly Demchishin <demch@iptelecom.net.ua>
+ **     - Various updates
  */
 
 #ifndef __JAGSPREFSDIALOG_H
@@ -31,6 +34,7 @@
 
 #include <gtk/gtk.h>
 #include "jagsconfig.h"
+
 
 class JagsPrefsDialog {
 private:
@@ -42,10 +46,11 @@ private:
   //GtkWidget *pulldown_plugins; 
   //GtkWidget *window;
   JagsConfig *config;
-  friend gint onPluginsChanged(GtkWidget *, GdkEvent *, gpointer, JagsPrefsDialog *pd);
-  friend gint on_cancel(GtkWidget *widget, JagsPrefsDialog *pd);
-  friend gint on_apply(GtkWidget *widget, JagsPrefsDialog *pd);
-  friend gint on_close(GtkWidget *widget, JagsPrefsDialog *pd);
+  friend gint onPluginsChanged(GtkWidget *, GdkEvent *, JagsPrefsDialog *pd);
+  friend gint on_cancel(GtkWidget *widget, JagsConfig *conf);
+  friend gint on_apply(GtkWidget *widget, JagsConfig *conf2);
+  friend gint on_close(GtkWidget *widget, JagsConfig *conf);
+  friend void on_toggle_sound(GtkWidget *widget, JagsConfig *conf);
 
 public:
   JagsPrefsDialog(JagsConfig *iconfig);

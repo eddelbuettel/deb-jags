@@ -3,8 +3,12 @@ Thu,  8 Mar 2001 20:33:33 +0100.
 
 It was downloaded from http://sumpan.campus.luth.se/software/jags/
 
-Upstream Author(s): Daniel Sundberg
+Upstream author: Daniel Sundberg
 
 Copyright:
 
 GNU GPL
+
+The full text of the GNU GPL can be found in /usr/share/common-licenses on
+Debian systems.
+

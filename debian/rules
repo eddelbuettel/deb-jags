@@ -47,13 +47,14 @@ install: build
 	$(MAKE) install prefix=$(CURDIR)/debian/jags/usr PREFIX=$(CURDIR)/debian/jags/usr
 
 
+
 # Build architecture-independent files here.
 binary-indep: build install
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
 binary-arch: build install
-	dh_testversion 2
+	#dh_testversion 2
 	dh_testdir
 	dh_testroot
 #	dh_installdebconf	
@@ -64,14 +65,18 @@ binary-arch: build install
 #	dh_installpam
 #	dh_installinit
 	dh_installcron
-	dh_installmanpages
+	dh_installman debian/jags.1
+	(cd $(CURDIR)/debian/jags/usr/share/man/man1/ && ln -s jags.1 fixsmbcop.1)
 	dh_installinfo
-	dh_undocumented fixsmbcop.1 jags.1
+	dh_undocumented
 	dh_installchangelogs CHANGES
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
+	find $(CURDIR)/debian/jags/usr/share/jags/plugins -type f -exec chmod +x '{}' ';'
+	rm -f "$(CURDIR)/debian/jags/usr/share/jags/plugins/samba-2.0.7.plugin/]"
+	find $(CURDIR)/debian/jags/usr/share/jags/plugins -name echo.sh -exec chmod -x '{}' ';'
 	# You may want to make some executables suid here.
 #	dh_suidregister
 #	dh_makeshlibs

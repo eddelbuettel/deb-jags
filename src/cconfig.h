@@ -1,6 +1,5 @@
 /*
-**  CConfig v0.11
- **  Copyright (C) 2000-2001 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg <sumpan@sumpan.com>
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -15,15 +14,20 @@
  **  You should have received a copy of the GNU General Public License
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- **
- ** cconfig.h
  ** 
+ ** Jags contact information:
  ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
+ ** E-Mail:     sumpan@sumpan.com
+ ** Homepage:   http://jags.sf.net
  ** 
- ** Started on  Mon Jul  3 20:00:00 2000 Daniel Sundberg 
- ** Last update Tue Mar 27 20:34:00 2001 Daniel Sundberg
+ ** ChangeLog:
+ **
+ **   Sat Aug 9 2003 Daniel Sundberg <sumpan@sumpan.com>
+ **     - Coding style
+ **
+ **   Mon June 30 2003 Anatoly Demchishin <demch@iptelecom.net.ua>
+ **     - Various updates
+ **
  */
 
 #ifndef __CCONFIG_H
@@ -34,7 +38,10 @@
 #define MAX_CONFIG_FILENAME_LENGTH 50
 #define MAX_CONFIG_KEYS 50
 
-class CConfig {
+using namespace std;
+
+class CConfig
+{
 private:
   /* Store key first, then data */
   GList *confKeyList;

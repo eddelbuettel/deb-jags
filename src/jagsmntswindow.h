@@ -1,6 +1,5 @@
 /*
- **  JagsMntsWindow v0.1
- **  Copyright (C) 2001 Daniel Sundberg
+ **  Copyright (C) 2001-2003 Daniel Sundberg <sumpan@sumpan.com>
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,18 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** jagsmntswindow.h
- ** 
+ ** Jags contact information:
  ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
+ ** E-Mail:     sumpan@sumpan.com
+ ** Homepage:   http://jags.sf.net
  ** 
- ** Started on  Thu Mar 22 14:59:00 2001 Daniel Sundberg 
- ** Last update Thu Mar 22 23:13:00 2001 Daniel Sundberg 
+ ** ChangeLog:
+ **
+ **   Sat Aug 9 2003 Daniel Sundberg <sumpan@sumpan.com>
+ **     - Coding style
+ **
+ **   Mon June 30 2003 Anatoly Demchishin <demch@iptelecom.net.ua>
+ **     - Various updates
  */
 
 #ifndef __JAGSMNTSWINDOW_H
@@ -33,9 +36,10 @@
 #include "jagsconfig.h"
 #include "mount.h"
 
-class JagsMntsWindow {
+class JagsMntsWindow
+{
 private:
-
+  GList *actual_mounts;
   gchar *browse_path;
   //  gint selected_row, selected_col;
   //  GtkWidget *scrolled_window;
@@ -46,12 +50,17 @@ private:
   friend gint change_mnt_path(GtkWidget *widget, JagsMntsWindow *me);
   friend void selection_made(GtkWidget *, gint, gint, GdkEventButton *, 
 			     gpointer, JagsMntsWindow *);
-  friend gint mw_button_press(GtkWidget *widget, GdkEventButton *event, JagsMntsWindow *me);
+  friend gint mw_button_press(GtkWidget *widget, GdkEventButton *event, 
+			      JagsMntsWindow *me);
+
 public:  
   JagsMntsWindow(Mount *imnt, JagsConfig *iconf);
-  void addMount(gchar *mnt, gchar *mntpath);
-  void update();
-  void show();
+  ~JagsMntsWindow();
+  void addMount(gchar *mnt, gchar *mntpath, gint i=0);
+  void update(void);
+  void show(void);
+  void update_from_kernel(void);
+  void clear_list(void);
 
 };
 

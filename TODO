@@ -1,29 +1,22 @@
 TODO:
 
+- Rewriting plug-in scripts for non Linux users
+- Rewriting plug-in for machine search
+- Better error handling of plug-ins output
+- Adding mounts through automount
+- Add sound to events
 - Use system tmp-files
-
 - Data-class rewrite
-
-- Tree -> CTree (or at least new Tree-widget)
-
-- Redraw all on tree-collapse?
-
 - Threads
-
 - Improve config-class and dialog
-
 - Extra columns in tree view
-
 - Toolbar?
 
-- Single window browsing (windows style)
+Please submit suggestions of new features to:
 
-- Full Sharity Light Support
-	
-Please submit suggestions to new features to me:
-
-****************************
+******************
 Daniel Sundberg
-dansun-8@student.luth.se
-http://sumpan.campus.luth.se
-****************************
+sumpan@sumpan.com
+http://sumpan.com
+http://jags.sf.net
+******************

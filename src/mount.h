@@ -1,6 +1,5 @@
 /*
- **  CMount v0.1
- **  Copyright (C) 2001 Daniel Sundberg
+ **  Copyright (C) 2001-2003 Daniel Sundberg <sumpan@sumpan.com>
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,18 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** data.h
- ** 
+ ** Jags contact information:
  ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
+ ** E-Mail:     sumpan@sumpan.com
+ ** Homepage:   http://jags.sf.net
  ** 
- ** Started on  Sat Feb 17 21:10:00 2001 Daniel Sundberg 
- ** Last update Sat Feb 17 21:10:00 2001 Daniel Sundberg
+ ** ChangeLog:
+ **
+ **   Sat Aug 9 2003 Daniel Sundberg <sumpan@sumpan.com>
+ **     - Coding style
+ **
+ **   Mon June 30 2003 Anatoly Demchishin <demch@iptelecom.net.ua>
+ **     - Various updates
  */
 
 #ifndef __MOUNT_H
@@ -37,20 +40,22 @@
 #define OK 1
 #define ERROR -1
 
-class Mount {
+class Mount
+{
  private:
-  GList *mounts;
   gchar *last_error;
   JagsConfig *cfg;
  public:
+  GList *mounts;
   Mount(JagsConfig *);
-  gint addMount(gchar *iserver, gchar *ishare, gchar *iusername = (gchar *)NULL, gchar *ipassword = (gchar *)NULL);
+  ~Mount();
+
+  gint addMount(gchar *iserver, gchar *ishare, gchar *iworkgroup=(gchar *)NULL, 
+		gchar *irmb=(gchar *)NULL, gchar *iusername=(gchar *)NULL, 
+		gchar *ipassword=(gchar *)NULL );
   gint addMountWithPath(gchar *iservershare, gchar *imountpath);
   gint rmMount(gchar *mnt);
   gchar *getLastError(void);
-  gint uMountAll(void);
-  ~Mount();
-
 };
 
 #endif

@@ -1,6 +1,5 @@
 /*
- **  CMount v0.1
- **  Copyright (C) 2001 Daniel Sundberg
+ **  Copyright (C) 2001-2003 Daniel Sundberg & Anatoly Demchishin
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,23 +15,16 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** mount.cpp
- ** 
- ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
- ** 
- ** Started on  Sat Feb 17 21:10:00 2001 Daniel Sundberg 
- ** Last update Mon Mar  5 21:31:00 2001 Daniel Sundberg
  */
 
 #include <stdlib.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include "mount.h"
 
 //JagsConfig *cfg;
-Mount::Mount(JagsConfig *icfg) {
+Mount::Mount(JagsConfig *icfg)
+{
   cfg = icfg;
   mounts = g_list_alloc();
 }
@@ -45,65 +37,111 @@ Mount::Mount(JagsConfig *icfg) {
  *  1 on success
  * -1 on error, most likely bad password
  */
-gint Mount::addMount(gchar *iserver, gchar *ishare, gchar *iusername, gchar *ipassword) {
-  gchar *server, *share, *ptr, *cmd, *path, *mnt;//, *server_share_string, *command;
+gint Mount::addMount(gchar *iserver, gchar *ishare, gchar *iworkgroup, 
+		     gchar *irmb, gchar *iusername, gchar *ipassword)
+{
+  gchar *server, *share, *ptr, *cmd, *path, *mnt;
+  GList *glist = mounts;
+  gchar *sharemod;
+  gint i;
+  gchar *file = NULL;
+  gchar *buffer = NULL;
   
   /* Prepare the strings */
   server = g_strdup(g_strchomp(iserver)); 
-  g_strup(server);                         // Only uppercase letters in the server-name
+  g_strup(server);   // Only uppercase letters in the server-name
   share  = g_strchomp(ishare);
+
   ptr    = g_strdup(cfg->get_mount_dir());
   ptr    = g_strchomp (ptr);
   path   = getenv("HOME");
-  /* If we didn't get password and username strings */
-  if ((iusername == NULL) && (ipassword == NULL)) {
-    cmd    = g_strdup_printf("sh %s/.jags/plugins/%s/mount_share.sh \"%s\" \"%s\" \"%s/%s\"", path, cfg->get_plugin(), server, share, ptr, server);
-  } else if ((iusername != NULL) && (ipassword == NULL)) {
-    /* If we got username but nu passwd */
-    cmd    = g_strdup_printf("sh %s/.jags/plugins/%s/mount_share_with.sh \"%s\" \"%s\" \"%s/%s\" \"%s\" \"\"", path, cfg->get_plugin(), server, share, ptr, server, iusername);
-  } else {
-    /* If we got both username & passwd */
-    cmd    = g_strdup_printf("sh %s/.jags/plugins/%s/mount_share_with.sh \"%s\" \"%s\" \"%s/%s\" \"%s\" \"%s\"", path, cfg->get_plugin(), server, share, ptr, server, iusername, ipassword);
-  }
-  
-  /* Mount the share */
-  system(cmd);
-  mnt = g_strdup_printf("%s/%s/%s", cfg->get_mount_dir(), server, share);
-  /* Check if the share was mounted */
-  gchar *sharemod = g_strdup(share);
+  sharemod = g_strdup(share);
   g_strdelimit(sharemod, NULL, '_');
-  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/ls_mnts.sh | grep \"//%s/%s\" > %s/.jags/mnterrors",path, cfg->get_plugin(), server, sharemod, path);
-  if (cfg->get_show_debug()) g_print("%s\n", cmd);
+
+  if (iworkgroup == NULL) iworkgroup=g_strdup("");
+  if (irmb == NULL) irmb = g_strdup("");
+
+  //--------------check if the share was already mounted------------------
+  //--------------memory check------------------------------------
+  mnt = g_strdup_printf("%s/%s/%s", cfg->get_mount_dir(), server, share);
+  /* If we already mounted the share we return 2 */
+  if (glist) {
+    while (glist->next) {
+      if (strcmp((gchar *)glist->next->data, mnt) == 0) {
+	if (cfg->get_show_debug()) g_print("Share already mounted\n");
+	return 2;
+      }
+      glist = glist->next;
+    }
+  }
+  //---------------kernel mount check--------------------------------
+  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/ls_mnts.sh | "
+			"grep \"//%s/%s\" > %s/.jags/mnterrors",path, 
+			cfg->get_plugin(), server, sharemod, path);
+  if (cfg->get_show_debug()) g_print("Kernel check: share already mounted...");
   system(cmd);
-  gchar *file = g_strdup_printf("%s/.jags/mnterrors", path);
+  file = g_strdup_printf("%s/.jags/mnterrors", path);
   ifstream onf(file);
-  gint i = 0;
+  i = 0;
   while (onf.good()) {
-    gchar *buffer = g_new(gchar,100);
+    buffer = g_new(gchar,100);
     onf.getline(buffer, 100, '\n');
     i++;
   }
-  if (cfg->get_show_debug()) g_print("%d\n", i);
+  if (cfg->get_show_debug()) g_print("%d time(s)\n", i-1);
+  if (i>1) {
+    if (cfg->get_show_debug()) g_print("%d time(s). Terminating task\n", i);
+    onf.close();
+    return 2;
+  }
+  //---------------------------------------------------------------
+
+  /* If we didn't get password and username strings */
+  if ((iusername == NULL) && (ipassword == NULL)) {
+    iusername = g_strdup("");
+    ipassword = g_strdup("");
+    cmd = g_strdup_printf("sh %s/.jags/plugins/%s/mount_share.sh "
+			  "\"%s\" \"%s\" \"%s/%s\" \"%s\" \"%s\"", path, 
+			  cfg->get_plugin(), server, share, ptr, server, 
+			  iworkgroup, irmb);
+  } else {
+    cmd    = g_strdup_printf("sh %s/.jags/plugins/%s/mount_share_with_remote.sh "
+			     "\"%s\" \"%s\" \"%s/%s\" \"%s\" \"%s\" \"%s\" \"%s\"", 
+			     path, cfg->get_plugin(), server, share, ptr, server, 
+			     iworkgroup, irmb, iusername, ipassword);
+  }  
+
+  if (cfg->get_show_debug()) g_print("%s\n", cmd);
+  /* Mount the share */
+  system(cmd);
+  //  g_print("sharemod = %s\n", sharemod);
+  /* Check if the share was mounted */
+  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/ls_mnts.sh | grep "
+			"\"//%s/%s\" > %s/.jags/mnterrors",path, cfg->get_plugin(), 
+			server, sharemod, path);
+  if (cfg->get_show_debug()) g_print("%s\n", cmd);
+  system(cmd);
+  file = g_strdup_printf("%s/.jags/mnterrors", path);
+  ifstream onf2(file);
+  i = 0;
+  while (onf2.good()) {
+    buffer = g_new(gchar,100);
+    onf2.getline(buffer, 100, '\n');
+    i++;
+  }
+  if (cfg->get_show_debug()) 
+    g_print("quantity of successfull mounts detected: %d\n", i-1);
   if (i<2) {
     if (cfg->get_show_debug()) g_print("Det blev fel!\n");
     /* Here we found errors */
-    onf.close();
+    onf2.close();
     cmd = g_strdup_printf("rm %s", file);
     system(cmd);
     return ERROR;
   } else {
     if (cfg->get_show_debug()) g_print("Everyting's ok\n");
     /* No errors found...add mounted dir to list of mounted shares */
-    /* If we alreade mounted the share we return 2 */
-    GList *glist = mounts;
-    if (glist) {
-      while (glist->next) {
-	if (strcmp((gchar *)glist->next->data, mnt) == 0) {
-	  return 2;
-	}
-	glist = glist->next;
-      }
-    }
+    onf2.close();
     mounts = g_list_append(mounts, (gpointer)mnt);
     return OK;
   }
@@ -111,7 +149,8 @@ gint Mount::addMount(gchar *iserver, gchar *ishare, gchar *iusername, gchar *ipa
   return 0;
 }
 
-gint Mount::addMountWithPath(gchar *iservershare, gchar *imountpath) {
+gint Mount::addMountWithPath(gchar *iservershare, gchar *imountpath)
+{
   gchar *path, *cmd, *server, *share, **mountpaths, *mountpath, *mountpath2;
 
   path = getenv("HOME");
@@ -126,8 +165,9 @@ gint Mount::addMountWithPath(gchar *iservershare, gchar *imountpath) {
 
   if (cfg->get_show_debug()) g_print("%s\n", mountpath2);
 
-  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/mount_share.sh \"%s\" \"%s\" \"%s\"", 
-			path, cfg->get_plugin(), server, share, mountpath2);
+  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/mount_share.sh "
+			"\"%s\" \"%s\" \"%s\"", path, cfg->get_plugin(), 
+			server, share, mountpath2);
   /* Mount the share */
   g_print("%s\n", cmd);
 
@@ -136,7 +176,9 @@ gint Mount::addMountWithPath(gchar *iservershare, gchar *imountpath) {
   gchar *serversharemod = g_strdup(iservershare);
   //  g_print("%s\n", iservershare);
   g_strdelimit(serversharemod, NULL, '_');
-  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/ls_mnts.sh | grep \"%s\" > %s/.jags/mnterrors",path, cfg->get_plugin(), serversharemod, path);
+  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/ls_mnts.sh | "
+			"grep \"%s\" > %s/.jags/mnterrors",path, cfg->get_plugin(), 
+			serversharemod, path);
   if (cfg->get_show_debug()) g_print("%s\n", cmd);
   system(cmd);
   gchar *file = g_strdup_printf("%s/.jags/mnterrors", path);
@@ -149,7 +191,8 @@ gint Mount::addMountWithPath(gchar *iservershare, gchar *imountpath) {
   }
   if (cfg->get_show_debug()) g_print("%d\n", i);
   if (i<2) {
-    if (cfg->get_show_debug()) g_print("An error occured while mounting the share...\n");
+    if (cfg->get_show_debug()) 
+      g_print("An error occured while mounting the share...\n");
     /* Here we found errors */
     onf.close();
     cmd = g_strdup_printf("rm %s", file);
@@ -175,35 +218,52 @@ gint Mount::addMountWithPath(gchar *iservershare, gchar *imountpath) {
   return 0;
 }
 
-gint Mount::rmMount(gchar *mnt) {
-  gchar *cmd, *path;
+gint Mount::rmMount(gchar *mnt)
+{
+  gchar *cmd = NULL, *path = NULL;
+
+  gchar **str;
+  gint j, i = 0, cntr = 0;
+  gchar *deldir = NULL;
+
+  str = g_strsplit(mnt,"/",20);
+  while (str[i] != 0)
+    i++;
+  i -= 2;
+  
+  if (i<0) {
+    g_print("Error while parsing directory to erase\n");
+  } else {
+    for (j=0;j<=i;j++)
+      cntr+=strlen(str[j]);
+    cntr+=i;
+    deldir=g_strndup(mnt,cntr);
+  }
   
   path = getenv("HOME");
-  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/umount.sh \"%s\"", path, cfg->get_plugin(), mnt);
+  cmd = g_strdup_printf("sh %s/.jags/plugins/%s/umount.sh \"%s\" \"%s\"", 
+			path, cfg->get_plugin(), mnt,deldir);
   /* Print some dbug nfo */
-  if (cfg->get_show_debug()) g_print("Unmounting %s...\n", mnt);
+  if (cfg->get_show_debug()) g_print("Unmounting with syscall: %s\n", cmd);
   system(cmd);
+
+  g_strfreev(str);
+  g_free(deldir);  
+
   /* assume it was ssuccessful and remove from list of mounts */
   mounts = g_list_remove(mounts, (gpointer)mnt);
+
   return OK;
 }
 
-gint Mount::uMountAll(void) {
-  GList *glist = g_list_copy(mounts);
-  while (glist->next) {
-    rmMount((gchar *)glist->next->data);
-    glist = glist->next;
-  }
-  g_list_free(glist);
-  return OK;
-}
 
-gchar *Mount::getLastError(void) {
+gchar *Mount::getLastError(void)
+{
   return "error";
 }
 
-Mount::~Mount() {
+Mount::~Mount()
+{
   g_list_free(mounts);
 }
-
 

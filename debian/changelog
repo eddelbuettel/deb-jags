@@ -1,3 +1,29 @@
+jags (0.22.1-2) unstable; urgency=low
+
+  * Upgrade to standards-version 3.6.1
+  * Build-depend on debhelper >> 4.0.0; remove dh_testversion from
+    debian/rules
+  * Written basic manual page jags.1
+  * Refer to common license file in debian/copyright
+  * Remove upstream INSTALL file from package
+  * Make scripts /usr/share/jags/plugins/ executable
+
+ -- Remco van de Meent <remco@debian.org>  Wed,  4 Aug 2004 13:48:09 +0200
+
+jags (0.22.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Remco van de Meent <remco@debian.org>  Sun, 28 Mar 2004 15:59:47 +0200
+
+jags (0.20.2-2) unstable; urgency=medium
+
+  * No root privileges needed anymore (closes: #145671)
+  * Delete empty directories after umount (closes: #145677)
+  * Strip trailing spaces (closes: #145679)
+
+ -- Remco van de Meent <remco@debian.org>  Wed, 15 May 2002 18:49:32 +0200
+
 jags (0.20.2-1) unstable; urgency=low
 
   * New upstream release

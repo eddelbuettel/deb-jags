@@ -1,6 +1,5 @@
 /*
- **  JagsStatusBar v0.1
- **  Copyright (C) 2000 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,6 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** jagsstatusbar.cpp
- ** 
- ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
- ** 
- ** Started on  Mon Jul  3 20:00:00 2000 Daniel Sundberg 
- ** Last update Wed Jul  5 19:28:00 2000 Daniel Sundberg
  */
 
 #include "jagsstatusbar.h"

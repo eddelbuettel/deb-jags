@@ -12,7 +12,9 @@
 # $2 : File for the masterbrowsers.
 #
 if [ -z "$1" ]; then
-    echo "Usage: list_workgroups [MASTERBROWSER]"
+    echo "Usage: list_servers [MASTERBROWSER]"
 else 
-    smbclient -L "$1" -N | cut -b 2-22 | fixsmbcop Server --------- _NEWLINE
+	smbclient -L "$1" -N | cut -b 2-80 | fixsmbcop "Server               Comment" "---------            -------" _NEWLINE > ~/.jags/outfile1.dat
+	cat ~/.jags/outfile1.dat | cut -b 1-21
+	cat ~/.jags/outfile1.dat | cut -b 22-80 > ~/.jags/outfile2.dat
 fi

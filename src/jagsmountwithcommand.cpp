@@ -1,6 +1,5 @@
 /*
- **  JagsMountWithCommand v0.1
- **  Copyright (C) 2000 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg & Anatoly Demchishin
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,18 +15,11 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** jagsmountwithcommand.cpp
- ** 
- ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
- ** 
- ** Started on  Thu Oct  5 17:10:00 2000 Daniel Sundberg 
- ** Last update Thu Oct  5 17:10:00 2000 Daniel Sundberg
  */
 
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <string.h>
 #include "jagsmountwithcommand.h"
 #include "jagsconfig.h"
 #include "gtk_common.h"
@@ -35,8 +27,8 @@
 GtkWidget *entry11;
 GtkWidget *dialog11;
 
-JagsMountWithCommand::JagsMountWithCommand(JagsConfig *conf) {
-
+JagsMountWithCommand::JagsMountWithCommand(JagsConfig *conf)
+{
   GtkWidget *dialog_vbox1;
   GtkWidget *vbox1;
   GtkWidget *label1;
@@ -47,7 +39,7 @@ JagsMountWithCommand::JagsMountWithCommand(JagsConfig *conf) {
 
   dialog11 = gtk_dialog_new ();
   gtk_window_set_title (GTK_WINDOW (dialog11), "Mount with command...");
-  gtk_window_set_policy (GTK_WINDOW (dialog11), TRUE, TRUE, FALSE);
+  gtk_widget_set_usize(dialog11, 500, 200);
 
   dialog_vbox1 = GTK_DIALOG (dialog11)->vbox;
   gtk_widget_show (dialog_vbox1);
@@ -56,9 +48,11 @@ JagsMountWithCommand::JagsMountWithCommand(JagsConfig *conf) {
   gtk_widget_show (vbox1);
   gtk_box_pack_start (GTK_BOX (dialog_vbox1), vbox1, TRUE, TRUE, 0);
 
-  label1 = gtk_label_new("Mount with command (for example, use this when you want to mount a share which is password protected and you want full control of what's executed):");
+  label1 = gtk_label_new("Mount with command\n(For example, use this "
+			 "when you want to mount a share which is password "
+			 "protected and you want full control of what's executed):");
   gtk_widget_show (label1);
-  gtk_box_pack_start (GTK_BOX (vbox1), label1, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox1), label1, TRUE, FALSE, 0);
   gtk_label_set_line_wrap (GTK_LABEL (label1), TRUE);
 
   entry11 = gtk_entry_new ();
@@ -83,25 +77,43 @@ JagsMountWithCommand::JagsMountWithCommand(JagsConfig *conf) {
   gtk_container_add (GTK_CONTAINER (hbuttonbox1), mount_with_cancel);
   GTK_WIDGET_SET_FLAGS (mount_with_cancel, GTK_CAN_DEFAULT);
 
-  gtk_signal_connect (GTK_OBJECT (mount_with_ok), "clicked",
-		      GTK_SIGNAL_FUNC (on_mount_with_command_ok),
-		      NULL);
-  gtk_signal_connect (GTK_OBJECT (mount_with_cancel), "clicked",
-		      GTK_SIGNAL_FUNC (on_mount_with_command_cancel),
-		      NULL);
+  gtk_signal_connect (GTK_OBJECT (mount_with_ok), "clicked", 
+		      GTK_SIGNAL_FUNC (on_mount_with_command_ok), NULL);
+  gtk_signal_connect (GTK_OBJECT (mount_with_cancel), "clicked", 
+		      GTK_SIGNAL_FUNC (on_mount_with_command_cancel), NULL);
   gtk_widget_show(dialog11);
 }
 
 
-JagsMountWithCommand::~JagsMountWithCommand() {
-
+JagsMountWithCommand::~JagsMountWithCommand()
+{
 }
 
-gint on_mount_with_command_ok(GtkWidget *widget, JagsMountWithCommand *mw) {
-  gchar *command = gtk_entry_get_text(GTK_ENTRY(entry11));
-  /* Probably check that we don't do anything nasty here */
-  system(command);
+gint on_mount_with_command_ok(GtkWidget *widget, JagsMountWithCommand *mw)
+{
+  gchar *command = NULL;
+  gboolean flag = TRUE;
+
+  /* check that we don't do anything nasty here */
+  command = gtk_entry_get_text(GTK_ENTRY(entry11));
+  if (strstr(command,"|")) flag = FALSE;
+  if (strstr(command,">")) flag = FALSE;
+  if (strstr(command,"<")) flag = FALSE;
+  if (strstr(command,"rm ")) flag = FALSE;
+  if (strstr(command,"rmdir ")) flag = FALSE;
+  if (strstr(command,"kill ")) flag = FALSE;
+  if (strstr(command,"chmod ")) flag = FALSE;
+  if ( !( (!strstr(command, "mount")) || 
+	  (!strstr(command, "shlight")) || 
+	  (!strstr(command, "smbclient")) )) 
+    flag = FALSE;
+
+  if (flag) 
+    system(command);
+  else 
+    g_print("Banned command. Security risk encountered\n");
   gtk_widget_destroy(dialog11);
+
   return TRUE;
 }
 

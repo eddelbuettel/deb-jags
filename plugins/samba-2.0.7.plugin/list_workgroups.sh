@@ -9,11 +9,9 @@
 # 
 # Args:
 # $1 : Masterbrowser
-# $2 : File for the workgroups.
-# $3 : File for the masterbrowsers.
 #
 if [ -z "$1" ]; then
-    echo "Usage: list_workgroups [MASTERBROWSER]"
+    echo "Usage: list_workgroups.sh [MASTERBROWSER]"
 else 
     smbclient -L $1 -N | cut -b 2-22 | fixsmbcop Workgroup --------- _NEWLINE
 fi

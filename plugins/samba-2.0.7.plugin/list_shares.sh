@@ -10,7 +10,7 @@
 # $1 : Computer
 #
 if [ -z "$1" ]; then
-    echo "Usage: list_sharess [COMPUTER]"
+    echo "Usage: list_shares [COMPUTER]"
 else 
-    smbclient -L $1 -N | cut -b 2-16 | fixsmbcop Sharename --------- _NEWLINE
+    smbclient -L $1 -N | awk '{print $1}' | fixsmbcop Sharename --------- _NEWLINE
 fi
