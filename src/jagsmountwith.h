@@ -37,6 +37,10 @@
 #define __JAGSMOUNTWITH_H
 
 
+class JagsMountWith;
+gint on_mount_with_ok(GtkWidget *, JagsMountWith *);
+gint on_mount_with_cancel(GtkWidget *, JagsMountWith *);
+
 class JagsMountWith {
  private:
   gchar *server_name, *share_name;

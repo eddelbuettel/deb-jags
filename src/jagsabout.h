@@ -31,6 +31,9 @@
 
 #include <gtk/gtk.h>
 
+class JagsAbout;
+gint on_close(GtkWidget *widget, JagsAbout *about);
+
 class JagsAbout
 {
  private:

@@ -36,6 +36,17 @@
 #include "jagsconfig.h"
 #include "mount.h"
 
+class JagsMntsWindow;
+gint close_mntswindow(GtkWidget *widget, JagsMntsWindow *me);
+gint toggle_automount(GtkWidget *widget, JagsMntsWindow *me);
+gint unmount_share(GtkWidget *widget, JagsMntsWindow *me);
+gint mnts_browse(GtkWidget *widget, JagsMntsWindow *me);
+gint change_mnt_path(GtkWidget *widget, JagsMntsWindow *me);
+void selection_made(GtkWidget *, gint, gint, GdkEventButton *, 
+			     gpointer, JagsMntsWindow *);
+gint mw_button_press(GtkWidget *widget, GdkEventButton *event, 
+			      JagsMntsWindow *me);
+
 class JagsMntsWindow
 {
 private:

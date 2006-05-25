@@ -36,6 +36,13 @@
 #include "jagsconfig.h"
 
 
+class JagsPrefsDialog;
+gint onPluginsChanged(GtkWidget *, GdkEvent *, JagsPrefsDialog *pd);
+gint on_cancel(GtkWidget *widget, JagsConfig *conf);
+gint on_apply(GtkWidget *widget, JagsConfig *conf2);
+gint on_close(GtkWidget *widget, JagsConfig *conf);
+void on_toggle_sound(GtkWidget *widget, JagsConfig *conf);
+
 class JagsPrefsDialog {
 private:
   /* Change these to provate again */
