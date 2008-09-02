@@ -1,20 +1,26 @@
-.TH JAGS 1
+.\" Man page contributed by Dirk Eddelbuettel <edd@debian.org> and GPL'ed
+.TH JAGS 1 "15 September 2008" "IARC"
 .SH NAME
-jags \- Just Another Gnome Samba Client
+jags - just another gibbs sampler
 .SH SYNOPSIS
-\fBjags\fP [\-c \fIserver\fR] [\-\-nowindows] [\-h]
+.BR jags\  [--debugger]\ scriptfile
 .SH DESCRIPTION
-\fBjags\fP is Just Another Gtk+ Samba-client. It is a GUI frontend running over Samba and Smbmount using the GTK+ or Gtkmm and Gnomemm toolkits. It's easy to use and very configurable.
+.PP
+\fIjags\fP is a program for analysis of Bayesian hierarchical models using
+Markov Chain Monte Carlo (MCMC) simulation not wholly unlike BUGS. It expects 
+the model to be described in 
+.IR scriptfile .
 .SH OPTIONS
-.TP
-\fB\-c \fIserver\fR
-Server to search for
-.TP
-\fB\-\-nowindows\fR
-Just mount shares in config-file. Do not show Jags main-window.
-.TP
-\fB\-h\fR, \fB\-\-help\fR
-List of options
-.SH AUTHOR 
-\fBjags\fR was written by Daniel Sundberg <dss@homs.se>. This manual page \fBjags\fR(1) was written for the Debian project by Remco van de Meent <remco@debian.org>.
+\fIjags\fP accepts the following options:
+.TP 8
+.I \-\-debugger
+to run under the default debugger 
+.RE
+.SH SEE ALSO
+.IR http://www-fis.iarc.fr/~martyn/software/jags/
+.SH AUTHORS
+Martyn Plummer <jags@iarc.fr>
 
+This manual page was contributed by Dirk Eddelbuettel
+<edd@debian.org> for the Debian GNU/Linux distribution but 
+may be used by others.

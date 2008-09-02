@@ -1,15 +1,23 @@
 Source: jags
-Section: net
+Section: math
 Priority: optional
-Maintainer: Remco van de Meent <remco@debian.org>
-Build-Depends: debhelper (>> 4.0.0), libgtk1.2-dev, automake
-Standards-Version: 3.6.1
+Maintainer: Dirk Eddelbuettel <edd@debian.org>
+Build-Depends: debhelper (>= 7.0.0), gfortran, liblapack-dev
+Standards-Version: 3.8.0
+Homepage: http://www-fis.iarc.fr/~martyn/software/jags/
 
 Package: jags
 Architecture: any
-Depends: smbclient, samba-common, smbfs, ${shlibs:Depends}
-Description: Just Another GTK+ Samba Client
- Jags is a Gtk+ based "windows network neighbourhood browser". The program
- parses the output from smbclient (part of the samba-package) and use this
- to display a graphic view of the network. This program does the parsing
- with help from shell- scripts.
+Depends: ${shlibs:Depends}
+Description: Just Another Gibbs Sampler for Bayesian MCMC simulation
+ JAGS is Just Another Gibbs Sampler.  It is a program for analysis of 
+ Bayesian hierarchical models using Markov Chain Monte Carlo (MCMC) 
+ simulation  not wholly unlike BUGS.  
+ .
+ JAGS was written with three aims in mind: 
+  * To have an engine for the BUGS language that runs on Unix
+  * To be extensible, allowing users to write their own functions, 
+    distributions and samplers.
+  * To be a plaftorm for experimentation with ideas in Bayesian modelling
+
+

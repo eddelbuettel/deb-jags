@@ -1,22 +1,19 @@
-TODO:
+JAGS is now able to run most of the classic BUGS examples. It is now
+in beta.
 
-- Rewriting plug-in scripts for non Linux users
-- Rewriting plug-in for machine search
-- Better error handling of plug-ins output
-- Adding mounts through automount
-- Add sound to events
-- Use system tmp-files
-- Data-class rewrite
-- Threads
-- Improve config-class and dialog
-- Extra columns in tree view
-- Toolbar?
+Goals for version 1.0 are:
+- Removing any bugs
+- Stabilizing the library API
+- Improving speed
+- Reducing memory footprint
 
-Please submit suggestions of new features to:
+Currently working on:
 
-******************
-Daniel Sundberg
-sumpan@sumpan.com
-http://sumpan.com
-http://jags.sf.net
-******************
+- introduce loadable modules (DONE)
+- Gamerman's sampler for GLMs
+- Multivariate slice sampler
+- More efficient mixture model compilation (DONE)
+- Efficient likelihood calculations for discrete data (DONE)
+- Check parameter validity at initialization and update for stochastic nodes
+- Default initialization for top-level stochastic nodes (DONE)
+- Use doubling method for Univariate slice sampler before burnin.
