@@ -1,3 +1,12 @@
+jags (1.0.3-2) unstable; urgency=low
+
+  * configure: Applied one-line patch to allow builds on sh architecture. 
+    Thanks to Nobuhiro Iwamatsu for the patch. 		(Closes: #554347)
+
+  * debian/watch: Addded watch file
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Tue, 03 Nov 2009 22:10:31 -0600
+
 jags (1.0.3-1) unstable; urgency=low
 
   * Initial build

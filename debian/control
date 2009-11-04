@@ -3,12 +3,12 @@ Section: math
 Priority: optional
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
 Build-Depends: debhelper (>= 7.0.0), gfortran, liblapack-dev
-Standards-Version: 3.8.0
+Standards-Version: 3.8.3
 Homepage: http://www-fis.iarc.fr/~martyn/software/jags/
 
 Package: jags
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Just Another Gibbs Sampler for Bayesian MCMC simulation
  JAGS is Just Another Gibbs Sampler.  It is a program for analysis of 
  Bayesian hierarchical models using Markov Chain Monte Carlo (MCMC) 
