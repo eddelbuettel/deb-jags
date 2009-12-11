@@ -1,24 +1,23 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -29,7 +28,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -47,7 +46,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.3"
+#define YYBISON_VERSION "2.4.1"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -55,17 +54,135 @@
 /* Pure parsers.  */
 #define YYPURE 0
 
+/* Push parsers.  */
+#define YYPUSH 0
+
+/* Pull parsers.  */
+#define YYPULL 1
+
 /* Using locations.  */
 #define YYLSP_NEEDED 0
 
 /* Substitute the variable and function names.  */
-#define yyparse zzparse
-#define yylex   zzlex
-#define yyerror zzerror
-#define yylval  zzlval
-#define yychar  zzchar
-#define yydebug zzdebug
-#define yynerrs zznerrs
+#define yyparse         zzparse
+#define yylex           zzlex
+#define yyerror         zzerror
+#define yylval          zzlval
+#define yychar          zzchar
+#define yydebug         zzdebug
+#define yynerrs         zznerrs
+
+
+/* Copy the first part of user declarations.  */
+
+/* Line 189 of yacc.c  */
+#line 2 "parser.yy"
+
+#include <config.h>
+
+#include <errno.h>
+#include <limits.h>
+#include <unistd.h>
+#include <dirent.h>
+
+#include <cstdlib>
+#include <cstdio>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <fstream>
+#include <list>
+#include <iterator>
+
+#include <Console.h>
+#include <compiler/ParseTree.h>
+#include <util/nainf.h>
+#include <cstring>
+#include <ltdl.h>
+
+#include <cstdio>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <fstream>
+#include <list>
+
+#include <Console.h>
+#include <compiler/ParseTree.h>
+#include <util/nainf.h>
+#include <cstring>
+#include <ltdl.h>
+
+//Required for warning about masked distributions after module loading
+#include <deque>
+#include <distribution/Distribution.h>
+#include <compiler/Compiler.h>
+
+#include "ReadData.h"
+
+    typedef void(*pt2Func)();
+
+    int zzerror(const char *);
+    int zzlex();
+    int zzlex_destroy();
+#define YYERROR_VERBOSE 0
+    static Console *console;
+    bool interactive;
+    extern int command_buffer_count;
+    void setName(ParseTree *p, std::string *name);
+    std::map<std::string, SArray> _data_table;
+    std::deque<lt_dlhandle> _modules;
+    bool open_data_buffer(std::string const *name);
+    bool open_command_buffer(std::string const *name);
+    void return_to_main_buffer();
+    void setMonitor(ParseTree const *var, int thin, std::string const &type);
+    void clearMonitor(ParseTree const *var, std::string const &type);
+    void setDefaultMonitors(std::string const &type, unsigned int thin);
+    void doCoda (ParseTree const *var, std::string const &stem);
+    void doAllCoda (std::string const &stem);
+    void doDump (std::string const &file, DumpType type, unsigned int chain);
+    void dumpMonitors(std::string const &file, std::string const &type);
+    void doSystem(std::string const *command);
+
+    static bool getWorkingDirectory(std::string &name);
+    static void errordump();
+    static void updatestar(long niter, long refresh, int width);
+    static void adaptstar(long niter, long refresh, int width);
+    static void setParameters(ParseTree *p, ParseTree *param1);
+    static void setParameters(ParseTree *p, std::vector<ParseTree*> *parameters);
+    static void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2);
+    static void loadModule(std::string const &name);
+    static void dumpSamplers(std::string const &file);
+    static void delete_pvec(std::vector<ParseTree*> *);
+    static void print_unused_variables();
+    
+
+/* Line 189 of yacc.c  */
+#line 168 "parser.cc"
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+
+/* Enabling verbose error messages.  */
+#ifdef YYERROR_VERBOSE
+# undef YYERROR_VERBOSE
+# define YYERROR_VERBOSE 1
+#else
+# define YYERROR_VERBOSE 0
+#endif
+
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
+#endif
 
 
 /* Tokens.  */
@@ -171,117 +288,13 @@
 
 
 
-/* Copy the first part of user declarations.  */
-#line 2 "parser.yy"
-
-#include <config.h>
-
-#include <errno.h>
-#include <limits.h>
-#include <unistd.h>
-#include <dirent.h>
-
-#include <cstdlib>
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <algorithm>
-#include <cmath>
-#include <sstream>
-#include <fstream>
-#include <list>
-#include <iterator>
-
-#include <Console.h>
-#include <compiler/ParseTree.h>
-#include <util/nainf.h>
-#include <cstring>
-#include <ltdl.h>
-
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <algorithm>
-#include <cmath>
-#include <sstream>
-#include <fstream>
-#include <list>
-
-#include <Console.h>
-#include <compiler/ParseTree.h>
-#include <util/nainf.h>
-#include <cstring>
-#include <ltdl.h>
-
-//Required for warning about masked distributions after module loading
-#include <deque>
-#include <distribution/Distribution.h>
-#include <compiler/Compiler.h>
-
-#include "ReadData.h"
-
-    typedef void(*pt2Func)();
-
-    int zzerror(const char *);
-    int zzlex();
-    int zzlex_destroy();
-#define YYERROR_VERBOSE 0
-    static Console *console;
-    bool interactive;
-    extern int command_buffer_count;
-    void setName(ParseTree *p, std::string *name);
-    std::map<std::string, SArray> _data_table;
-    std::deque<lt_dlhandle> _modules;
-    bool open_data_buffer(std::string const *name);
-    bool open_command_buffer(std::string const *name);
-    void close_buffer();
-    void return_to_main_buffer();
-    void setMonitor(ParseTree const *var, int thin, std::string const &type);
-    void clearMonitor(ParseTree const *var, std::string const &type);
-    void setDefaultMonitors(std::string const &type, unsigned int thin);
-    void doCoda (ParseTree const *var, std::string const &stem);
-    void doAllCoda (std::string const &stem);
-    void doDump (std::string const &file, DumpType type, unsigned int chain);
-    void dumpMonitors(std::string const &file, std::string const &type);
-    void doSystem(std::string const *command);
-
-    static bool getWorkingDirectory(std::string &name);
-    static void errordump();
-    static void updatestar(long niter, long refresh, int width);
-    static void adaptstar(long niter, long refresh, int width);
-    static void setParameters(ParseTree *p, ParseTree *param1);
-    static void setParameters(ParseTree *p, std::vector<ParseTree*> *parameters);
-    static void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2);
-    static void loadModule(std::string const &name);
-    static void dumpSamplers(std::string const &file);
-    static void delete_pvec(std::vector<ParseTree*> *);
-    static void print_unused_variables();
-    
-
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE 0
-#endif
-
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE 0
-#endif
-
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 92 "parser.yy"
 {
+
+/* Line 214 of yacc.c  */
+#line 91 "parser.yy"
+
   int intval;
   double val;
   std::string *stringptr;
@@ -289,22 +302,23 @@ typedef union YYSTYPE
   std::vector<ParseTree*> *pvec;
   std::vector<double> *vec;
   std::vector<long> *ivec;
-}
-/* Line 187 of yacc.c.  */
-#line 295 "parser.cc"
-	YYSTYPE;
+
+
+
+/* Line 214 of yacc.c  */
+#line 310 "parser.cc"
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
-# define YYSTYPE_IS_TRIVIAL 1
 #endif
-
 
 
 /* Copy the second part of user declarations.  */
 
 
-/* Line 216 of yacc.c.  */
-#line 308 "parser.cc"
+/* Line 264 of yacc.c  */
+#line 322 "parser.cc"
 
 #ifdef short
 # undef short
@@ -379,14 +393,14 @@ typedef short int yytype_int16;
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static int
-YYID (int i)
+YYID (int yyi)
 #else
 static int
-YYID (i)
-    int i;
+YYID (yyi)
+    int yyi;
 #endif
 {
-  return i;
+  return yyi;
 }
 #endif
 
@@ -467,9 +481,9 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss;
-  YYSTYPE yyvs;
-  };
+  yytype_int16 yyss_alloc;
+  YYSTYPE yyvs_alloc;
+};
 
 /* The size of the maximum gap between one aligned stack and the next.  */
 # define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
@@ -503,12 +517,12 @@ union yyalloc
    elements in the stack, and YYPTR gives the new location of the
    stack.  Advance YYPTR to a properly aligned location for the next
    stack.  */
-# define YYSTACK_RELOCATE(Stack)					\
+# define YYSTACK_RELOCATE(Stack_alloc, Stack)				\
     do									\
       {									\
 	YYSIZE_T yynewbytes;						\
-	YYCOPY (&yyptr->Stack, Stack, yysize);				\
-	Stack = &yyptr->Stack;						\
+	YYCOPY (&yyptr->Stack_alloc, Stack, yysize);			\
+	Stack = &yyptr->Stack_alloc;					\
 	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
 	yyptr += yynewbytes / sizeof (*yyptr);				\
       }									\
@@ -526,7 +540,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  52
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  128
+#define YYNRULES  130
 /* YYNRULES -- Number of states.  */
 #define YYNSTATES  271
 
@@ -585,12 +599,13 @@ static const yytype_uint16 yyprhs[] =
      104,   113,   117,   121,   123,   130,   132,   135,   143,   146,
      154,   156,   158,   163,   165,   169,   171,   175,   177,   179,
      181,   185,   194,   197,   205,   213,   225,   237,   248,   259,
-     266,   270,   279,   283,   292,   294,   296,   299,   307,   310,
-     318,   321,   325,   327,   330,   334,   338,   342,   346,   348,
-     350,   354,   361,   363,   365,   369,   373,   377,   379,   381,
-     386,   388,   393,   395,   399,   401,   403,   407,   409,   413,
-     415,   419,   421,   426,   428,   433,   438,   440,   442,   447,
-     449,   453,   455,   460,   462,   466,   468,   471,   473
+     266,   273,   275,   279,   288,   292,   301,   303,   305,   308,
+     316,   319,   327,   330,   334,   336,   339,   343,   347,   351,
+     355,   357,   359,   363,   370,   372,   374,   378,   382,   386,
+     388,   390,   395,   397,   402,   404,   408,   410,   412,   416,
+     418,   422,   424,   428,   430,   435,   437,   442,   447,   449,
+     451,   456,   458,   462,   464,   469,   471,   475,   477,   480,
+     482
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
@@ -622,46 +637,48 @@ static const yytype_int8 yyrhs[] =
        3,    50,    22,    49,     5,    50,    -1,    21,    48,    25,
       49,     3,    50,    22,    49,     5,    50,    -1,    21,    48,
       22,    49,     5,    50,    25,    49,     3,    50,    -1,    21,
-      48,    22,    49,     5,    50,    -1,    21,    24,    76,    -1,
-      21,    24,    76,    48,    22,    49,     5,    50,    -1,    20,
-      12,    84,    -1,    20,    12,    84,    48,    22,    49,     5,
-      50,    -1,     5,    -1,     6,    -1,    26,    76,    -1,    26,
-      76,    48,    27,    49,    84,    50,    -1,    26,    54,    -1,
-      26,    54,    48,    27,    49,    84,    50,    -1,    31,    84,
-      -1,    32,    12,    84,    -1,    89,    -1,    88,    89,    -1,
-      88,    55,    89,    -1,    90,    40,    91,    -1,    90,    40,
-      94,    -1,    90,    40,     6,    -1,     6,    -1,     5,    -1,
-      56,     5,    56,    -1,    34,    49,    94,    48,    92,    50,
-      -1,    93,    -1,    99,    -1,    92,    48,    99,    -1,    92,
-      48,    93,    -1,    35,    57,    94,    -1,    95,    -1,    96,
-      -1,    42,    49,    96,    50,    -1,    98,    -1,    58,    49,
-      97,    50,    -1,    98,    -1,    97,    48,    98,    -1,     4,
-      -1,    36,    -1,     5,    57,   102,    -1,   101,    -1,   100,
-      48,   101,    -1,   102,    -1,     5,    57,   102,    -1,   103,
-      -1,    42,    49,   103,    50,    -1,   105,    -1,    33,    49,
-     100,    50,    -1,    34,    49,   100,    50,    -1,    37,    -1,
-       4,    -1,    58,    49,   104,    50,    -1,     4,    -1,   104,
-      48,     4,    -1,     6,    -1,    58,    49,   106,    50,    -1,
-       6,    -1,   106,    48,     6,    -1,    45,    -1,    44,    84,
-      -1,    43,    -1,    46,    84,    -1
+      48,    22,    49,     5,    50,    -1,    21,    48,    25,    49,
+       3,    50,    -1,    21,    -1,    21,    24,    76,    -1,    21,
+      24,    76,    48,    22,    49,     5,    50,    -1,    20,    12,
+      84,    -1,    20,    12,    84,    48,    22,    49,     5,    50,
+      -1,     5,    -1,     6,    -1,    26,    76,    -1,    26,    76,
+      48,    27,    49,    84,    50,    -1,    26,    54,    -1,    26,
+      54,    48,    27,    49,    84,    50,    -1,    31,    84,    -1,
+      32,    12,    84,    -1,    89,    -1,    88,    89,    -1,    88,
+      55,    89,    -1,    90,    40,    91,    -1,    90,    40,    94,
+      -1,    90,    40,     6,    -1,     6,    -1,     5,    -1,    56,
+       5,    56,    -1,    34,    49,    94,    48,    92,    50,    -1,
+      93,    -1,    99,    -1,    92,    48,    99,    -1,    92,    48,
+      93,    -1,    35,    57,    94,    -1,    95,    -1,    96,    -1,
+      42,    49,    96,    50,    -1,    98,    -1,    58,    49,    97,
+      50,    -1,    98,    -1,    97,    48,    98,    -1,     4,    -1,
+      36,    -1,     5,    57,   102,    -1,   101,    -1,   100,    48,
+     101,    -1,   102,    -1,     5,    57,   102,    -1,   103,    -1,
+      42,    49,   103,    50,    -1,   105,    -1,    33,    49,   100,
+      50,    -1,    34,    49,   100,    50,    -1,    37,    -1,     4,
+      -1,    58,    49,   104,    50,    -1,     4,    -1,   104,    48,
+       4,    -1,     6,    -1,    58,    49,   106,    50,    -1,     6,
+      -1,   106,    48,     6,    -1,    45,    -1,    44,    84,    -1,
+      43,    -1,    46,    84,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   164,   164,   168,   174,   175,   176,   177,   178,   179,
-     182,   183,   184,   185,   186,   187,   188,   189,   190,   191,
-     192,   193,   194,   195,   196,   197,   198,   199,   200,   203,
-     214,   219,   227,   230,   236,   247,   253,   272,   285,   288,
-     292,   298,   307,   319,   323,   329,   336,   340,   345,   350,
-     355,   358,   361,   367,   370,   375,   378,   384,   387,   388,
-     391,   394,   397,   400,   403,   407,   411,   415,   419,   422,
-     427,   430,   436,   442,   454,   455,   458,   461,   464,   467,
-     472,   475,   484,   487,   490,   495,   498,   503,   511,   512,
-     513,   518,   529,   530,   531,   532,   535,   540,   541,   544,
-     547,   551,   557,   558,   561,   562,   568,   571,   572,   575,
-     576,   579,   580,   581,   582,   583,   584,   587,   588,   591,
-     592,   595,   596,   599,   600,   605,   616,   624,   648
+       0,   163,   163,   167,   173,   174,   175,   176,   177,   178,
+     181,   182,   183,   184,   185,   186,   187,   188,   189,   190,
+     191,   192,   193,   194,   195,   196,   197,   198,   199,   202,
+     213,   218,   226,   229,   235,   246,   252,   271,   284,   287,
+     291,   297,   306,   318,   322,   328,   335,   339,   344,   349,
+     354,   357,   360,   366,   369,   374,   377,   383,   386,   387,
+     390,   393,   396,   399,   402,   406,   410,   414,   418,   421,
+     425,   428,   433,   436,   442,   448,   460,   461,   464,   467,
+     470,   473,   478,   481,   490,   493,   496,   501,   504,   509,
+     517,   518,   519,   524,   535,   536,   537,   538,   541,   546,
+     547,   550,   553,   557,   563,   564,   567,   568,   574,   577,
+     578,   581,   582,   585,   586,   587,   588,   589,   590,   593,
+     594,   597,   598,   601,   602,   605,   606,   611,   622,   630,
+     654
 };
 #endif
 
@@ -716,12 +733,13 @@ static const yytype_uint8 yyr1[] =
       69,    70,    70,    71,    71,    72,    73,    73,    74,    74,
       75,    76,    76,    77,    77,    78,    78,    79,    80,    80,
       81,    81,    81,    81,    81,    81,    81,    81,    81,    81,
-      82,    82,    83,    83,    84,    84,    85,    85,    85,    85,
-      86,    87,    88,    88,    88,    89,    89,    89,    90,    90,
-      90,    91,    92,    92,    92,    92,    93,    94,    94,    95,
-      96,    96,    97,    97,    98,    98,    99,   100,   100,   101,
-     101,   102,   102,   102,   102,   102,   102,   103,   103,   104,
-     104,   105,   105,   106,   106,   107,   108,   109,   110
+      81,    81,    82,    82,    83,    83,    84,    84,    85,    85,
+      85,    85,    86,    87,    88,    88,    88,    89,    89,    89,
+      90,    90,    90,    91,    92,    92,    92,    92,    93,    94,
+      94,    95,    96,    96,    97,    97,    98,    98,    99,   100,
+     100,   101,   101,   102,   102,   102,   102,   102,   102,   103,
+     103,   104,   104,   105,   105,   106,   106,   107,   108,   109,
+     110
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -734,12 +752,13 @@ static const yytype_uint8 yyr2[] =
        8,     3,     3,     1,     6,     1,     2,     7,     2,     7,
        1,     1,     4,     1,     3,     1,     3,     1,     1,     1,
        3,     8,     2,     7,     7,    11,    11,    10,    10,     6,
-       3,     8,     3,     8,     1,     1,     2,     7,     2,     7,
-       2,     3,     1,     2,     3,     3,     3,     3,     1,     1,
-       3,     6,     1,     1,     3,     3,     3,     1,     1,     4,
-       1,     4,     1,     3,     1,     1,     3,     1,     3,     1,
-       3,     1,     4,     1,     4,     4,     1,     1,     4,     1,
-       3,     1,     4,     1,     3,     1,     2,     1,     2
+       6,     1,     3,     8,     3,     8,     1,     1,     2,     7,
+       2,     7,     2,     3,     1,     2,     3,     3,     3,     3,
+       1,     1,     3,     6,     1,     1,     3,     3,     3,     1,
+       1,     4,     1,     4,     1,     3,     1,     1,     3,     1,
+       3,     1,     3,     1,     4,     1,     4,     4,     1,     1,
+       4,     1,     3,     1,     4,     1,     3,     1,     2,     1,
+       2
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -748,33 +767,33 @@ static const yytype_uint8 yyr2[] =
 static const yytype_uint8 yydefact[] =
 {
        2,     0,     1,     0,     0,     4,     0,     0,     0,     0,
-      43,    45,     0,     0,     0,     0,     0,    50,     0,     0,
-     127,     0,   125,     0,     0,     3,     0,    10,    11,    12,
+      43,    45,     0,     0,     0,    71,     0,    50,     0,     0,
+     129,     0,   127,     0,     0,     3,     0,    10,    11,    12,
       32,    13,    14,    15,    38,    16,    17,    18,    19,    24,
       20,    58,    59,    21,    22,    23,    28,    26,    27,    25,
        7,     6,     9,     0,    30,     0,     0,    35,     0,     0,
        0,     0,    46,    48,     0,    51,     0,     0,     0,    62,
-      78,    76,    74,    75,    80,     0,   126,   128,     8,     5,
-      89,    88,     0,     0,    82,     0,     0,    29,    34,    33,
-      42,    41,    39,     0,     0,     0,    72,     0,    60,    70,
-       0,     0,     0,     0,     0,    81,     0,    31,     0,    83,
+      80,    78,    76,    77,    82,     0,   128,   130,     8,     5,
+      91,    90,     0,     0,    84,     0,     0,    29,    34,    33,
+      42,    41,    39,     0,     0,     0,    74,     0,    60,    72,
+       0,     0,     0,     0,     0,    83,     0,    31,     0,    85,
        0,    36,     0,     0,     0,     0,     0,    57,     0,    53,
-      55,     0,     0,     0,     0,     0,     0,     0,     0,    90,
-      84,   104,    87,     0,   105,     0,     0,    85,    86,    97,
-      98,   100,     0,     0,     0,     0,     0,     0,     0,    52,
+      55,     0,     0,     0,     0,     0,     0,     0,     0,    92,
+      86,   106,    89,     0,   107,     0,     0,    87,    88,    99,
+     100,   102,     0,     0,     0,     0,     0,     0,     0,    52,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,    44,     0,     0,     0,    54,    56,
-       0,     0,    69,     0,     0,     0,     0,     0,     0,     0,
-       0,   102,     0,     0,    47,    49,     0,     0,     0,     0,
-       0,    64,    63,    79,    77,     0,    99,     0,   101,     0,
-      40,    73,    61,    71,     0,     0,     0,     0,     0,     0,
-       0,    92,    93,   103,    37,     0,     0,     0,     0,     0,
-       0,     0,    91,    68,    67,     0,     0,   117,   121,     0,
-       0,   116,     0,     0,   106,   111,   113,    96,    95,    94,
-      65,    66,     0,     0,     0,     0,     0,     0,   107,   109,
-       0,     0,     0,   119,   123,     0,     0,     0,     0,   114,
-     115,     0,   112,     0,   118,     0,   122,   110,   108,   120,
-     124
+       0,     0,    69,    70,     0,     0,     0,     0,     0,     0,
+       0,   104,     0,     0,    47,    49,     0,     0,     0,     0,
+       0,    64,    63,    81,    79,     0,   101,     0,   103,     0,
+      40,    75,    61,    73,     0,     0,     0,     0,     0,     0,
+       0,    94,    95,   105,    37,     0,     0,     0,     0,     0,
+       0,     0,    93,    68,    67,     0,     0,   119,   123,     0,
+       0,   118,     0,     0,   108,   113,   115,    98,    97,    96,
+      65,    66,     0,     0,     0,     0,     0,     0,   109,   111,
+       0,     0,     0,   121,   125,     0,     0,     0,     0,   116,
+     117,     0,   114,     0,   120,     0,   124,   112,   110,   122,
+     126
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -1115,17 +1134,20 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_stack_print (yytype_int16 *bottom, yytype_int16 *top)
+yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
 #else
 static void
-yy_stack_print (bottom, top)
-    yytype_int16 *bottom;
-    yytype_int16 *top;
+yy_stack_print (yybottom, yytop)
+    yytype_int16 *yybottom;
+    yytype_int16 *yytop;
 #endif
 {
   YYFPRINTF (stderr, "Stack now");
-  for (; bottom <= top; ++bottom)
-    YYFPRINTF (stderr, " %d", *bottom);
+  for (; yybottom <= yytop; yybottom++)
+    {
+      int yybot = *yybottom;
+      YYFPRINTF (stderr, " %d", yybot);
+    }
   YYFPRINTF (stderr, "\n");
 }
 
@@ -1159,11 +1181,11 @@ yy_reduce_print (yyvsp, yyrule)
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
-      fprintf (stderr, "   $%d = ", yyi + 1);
+      YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
 		       		       );
-      fprintf (stderr, "\n");
+      YYFPRINTF (stderr, "\n");
     }
 }
 
@@ -1443,10 +1465,8 @@ yydestruct (yymsg, yytype, yyvaluep)
 	break;
     }
 }
-
 
 /* Prevent warnings from -Wmissing-prototypes.  */
-
 #ifdef YYPARSE_PARAM
 #if defined __STDC__ || defined __cplusplus
 int yyparse (void *YYPARSE_PARAM);
@@ -1462,11 +1482,10 @@ int yyparse ();
 #endif /* ! YYPARSE_PARAM */
 
 
-
-/* The look-ahead symbol.  */
+/* The lookahead symbol.  */
 int yychar;
 
-/* The semantic value of the look-ahead symbol.  */
+/* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
@@ -1474,9 +1493,9 @@ int yynerrs;
 
 
 
-/*----------.
-| yyparse.  |
-`----------*/
+/*-------------------------.
+| yyparse or yypush_parse.  |
+`-------------------------*/
 
 #ifdef YYPARSE_PARAM
 #if (defined __STDC__ || defined __C99__FUNC__ \
@@ -1500,14 +1519,39 @@ yyparse ()
 #endif
 #endif
 {
-  
-  int yystate;
+
+
+    int yystate;
+    /* Number of tokens to shift before error messages enabled.  */
+    int yyerrstatus;
+
+    /* The stacks and their tools:
+       `yyss': related to states.
+       `yyvs': related to semantic values.
+
+       Refer to the stacks thru separate pointers, to allow yyoverflow
+       to reallocate them elsewhere.  */
+
+    /* The state stack.  */
+    yytype_int16 yyssa[YYINITDEPTH];
+    yytype_int16 *yyss;
+    yytype_int16 *yyssp;
+
+    /* The semantic value stack.  */
+    YYSTYPE yyvsa[YYINITDEPTH];
+    YYSTYPE *yyvs;
+    YYSTYPE *yyvsp;
+
+    YYSIZE_T yystacksize;
+
   int yyn;
   int yyresult;
-  /* Number of tokens to shift before error messages enabled.  */
-  int yyerrstatus;
-  /* Look-ahead token as an internal (translated) token number.  */
-  int yytoken = 0;
+  /* Lookahead token as an internal (translated) token number.  */
+  int yytoken;
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
@@ -1515,51 +1559,28 @@ yyparse ()
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
-  /* Three stacks and their tools:
-     `yyss': related to states,
-     `yyvs': related to semantic values,
-     `yyls': related to locations.
-
-     Refer to the stacks thru separate pointers, to allow yyoverflow
-     to reallocate them elsewhere.  */
-
-  /* The state stack.  */
-  yytype_int16 yyssa[YYINITDEPTH];
-  yytype_int16 *yyss = yyssa;
-  yytype_int16 *yyssp;
-
-  /* The semantic value stack.  */
-  YYSTYPE yyvsa[YYINITDEPTH];
-  YYSTYPE *yyvs = yyvsa;
-  YYSTYPE *yyvsp;
-
-
-
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
-
-  YYSIZE_T yystacksize = YYINITDEPTH;
-
-  /* The variables used to return semantic value and location from the
-     action routines.  */
-  YYSTYPE yyval;
-
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
+
+  yytoken = 0;
+  yyss = yyssa;
+  yyvs = yyvsa;
+  yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY;		/* Cause a token to be read.  */
+  yychar = YYEMPTY; /* Cause a token to be read.  */
 
   /* Initialize stack pointers.
      Waste one element of value and location stack
      so that they stay on the same level as the state stack.
      The wasted elements are never initialized.  */
-
   yyssp = yyss;
   yyvsp = yyvs;
 
@@ -1589,7 +1610,6 @@ yyparse ()
 	YYSTYPE *yyvs1 = yyvs;
 	yytype_int16 *yyss1 = yyss;
 
-
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
 	   conditional around just the two extra args, but that might
@@ -1597,7 +1617,6 @@ yyparse ()
 	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
-
 		    &yystacksize);
 
 	yyss = yyss1;
@@ -1620,9 +1639,8 @@ yyparse ()
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
 	  goto yyexhaustedlab;
-	YYSTACK_RELOCATE (yyss);
-	YYSTACK_RELOCATE (yyvs);
-
+	YYSTACK_RELOCATE (yyss_alloc, yyss);
+	YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
@@ -1633,7 +1651,6 @@ yyparse ()
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
-
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
@@ -1643,6 +1660,9 @@ yyparse ()
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
+  if (yystate == YYFINAL)
+    YYACCEPT;
+
   goto yybackup;
 
 /*-----------.
@@ -1651,16 +1671,16 @@ yyparse ()
 yybackup:
 
   /* Do appropriate processing given the current state.  Read a
-     look-ahead token if we need one and don't already have one.  */
+     lookahead token if we need one and don't already have one.  */
 
-  /* First try to decide what to do without reference to look-ahead token.  */
+  /* First try to decide what to do without reference to lookahead token.  */
   yyn = yypact[yystate];
   if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a look-ahead token if don't already have one.  */
+  /* Not known => get a lookahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
@@ -1692,20 +1712,16 @@ yybackup:
       goto yyreduce;
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   /* Count tokens shifted since error; after three, turn off error
      status.  */
   if (yyerrstatus)
     yyerrstatus--;
 
-  /* Shift the look-ahead token.  */
+  /* Shift the lookahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
-  /* Discard the shifted token unless it is eof.  */
-  if (yychar != YYEOF)
-    yychar = YYEMPTY;
+  /* Discard the shifted token.  */
+  yychar = YYEMPTY;
 
   yystate = yyn;
   *++yyvsp = yylval;
@@ -1745,7 +1761,9 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 164 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 163 "parser.yy"
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1753,7 +1771,9 @@ yyreduce:
     break;
 
   case 3:
-#line 168 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 167 "parser.yy"
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1761,37 +1781,51 @@ yyreduce:
     break;
 
   case 4:
-#line 174 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 173 "parser.yy"
     {}
     break;
 
   case 5:
-#line 175 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 174 "parser.yy"
     {}
     break;
 
   case 6:
-#line 176 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 175 "parser.yy"
     {if(interactive) yyerrok; else exit(1); }
     break;
 
   case 7:
-#line 177 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 176 "parser.yy"
     {}
     break;
 
   case 8:
-#line 178 "parser.yy"
-    { close_buffer();}
+
+/* Line 1455 of yacc.c  */
+#line 177 "parser.yy"
+    {}
     break;
 
   case 9:
-#line 179 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 178 "parser.yy"
     { doSystem((yyvsp[(1) - (2)].stringptr)); delete (yyvsp[(1) - (2)].stringptr);}
     break;
 
   case 29:
-#line 203 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 202 "parser.yy"
     {
     std::FILE *file = std::fopen(((yyvsp[(3) - (3)].stringptr))->c_str(), "r");
     if (!file) {
@@ -1806,14 +1840,18 @@ yyreduce:
     break;
 
   case 30:
-#line 214 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 213 "parser.yy"
     {
     console->clearModel();
 }
     break;
 
   case 31:
-#line 219 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 218 "parser.yy"
     {
     std::string rngname;
     readRData((yyvsp[(2) - (3)].pvec), _data_table, rngname);
@@ -1825,12 +1863,16 @@ yyreduce:
     break;
 
   case 32:
-#line 227 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 226 "parser.yy"
     {}
     break;
 
   case 33:
-#line 230 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 229 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_DATA, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -1838,7 +1880,9 @@ yyreduce:
     break;
 
   case 34:
-#line 236 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 235 "parser.yy"
     {
     if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
 	std::cout << "Reading data file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
@@ -1851,7 +1895,9 @@ yyreduce:
     break;
 
   case 35:
-#line 247 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 246 "parser.yy"
     {
   std::cout << "Clearing data table " << std::endl;
   _data_table.clear();
@@ -1859,7 +1905,9 @@ yyreduce:
     break;
 
   case 36:
-#line 254 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 253 "parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -1881,7 +1929,9 @@ yyreduce:
     break;
 
   case 37:
-#line 273 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 272 "parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -1897,12 +1947,16 @@ yyreduce:
     break;
 
   case 38:
-#line 285 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 284 "parser.yy"
     {}
     break;
 
   case 39:
-#line 288 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 287 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_PARAMETERS, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -1910,7 +1964,9 @@ yyreduce:
     break;
 
   case 40:
-#line 292 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 291 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (8)].stringptr), DUMP_PARAMETERS, (yyvsp[(7) - (8)].intval));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -1918,7 +1974,9 @@ yyreduce:
     break;
 
   case 41:
-#line 298 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 297 "parser.yy"
     {
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
     std::cout << "Reading parameter file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
@@ -1931,7 +1989,9 @@ yyreduce:
     break;
 
   case 42:
-#line 307 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 306 "parser.yy"
     {
   /* Legacy option to not break existing scripts */
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
@@ -1945,7 +2005,9 @@ yyreduce:
     break;
 
   case 43:
-#line 319 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 318 "parser.yy"
     {
     console->compile(_data_table, 1, true);
     print_unused_variables();
@@ -1953,7 +2015,9 @@ yyreduce:
     break;
 
   case 44:
-#line 323 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 322 "parser.yy"
     {
     console->compile(_data_table, (yyvsp[(5) - (6)].intval), true);
     print_unused_variables();
@@ -1961,7 +2025,9 @@ yyreduce:
     break;
 
   case 45:
-#line 329 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 328 "parser.yy"
     {
   if (!console->initialize()) {
     errordump();
@@ -1970,7 +2036,9 @@ yyreduce:
     break;
 
   case 46:
-#line 336 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 335 "parser.yy"
     {
     long refresh = (yyvsp[(2) - (2)].intval)/40;
     adaptstar((yyvsp[(2) - (2)].intval), refresh, 40);
@@ -1978,14 +2046,18 @@ yyreduce:
     break;
 
   case 47:
-#line 340 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 339 "parser.yy"
     {
     adaptstar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval),40);
 }
     break;
 
   case 48:
-#line 345 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 344 "parser.yy"
     {
   //fixme: put refresh option
   long refresh = (yyvsp[(2) - (2)].intval)/40;
@@ -1994,26 +2066,34 @@ yyreduce:
     break;
 
   case 49:
-#line 350 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 349 "parser.yy"
     {
   updatestar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval), 40);
 }
     break;
 
   case 50:
-#line 355 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 354 "parser.yy"
     {return 0;}
     break;
 
   case 51:
-#line 358 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 357 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (1)].stringptr));
 }
     break;
 
   case 52:
-#line 361 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 360 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (4)].stringptr));
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
@@ -2021,68 +2101,88 @@ yyreduce:
     break;
 
   case 53:
-#line 367 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 366 "parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); 
 }
     break;
 
   case 54:
-#line 370 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 369 "parser.yy"
     {
   (yyval.pvec)=(yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
     break;
 
   case 55:
-#line 375 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 374 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree),(yyvsp[(1) - (1)].ptree));
 }
     break;
 
   case 56:
-#line 378 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 377 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree), (yyvsp[(1) - (3)].ptree), (yyvsp[(3) - (3)].ptree));
 }
     break;
 
   case 57:
-#line 384 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 383 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].intval));}
     break;
 
   case 60:
-#line 391 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 390 "parser.yy"
     { 
     setMonitor((yyvsp[(3) - (3)].ptree), 1, "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
     break;
 
   case 61:
-#line 394 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 393 "parser.yy"
     { 
     setMonitor((yyvsp[(3) - (8)].ptree), (yyvsp[(7) - (8)].intval), "trace"); delete (yyvsp[(3) - (8)].ptree);
 }
     break;
 
   case 62:
-#line 397 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 396 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (2)].ptree), 1, "trace"); delete (yyvsp[(2) - (2)].ptree);
 }
     break;
 
   case 63:
-#line 400 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 399 "parser.yy"
     { 
     setMonitor((yyvsp[(2) - (7)].ptree), (yyvsp[(6) - (7)].intval), "trace"); delete (yyvsp[(2) - (7)].ptree);
 }
     break;
 
   case 64:
-#line 403 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 402 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (7)].ptree), 1, *(yyvsp[(6) - (7)].stringptr));
     delete (yyvsp[(6) - (7)].stringptr);
@@ -2090,7 +2190,9 @@ yyreduce:
     break;
 
   case 65:
-#line 407 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 406 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(10) - (11)].intval), *(yyvsp[(6) - (11)].stringptr)); 
     delete (yyvsp[(6) - (11)].stringptr);
@@ -2098,7 +2200,9 @@ yyreduce:
     break;
 
   case 66:
-#line 411 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 410 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(6) - (11)].intval), *(yyvsp[(10) - (11)].stringptr)); 
     delete (yyvsp[(10) - (11)].stringptr);
@@ -2106,7 +2210,9 @@ yyreduce:
     break;
 
   case 67:
-#line 415 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 414 "parser.yy"
     {
     setDefaultMonitors(*(yyvsp[(9) - (10)].stringptr), (yyvsp[(5) - (10)].intval));
     delete (yyvsp[(9) - (10)].stringptr);
@@ -2114,44 +2220,75 @@ yyreduce:
     break;
 
   case 68:
-#line 419 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 418 "parser.yy"
     {
     setDefaultMonitors(*(yyvsp[(5) - (10)].stringptr), (yyvsp[(9) - (10)].intval));
 }
     break;
 
   case 69:
-#line 422 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 421 "parser.yy"
     {
     setDefaultMonitors(*(yyvsp[(5) - (6)].stringptr), 1);
+    delete (yyvsp[(5) - (6)].stringptr);
 }
     break;
 
   case 70:
-#line 427 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 425 "parser.yy"
+    {
+    setDefaultMonitors("trace", (yyvsp[(5) - (6)].intval));
+}
+    break;
+
+  case 71:
+
+/* Line 1455 of yacc.c  */
+#line 428 "parser.yy"
+    {
+    setDefaultMonitors("trace", 1);
+}
+    break;
+
+  case 72:
+
+/* Line 1455 of yacc.c  */
+#line 433 "parser.yy"
     {
     clearMonitor((yyvsp[(3) - (3)].ptree), "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
     break;
 
-  case 71:
-#line 430 "parser.yy"
+  case 73:
+
+/* Line 1455 of yacc.c  */
+#line 436 "parser.yy"
     {
     clearMonitor((yyvsp[(3) - (8)].ptree), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(7) - (8)].stringptr);
 }
     break;
 
-  case 72:
-#line 437 "parser.yy"
+  case 74:
+
+/* Line 1455 of yacc.c  */
+#line 443 "parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (3)].stringptr), "trace");
     delete (yyvsp[(3) - (3)].stringptr);
 }
     break;
 
-  case 73:
-#line 442 "parser.yy"
+  case 75:
+
+/* Line 1455 of yacc.c  */
+#line 448 "parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (8)].stringptr), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -2159,87 +2296,113 @@ yyreduce:
 }
     break;
 
-  case 74:
-#line 454 "parser.yy"
+  case 76:
+
+/* Line 1455 of yacc.c  */
+#line 460 "parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr);}
     break;
 
-  case 75:
-#line 455 "parser.yy"
+  case 77:
+
+/* Line 1455 of yacc.c  */
+#line 461 "parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr); }
     break;
 
-  case 76:
-#line 458 "parser.yy"
+  case 78:
+
+/* Line 1455 of yacc.c  */
+#line 464 "parser.yy"
     {
   doCoda ((yyvsp[(2) - (2)].ptree), "CODA"); delete (yyvsp[(2) - (2)].ptree);
 }
     break;
 
-  case 77:
-#line 461 "parser.yy"
+  case 79:
+
+/* Line 1455 of yacc.c  */
+#line 467 "parser.yy"
     {
   doCoda ((yyvsp[(2) - (7)].ptree), *(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(2) - (7)].ptree); delete (yyvsp[(6) - (7)].stringptr);
 }
     break;
 
-  case 78:
-#line 464 "parser.yy"
+  case 80:
+
+/* Line 1455 of yacc.c  */
+#line 470 "parser.yy"
     {
   doAllCoda ("CODA"); 
 }
     break;
 
-  case 79:
-#line 467 "parser.yy"
+  case 81:
+
+/* Line 1455 of yacc.c  */
+#line 473 "parser.yy"
     {
   doAllCoda (*(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(6) - (7)].stringptr); 
 }
     break;
 
-  case 80:
-#line 472 "parser.yy"
+  case 82:
+
+/* Line 1455 of yacc.c  */
+#line 478 "parser.yy"
     { loadModule(*(yyvsp[(2) - (2)].stringptr)); }
     break;
 
-  case 81:
-#line 476 "parser.yy"
+  case 83:
+
+/* Line 1455 of yacc.c  */
+#line 482 "parser.yy"
     {
     dumpSamplers(*(yyvsp[(3) - (3)].stringptr));
     delete (yyvsp[(3) - (3)].stringptr);
 }
     break;
 
-  case 82:
-#line 484 "parser.yy"
+  case 84:
+
+/* Line 1455 of yacc.c  */
+#line 490 "parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree));
 }
     break;
 
-  case 83:
-#line 487 "parser.yy"
+  case 85:
+
+/* Line 1455 of yacc.c  */
+#line 493 "parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (2)].pvec); (yyval.pvec)->push_back((yyvsp[(2) - (2)].ptree));
 }
     break;
 
-  case 84:
-#line 490 "parser.yy"
+  case 86:
+
+/* Line 1455 of yacc.c  */
+#line 496 "parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
     break;
 
-  case 85:
-#line 495 "parser.yy"
+  case 87:
+
+/* Line 1455 of yacc.c  */
+#line 501 "parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
 }
     break;
 
-  case 86:
-#line 498 "parser.yy"
+  case 88:
+
+/* Line 1455 of yacc.c  */
+#line 504 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY);
   setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2247,8 +2410,10 @@ yyreduce:
 }
     break;
 
-  case 87:
-#line 503 "parser.yy"
+  case 89:
+
+/* Line 1455 of yacc.c  */
+#line 509 "parser.yy"
     {
   /* Allow this for setting the NAME of the random number generator */
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2257,16 +2422,20 @@ yyreduce:
 }
     break;
 
-  case 90:
-#line 513 "parser.yy"
+  case 92:
+
+/* Line 1455 of yacc.c  */
+#line 519 "parser.yy"
     {
     /* R >= 2.4.0 uses backticks for quoted names */
     (yyval.stringptr) = (yyvsp[(2) - (3)].stringptr);
 }
     break;
 
-  case 91:
-#line 518 "parser.yy"
+  case 93:
+
+/* Line 1455 of yacc.c  */
+#line 524 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY); 
   if ((yyvsp[(5) - (6)].ptree)) 
@@ -2276,156 +2445,214 @@ yyreduce:
 }
     break;
 
-  case 93:
-#line 530 "parser.yy"
+  case 95:
+
+/* Line 1455 of yacc.c  */
+#line 536 "parser.yy"
     {(yyval.ptree)=0;}
     break;
 
-  case 95:
-#line 532 "parser.yy"
+  case 97:
+
+/* Line 1455 of yacc.c  */
+#line 538 "parser.yy"
     {(yyval.ptree)=(yyvsp[(3) - (3)].ptree);}
     break;
 
-  case 96:
-#line 535 "parser.yy"
+  case 98:
+
+/* Line 1455 of yacc.c  */
+#line 541 "parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree);
 }
     break;
 
-  case 99:
-#line 544 "parser.yy"
+  case 101:
+
+/* Line 1455 of yacc.c  */
+#line 550 "parser.yy"
     {(yyval.ptree) = (yyvsp[(3) - (4)].ptree);}
     break;
 
-  case 100:
-#line 547 "parser.yy"
+  case 102:
+
+/* Line 1455 of yacc.c  */
+#line 553 "parser.yy"
     { 
   (yyval.ptree) = new ParseTree(P_VECTOR); 
   setParameters((yyval.ptree), (yyvsp[(1) - (1)].ptree));
 }
     break;
 
-  case 101:
-#line 551 "parser.yy"
+  case 103:
+
+/* Line 1455 of yacc.c  */
+#line 557 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VECTOR);
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
 }
     break;
 
-  case 102:
-#line 557 "parser.yy"
+  case 104:
+
+/* Line 1455 of yacc.c  */
+#line 563 "parser.yy"
     {(yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); }
     break;
 
-  case 103:
-#line 558 "parser.yy"
+  case 105:
+
+/* Line 1455 of yacc.c  */
+#line 564 "parser.yy"
     {(yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));}
     break;
 
-  case 104:
-#line 561 "parser.yy"
+  case 106:
+
+/* Line 1455 of yacc.c  */
+#line 567 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].val));}
     break;
 
-  case 105:
-#line 562 "parser.yy"
+  case 107:
+
+/* Line 1455 of yacc.c  */
+#line 568 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
     break;
 
-  case 106:
-#line 568 "parser.yy"
-    {;}
-    break;
-
-  case 107:
-#line 571 "parser.yy"
-    {;}
-    break;
-
   case 108:
-#line 572 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 574 "parser.yy"
     {;}
     break;
 
   case 109:
-#line 575 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 577 "parser.yy"
     {;}
     break;
 
   case 110:
-#line 576 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 578 "parser.yy"
     {;}
     break;
 
   case 111:
-#line 579 "parser.yy"
-    {;}
-    break;
 
-  case 112:
-#line 580 "parser.yy"
-    {;}
-    break;
-
-  case 113:
+/* Line 1455 of yacc.c  */
 #line 581 "parser.yy"
     {;}
     break;
 
-  case 114:
+  case 112:
+
+/* Line 1455 of yacc.c  */
 #line 582 "parser.yy"
     {;}
     break;
 
+  case 113:
+
+/* Line 1455 of yacc.c  */
+#line 585 "parser.yy"
+    {;}
+    break;
+
+  case 114:
+
+/* Line 1455 of yacc.c  */
+#line 586 "parser.yy"
+    {;}
+    break;
+
   case 115:
-#line 583 "parser.yy"
-    {;}
-    break;
 
-  case 116:
-#line 584 "parser.yy"
-    {;}
-    break;
-
-  case 117:
+/* Line 1455 of yacc.c  */
 #line 587 "parser.yy"
     {;}
     break;
 
-  case 119:
-#line 591 "parser.yy"
+  case 116:
+
+/* Line 1455 of yacc.c  */
+#line 588 "parser.yy"
     {;}
     break;
 
-  case 120:
-#line 592 "parser.yy"
+  case 117:
+
+/* Line 1455 of yacc.c  */
+#line 589 "parser.yy"
+    {;}
+    break;
+
+  case 118:
+
+/* Line 1455 of yacc.c  */
+#line 590 "parser.yy"
+    {;}
+    break;
+
+  case 119:
+
+/* Line 1455 of yacc.c  */
+#line 593 "parser.yy"
     {;}
     break;
 
   case 121:
-#line 595 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 597 "parser.yy"
     {;}
     break;
 
   case 122:
-#line 596 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 598 "parser.yy"
     {;}
     break;
 
   case 123:
-#line 599 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 601 "parser.yy"
     {;}
     break;
 
   case 124:
-#line 600 "parser.yy"
+
+/* Line 1455 of yacc.c  */
+#line 602 "parser.yy"
     {;}
     break;
 
   case 125:
+
+/* Line 1455 of yacc.c  */
+#line 605 "parser.yy"
+    {;}
+    break;
+
+  case 126:
+
+/* Line 1455 of yacc.c  */
 #line 606 "parser.yy"
+    {;}
+    break;
+
+  case 127:
+
+/* Line 1455 of yacc.c  */
+#line 612 "parser.yy"
     {
     std::string name;
     if (getWorkingDirectory(name)) {
@@ -2437,8 +2664,10 @@ yyreduce:
 }
     break;
 
-  case 126:
-#line 617 "parser.yy"
+  case 128:
+
+/* Line 1455 of yacc.c  */
+#line 623 "parser.yy"
     {
     if (chdir(((yyvsp[(2) - (2)].stringptr))->c_str()) == -1) {
 	std::cout << "ERROR: Cannot change working directory" << std::endl;
@@ -2447,8 +2676,10 @@ yyreduce:
 }
     break;
 
-  case 127:
-#line 625 "parser.yy"
+  case 129:
+
+/* Line 1455 of yacc.c  */
+#line 631 "parser.yy"
     {
     std::string name;
     if (!getWorkingDirectory(name)) {
@@ -2473,8 +2704,10 @@ yyreduce:
 }
     break;
 
-  case 128:
-#line 648 "parser.yy"
+  case 130:
+
+/* Line 1455 of yacc.c  */
+#line 654 "parser.yy"
     {
     if(open_command_buffer((yyvsp[(2) - (2)].stringptr))) {
 	std::cout << "Running script file " << *(yyvsp[(2) - (2)].stringptr) << std::endl;
@@ -2487,8 +2720,9 @@ yyreduce:
     break;
 
 
-/* Line 1267 of yacc.c.  */
-#line 2492 "parser.cc"
+
+/* Line 1455 of yacc.c  */
+#line 2726 "parser.cc"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2498,7 +2732,6 @@ yyreduce:
   YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
-
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -2564,7 +2797,7 @@ yyerrlab:
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse look-ahead token after an
+      /* If just tried and failed to reuse lookahead token after an
 	 error, discard it.  */
 
       if (yychar <= YYEOF)
@@ -2581,7 +2814,7 @@ yyerrlab:
 	}
     }
 
-  /* Else will try to reuse look-ahead token after shifting the error
+  /* Else will try to reuse lookahead token after shifting the error
      token.  */
   goto yyerrlab1;
 
@@ -2638,9 +2871,6 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   *++yyvsp = yylval;
 
 
@@ -2665,7 +2895,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#ifndef yyoverflow
+#if !defined(yyoverflow) || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -2676,7 +2906,7 @@ yyexhaustedlab:
 #endif
 
 yyreturn:
-  if (yychar != YYEOF && yychar != YYEMPTY)
+  if (yychar != YYEMPTY)
      yydestruct ("Cleanup: discarding lookahead",
 		 yytoken, &yylval);
   /* Do not reclaim the symbols of the rule which action triggered
@@ -2702,7 +2932,9 @@ yyreturn:
 }
 
 
-#line 659 "parser.yy"
+
+/* Line 1675 of yacc.c  */
+#line 665 "parser.yy"
 
 
 int zzerror (const char *s)

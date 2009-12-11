@@ -1,3 +1,21 @@
+jags (1.0.4-1) unstable; urgency=low
+
+  * New upstream release containing new libltdl/ from libtool 2.2.6b 
+    in regards to CVE-2009-3736[0] 			(Closes: #559816)
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Thu, 10 Dec 2009 22:41:47 -0600
+
+jags (1.0.3-3) unstable; urgency=low
+
+  * libltdl: Built against new libtool version 2.2.6b -- CVE-2009-3736[0]
+    						 	(Closes: #559816)
+  * debian/control: Increased Build-Depends: on libtool to (>= 2.2.6b)
+  
+  * debian/rules: Added 'libtoolize --ltdl --force' to updated the 
+    libltdl/ directory to the new and updated upstream libtool version
+  
+ -- Dirk Eddelbuettel <edd@debian.org>  Mon, 07 Dec 2009 21:49:41 -0600
+
 jags (1.0.3-2) unstable; urgency=low
 
   * configure: Applied one-line patch to allow builds on sh architecture. 

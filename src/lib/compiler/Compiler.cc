@@ -249,23 +249,20 @@ Range Compiler::VariableSubsetRange(ParseTree const *var)
     // It's a declared node
     vector<ParseTree*> const &range_list = var->parameters();
     
-    bool ok = true;
     if (range_list.empty()) {
-      ok = (array->range().ndim(false) == 1);
+	//Missing range implies the whole node
+	return array->range();
     }
-    else {
-      ok = (range_list.size() == array->range().ndim(false));
-    }
-    if (!ok) {
-      throw runtime_error(string("Dimension mismatch in subset expression ")
-			  + "of variable " + name);
+    if (range_list.size() != array->range().ndim(false)) {
+	throw runtime_error(string("Dimension mismatch in subset expression") +
+			    " of variable " + name);
     }
     Range range = getRange(var, array->range());
     if (isNULL(range)) {
-      throw runtime_error(string("Missing values in subset expression ") 
-			  + "of variable " + name);
+	throw runtime_error(string("Missing values in subset expression ") 
+			    + "of variable " + name);
     }
-    return range;
+	return range;
   }
   else {
       // Undeclared node
@@ -463,7 +460,7 @@ static Distribution const *getDistribution(ParseTree const *pstoch_rel,
 Node *Compiler::getLength(ParseTree const *p, SymTab const &symtab)
 {
     if (p->treeClass() != P_LENGTH) {
-	throw logic_error("Malformed parse tree. Expecting length expression");
+	throw logic_error("Malformed parse tree. Expecting dim expression");
     }
     ParseTree const *var = p->parameters()[0];
     if (var->treeClass() != P_VAR) {
@@ -687,21 +684,20 @@ Node * Compiler::allocateStochastic(ParseTree const *stoch_relation)
         Range const &data_range = q->second.range();
 
 	Range target_range = VariableSubsetRange(var);
-	bool isdata = true;
+	unsigned int nmissing = 0;
 	SArray this_data(target_range.dim(true));
 	unsigned int i = 0;
 	for (RangeIterator p(target_range); !p.atEnd(); p.nextLeft()) {
 	    unsigned int j = data_range.leftOffset(p);
 	    if (data_value[j] == JAGS_NA) {
-		isdata = false;
-		break;
+		++nmissing;
 	    }
 	    else {
 		this_data.setValue(data_value[j], i++);
 	    }
 	}
 
-	if (isdata) {
+	if (nmissing == 0) {
 	    snode = new StochasticNode(dist, parameters, lBound, uBound);
 	    if (this_data.dim(true) != drop(snode->dim())) {
 		string msg = "Dimension mismatch between node and data:\n";
@@ -712,6 +708,9 @@ Node * Compiler::allocateStochastic(ParseTree const *stoch_relation)
 		throw NodeError(snode, msg);
 	    }
 	    snode->setObserved(this_data.value());
+	}
+	else if (nmissing != this_data.length()) {
+	    throw NodeError(snode, "Node cannot be partially missing");
 	}
     }
  
@@ -804,6 +803,9 @@ void Compiler::setConstantMask(ParseTree const *rel)
     }
     Range range = VariableSubsetRange(var);
     Range const &var_range = q->second.range();
+    if (!var_range.contains(range)) {
+	throw logic_error("Invalid range in Compiler::setConstantMask.");
+    }
     vector<bool> &mask = p->second;
     for (RangeIterator i(range); !i.atEnd(); i.nextLeft()) {
 	mask[var_range.leftOffset(i)] = false;
@@ -1000,7 +1002,7 @@ void Compiler::declareVariables(vector<ParseTree*> const &dec_list)
 				    + name);
 	    }
 	    if (dim_i <= 0) {
-		throw runtime_error(string("Non-positive dimension for node") 
+		throw runtime_error(string("Non-positive dimension for node ") 
 				    + name);
 	    }
 	    dim[i] = static_cast<unsigned int>(dim_i);
