@@ -1,3 +1,9 @@
+jags (1.0.4-3) unstable; urgency=low
+
+  * debian/control: Tighten Build-Depends to libltdl-dev (>= 2.2.6b)
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sat, 12 Dec 2009 16:34:46 -0600
+
 jags (1.0.4-2) unstable; urgency=low
 
   * debian/control: Add Build-Depends: on libltdl3-dev
