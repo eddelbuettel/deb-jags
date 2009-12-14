@@ -1,3 +1,10 @@
+jags (1.0.4-4) unstable; urgency=low
+
+  * configure: Applied patch by Nobuhiro Iwamatsu to support the
+    SH architecture 					(Closes: #561050)
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sun, 13 Dec 2009 19:26:57 -0600
+
 jags (1.0.4-3) unstable; urgency=low
 
   * debian/control: Tighten Build-Depends to libltdl-dev (>= 2.2.6b)
