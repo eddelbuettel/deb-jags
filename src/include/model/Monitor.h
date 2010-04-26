@@ -16,41 +16,23 @@ class Node;
  */
 class Monitor {
     std::string _type;
-    Node const * _node;
-    unsigned int _start;
-    unsigned int _thin;
-    unsigned int _niter;
+    std::vector<Node const *> _nodes;
+    std::string _name;
+    std::vector<std::string> _elt_names;
 public:
-    Monitor(std::string const &type, Node const *nodes, unsigned int start,
-            unsigned int thin);
+    Monitor(std::string const &type, std::vector<Node const *> const &nodes);
+    Monitor(std::string const &type, Node const *node);
     virtual ~Monitor();
     /**
      * Updates the monitor. If the iteration number coincides with
      * the thinning interval, then the doUpdate function is called.
-     *
-     * @param iteration The current iteration number.
      */
-    void update(unsigned int iteration);
+    virtual void update() = 0;
     /**
-     * Returns the sampled Node
+     * Returns the vector of nodes from which the monitors value is
+     * derived.
      */
-    Node const *node() const;
-    /**
-     * @returns the iteration number at which the node started monitoring.  
-     */
-    unsigned int start() const; 
-    /**
-     * @returns The last monitored iteration
-     */
-    unsigned int end() const;
-    /**
-     * @returns the thinning interval of the monitor
-     */
-    unsigned int thin() const;
-    /**
-     * The number of monitored iterations
-     */
-    unsigned int niter() const;      
+    std::vector<Node const *> const &nodes() const;
     /**
      * The type of monitor. Each subclass must define have a unique
      * type, which is common to all Monitors of that class. The type
@@ -58,24 +40,22 @@ public:
      */
     std::string const &type() const;
     /**
-     * The number of parallel chains of the Monitor.  This does not
-     * have to coincide with the number of chains of the Model: a
-     * Monitor may summarize data from multiple parallel chains in a
-     * single vector.
+     * Returns true if the monitor has a single value for multiple chains
      */
-    virtual unsigned int nchain() const  = 0;
+    virtual bool poolChains() const = 0;
     /**
-     * The dimension of the value vector for a single chain.
+     * Returns true if the monitor has a single value for multiple iterations
+     */
+    virtual bool poolIterations() const = 0;
+    /**
+     * Returns the dimension of a single monitored value, which may
+     * be replicated over chains and over iterations
      */
     virtual std::vector<unsigned int> dim() const = 0;
     /**
      * The vector of monitored values for the given chain
      */
     virtual std::vector<double> const &value(unsigned int chain) const = 0;
-    /**
-     * Updates the Monitor with Node valus from the current iteration
-     */
-    virtual void doUpdate() = 0;
     /**
      * Reserves memory for future updates. Sufficient memory is
      * reserved for storage of future samples to avoid re-allocation
@@ -87,11 +67,34 @@ public:
      /**
       * Dumps the monitored values to an SArray. 
       *
-      * The SArray should have informative dimnames. In particular, the
-      * dimnames "iteration" and "chain" should be used if there are
-      * values for each iteration and each chain, respectively.
+      * The SArray will have informative dimnames. In particular, the
+      * dimnames "iteration" and "chain" are used if there are
+      * distinct values for each iteration and each chain,
+      * respectively.
+      *
+      * @param flat Indicates whether value should be flattened, so
+      * that the value for a single iteration and single chain is a
+      * vector.
       */
-     virtual SArray dump() const = 0;
+     SArray dump(bool flat = false) const;
+     /**
+      * Returns the name of the monitor
+      */
+     std::string const &name() const;
+     /**
+      * Sets the name of the monitor
+      */
+     void setName(std::string const &name);
+     /**
+      * Returns the names of individual elements
+      */
+     std::vector<std::string> const &elementNames() const;
+     /**
+      * Sets the element names. The length of the string must be
+      * conform to the dimensions of the monitor, as returned by the
+      * dim1 member function.
+      */
+     void setElementNames(std::vector<std::string> const &names);
 };
 
 #endif

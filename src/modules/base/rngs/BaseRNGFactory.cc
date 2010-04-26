@@ -5,9 +5,11 @@
 #include "MersenneTwisterRNG.h"
 
 #include <ctime>
+#include <climits>
 
 using std::vector;
 using std::time;
+using std::string;
 
 #define DEFAULT_NORM_KIND KINDERMAN_RAMAGE
 
@@ -25,15 +27,14 @@ namespace base {
 	}
     }
 
-    vector<RNG *> BaseRNGFactory::makeRNGs(unsigned int &n)
+    vector<RNG *> BaseRNGFactory::makeRNGs(unsigned int n)
     {
 	unsigned int seed = static_cast<unsigned int>(time(NULL));
 
 	vector<RNG *> ans;
-	unsigned int norig = n;
-	for (unsigned int i = 0; i < norig; ++i) {
+	for (unsigned int i = 0; i < n; i++) {
 	    RNG *rng = 0;
-	    switch(i) {
+	    switch(_index) {
 	    case 0:
 		rng =  new WichmannHillRNG(seed, DEFAULT_NORM_KIND);
 		break;
@@ -49,12 +50,20 @@ namespace base {
 	    default:
 		break;
 	    }
-	    if (rng) {
-		// Store generated RNG for memory management
-		_rngvec.push_back(rng);
-		ans.push_back(rng);
-		--n;
-	    }
+
+	    //Move onto the next generator
+	    if (_index == 3) 
+		_index = 0;
+	    else
+		_index++;
+
+	    //Reset the seed
+	    seed = static_cast<unsigned int>(rng->uniform() * UINT_MAX);
+	    
+	    // Store generated RNG for memory management
+	    _rngvec.push_back(rng);
+	    ans.push_back(rng);
+
 	}
 	return ans;
     }
@@ -79,4 +88,8 @@ namespace base {
 	return rng;
     }
 
+    string BaseRNGFactory::name() const
+    {
+	return "base::BaseRNG";
+    }
 }

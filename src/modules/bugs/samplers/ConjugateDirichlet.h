@@ -3,9 +3,6 @@
 
 #include "ConjugateMethod.h"
 
-class Graph;
-class StochasticNode;
-
 /**
  * @short Conjugate sampler for Dirichlet distribution.  
  *
@@ -19,8 +16,8 @@ class StochasticNode;
  */
 class ConjugateDirichlet : public ConjugateMethod {
 public:
-    void initialize(ConjugateSampler *sampler, Graph const &graph);
-    void update(ConjugateSampler *sampler, unsigned int chain, RNG *rng) const;
+    ConjugateDirichlet(GraphView const *gv);
+    void update(unsigned int chain, RNG *rng) const;
     static bool canSample(StochasticNode *snode, Graph const &graph);
     std::string name() const;
 };

@@ -1,8 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([JAGS], [1.0.4], [martyn_plummer@users.sourceforge.net], [JAGS])
+
+AC_PREREQ(2.63)
+
+AC_INIT([JAGS],[2.0.0],[martyn_plummer@users.sourceforge.net],[JAGS])
 AC_CANONICAL_HOST
-AC_CONFIG_SRCDIR(src/lib/Console.cc)
+AC_CONFIG_SRCDIR([src/lib/Console.cc])
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
 dnl libtool and ltdl configuration
@@ -10,6 +14,7 @@ LT_PREREQ(2.2.6)
 LT_CONFIG_LTDL_DIR([libltdl])
 LT_INIT([dlopen disable-static win32-dll])
 LTDL_INIT([recursive])
+
 
 AC_PROG_CC
 AC_PROG_CXX
@@ -34,18 +39,9 @@ case "${host_os}" in
 esac
 AM_CONDITIONAL(WINDOWS, test x$win = xtrue)
 
-dnl libtool dynamic loading
-dnl AC_DISABLE_STATIC
-dnl AC_LIBTOOL_DLOPEN
-dnl AC_LIBLTDL_CONVENIENCE
-dnl AC_PROG_LIBTOOL
-dnl AC_CONFIG_SUBDIRS(libltdl)
-dnl AC_SUBST(INCLTDL)
-dnl AC_SUBST(LIBLTDL)
-
 dnl fortran stuff
-ACX_F77_WRAPPERS
-ACX_F77_LIBRARY_LDFLAGS
+AC_F77_WRAPPERS
+AC_F77_LIBRARY_LDFLAGS
 ACX_LAPACK([],[
 	AC_MSG_ERROR("You need to install the LAPACK library")
 ])
@@ -67,15 +63,13 @@ R_CHECK_FUNCS([expm1 log1p], [#include <math.h>])
 ## a) that would comment out #undef statements in Rmath.h.in and
 ## b) Rmath.h should be a self-contained file for standalone Rmath use.
 ## </NOTE>
-#if test "${ac_cv_func_expm1}" = yes; then
 if test "${ac_cv_have_decl_expm1}" = yes; then
   RMATH_HAVE_EXPM1="# define HAVE_EXPM1 1"
 else
   RMATH_HAVE_EXPM1="# undef HAVE_EXPM1"
 fi
 AC_SUBST(RMATH_HAVE_EXPM1)
-#if test "${ac_cv_func_log1p}" = yes; then
-if test "${ac_cv_have_decl_expm1}" = yes; then
+if test "${ac_cv_have_decl_log1p}" = yes; then
   RMATH_HAVE_LOG1P="# define HAVE_LOG1P 1"
 else
   RMATH_HAVE_LOG1P="# undef HAVE_LOG1P"
@@ -87,10 +81,9 @@ R_FUNC_LOG1P
 
 dnl End Rmath stuff
 
-jagsmoddir=${libdir}/JAGS/modules
+jagsmoddir=${libdir}/JAGS/modules-${PACKAGE_VERSION}
 AC_SUBST(jagsmoddir)
 
-AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
   m4/Makefile
@@ -99,6 +92,7 @@ AC_CONFIG_FILES([
   libltdl/Makefile
   src/Makefile
   src/lib/Makefile
+  src/lib/version.cc
   src/lib/util/Makefile
   src/lib/sarray/Makefile
   src/lib/function/Makefile
@@ -138,8 +132,14 @@ AC_CONFIG_FILES([
   src/modules/mix/distributions/Makefile	
   src/modules/mix/samplers/Makefile	
   src/modules/dic/Makefile
+  src/modules/lecuyer/Makefile
+  src/modules/glm/Makefile
+  src/modules/glm/CSparse/Makefile
+  src/modules/glm/samplers/Makefile
   src/terminal/Makefile
-  win32/Makefile
-  win32/lapack/Makefile
+  win/Makefile
+  win/runtime/Makefile
+  doc/Makefile
+  doc/manual/Makefile
 ])
 AC_OUTPUT

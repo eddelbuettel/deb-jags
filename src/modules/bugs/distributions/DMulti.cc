@@ -17,13 +17,18 @@ using std::logic_error;
 #define SIZE(par) (*par[1])
 
 DMulti::DMulti()
-  : Distribution("dmulti", 2, false, true) 
+  : VectorDist("dmulti", 2) 
 {}
 
-bool DMulti::checkParameterDim(vector<vector<unsigned int> > const &dims) const
+bool DMulti::isDiscreteValued(vector<bool> const &mask) const
 {
-  //Check that PROB is a vector and SIZE is a scalar
-  return isVector(dims[0]) && isScalar(dims[1]);
+    return true;
+}
+
+bool DMulti::checkParameterLength(vector<unsigned int> const &len) const
+{
+    //Check that PROB is a vector and SIZE is a scalar
+    return len[0] > 1  && len[1] == 1;
 }
 
 bool DMulti::checkParameterDiscrete(vector<bool> const &mask) const
@@ -33,16 +38,14 @@ bool DMulti::checkParameterDiscrete(vector<bool> const &mask) const
 
 bool 
 DMulti::checkParameterValue(vector<double const *> const &par,
-			    vector<vector<unsigned int> > const &dims) const
+			    vector<unsigned int> const &len) const
 {
     if (SIZE(par) < 1)
 	return false;
 
-    double const *prob = PROB(par);
-    unsigned int length = product(dims[0]);
-    for (unsigned int i = 0; i < length; i++) {
-      if (prob[i] < 0)
-	return false;
+    for (unsigned int i = 0; i < len[0]; ++i) {
+	if (PROB(par)[i] < 0)
+	    return false;
     }
 
     return true;
@@ -50,33 +53,30 @@ DMulti::checkParameterValue(vector<double const *> const &par,
 
 double DMulti::logLikelihood(double const *x, unsigned int length,
 			     vector<double const *> const &par,
-			     vector<vector<unsigned int> > const &dims,
+			     vector<unsigned int> const &len,
 			     double const *lower, double const *upper) const
 {
-    double const *prob = PROB(par);
-
     double loglik = 0.0;
-    double xsum = 0.0;
     double sump = 0.0;
     for (unsigned int i = 0; i < length; i++) {
-	if (prob[i] == 0) {
-	    if (x[i] != 0)
+	if (x[i] != 0) {
+	    if (PROB(par)[i] == 0) {
 		return JAGS_NEGINF;
+	    }
+	    else {
+		loglik += x[i] * log(PROB(par)[i]) - lgamma(x[i] + 1);
+	    }
 	}
-	else if (x[i] != 0) {
-	     loglik += x[i] * log(prob[i]) - lgamma(x[i] + 1);
-	     xsum += x[i];
-	}
-	sump += prob[i];
+	sump += PROB(par)[i];
     }
-    loglik += lgamma(xsum + 1) - xsum * log(sump);
+    loglik += lgamma(SIZE(par) + 1) - SIZE(par) * log(sump);
 
     return loglik;
 }
 
 void DMulti::randomSample(double *x, unsigned int length,
 			  vector<double const *> const &par,
-			  vector<vector<unsigned int> > const &dims,
+			  vector<unsigned int> const &len,
 			  double const *lower, double const *upper,
 			  RNG *rng) const
 {
@@ -106,7 +106,7 @@ void DMulti::randomSample(double *x, unsigned int length,
 
 void DMulti::support(double *lower, double *upper, unsigned int length,
 	     vector<double const *> const &par,
-	     vector<vector<unsigned int> > const &dims) const
+	     vector<unsigned int> const &len) const
 {
     for (unsigned int i = 0; i < length; ++i) {
 	lower[i] = 0;
@@ -117,16 +117,15 @@ void DMulti::support(double *lower, double *upper, unsigned int length,
     }
 }
 
-vector<unsigned int> 
-DMulti::dim(vector<vector<unsigned int> > const &dims) const
+unsigned int DMulti::length(vector<unsigned int> const &len) const
 {
-    return dims[0];
+    return len[0];
 }
 
 
 void DMulti::typicalValue(double *x, unsigned int length,
 			  vector<double const *> const &par,
-			  vector<vector<unsigned int> > const &dims,
+			  vector<unsigned int> const &len,
 			  double const *lower, double const *upper) const
 {
     /* Draw a typical value in the same way as a random sample, but
@@ -158,7 +157,7 @@ bool DMulti::isSupportFixed(std::vector<bool> const &fixmask) const
     return fixmask[1];
 }
 
-unsigned int DMulti::df(vector<vector<unsigned int> > const &dims) const
+unsigned int DMulti::df(vector<unsigned int> const &len) const
 {
-    return dims[0][0] - 1;
+    return len[0] - 1;
 } 

@@ -2,10 +2,9 @@
 %{
 #include <config.h>
 
-#include <errno.h>
-#include <limits.h>
-#include <unistd.h>
-#include <dirent.h>
+
+//#include <limits.h>
+//#include <unistd.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -18,24 +17,15 @@
 #include <fstream>
 #include <list>
 #include <iterator>
+#include <string>
+#include <utility>
+
+#include <dirent.h>
+#include <time.h>
+#include <errno.h>
 
 #include <Console.h>
-#include <compiler/ParseTree.h>
-#include <util/nainf.h>
-#include <cstring>
-#include <ltdl.h>
-
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <algorithm>
-#include <cmath>
-#include <sstream>
-#include <fstream>
-#include <list>
-
-#include <Console.h>
+#include <Module.h>
 #include <compiler/ParseTree.h>
 #include <util/nainf.h>
 #include <cstring>
@@ -59,18 +49,18 @@
     extern int command_buffer_count;
     void setName(ParseTree *p, std::string *name);
     std::map<std::string, SArray> _data_table;
-    std::deque<lt_dlhandle> _modules;
+    std::deque<lt_dlhandle> _dyn_lib;
     bool open_data_buffer(std::string const *name);
     bool open_command_buffer(std::string const *name);
     void return_to_main_buffer();
     void setMonitor(ParseTree const *var, int thin, std::string const &type);
     void clearMonitor(ParseTree const *var, std::string const &type);
-    void setDefaultMonitors(std::string const &type, unsigned int thin);
     void doCoda (ParseTree const *var, std::string const &stem);
     void doAllCoda (std::string const &stem);
     void doDump (std::string const &file, DumpType type, unsigned int chain);
     void dumpMonitors(std::string const &file, std::string const &type);
     void doSystem(std::string const *command);
+    std::string ExpandFileName(char const *s);
 
     static bool getWorkingDirectory(std::string &name);
     static void errordump();
@@ -80,9 +70,14 @@
     static void setParameters(ParseTree *p, std::vector<ParseTree*> *parameters);
     static void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2);
     static void loadModule(std::string const &name);
+    static void unloadModule(std::string const &name);
     static void dumpSamplers(std::string const &file);
     static void delete_pvec(std::vector<ParseTree*> *);
     static void print_unused_variables();
+    static void listFactories(FactoryType type);
+    static void setFactory(std::string const &name, FactoryType type,
+                           std::string const &status);
+
     %}
 
 %defines
@@ -129,7 +124,12 @@
 %token <intval> NCHAINS
 %token <intval> CHAIN
 %token <intval> LOAD
+%token <intval> UNLOAD
+%token <intval> SAMPLER
 %token <intval> SAMPLERS
+%token <intval> RNG
+%token <intval> FACTORY;
+%token <intval> FACTORIES;
 
 %token <intval> LIST 
 %token <intval> STRUCTURE
@@ -192,15 +192,18 @@ command: model
 | monitors_to
 | coda
 | load
+| unload
 | exit
 | read_dir
 | get_working_dir
 | set_working_dir
 | samplers_to
+| list_factories
+| set_factory
 ;
 
 model: MODEL IN file_name {
-    std::FILE *file = std::fopen(($3)->c_str(), "r");
+    std::FILE *file = std::fopen(ExpandFileName(($3)->c_str()).c_str(), "r");
     if (!file) {
 	std::cerr << "Failed to open file " << *($3) << std::endl;
     }
@@ -351,7 +354,7 @@ update: UPDATE INT {
 }
 ;
 
-exit: EXIT {return 0;}
+exit: EXIT { return 0; }
 ;
 
 var: NAME {
@@ -411,23 +414,6 @@ monitor_set: MONITOR SET var  {
     setMonitor($2, $6, *$10); 
     delete $10;
 }
-| MONITOR ',' THIN '(' INT ')' TYPE '(' NAME ')' {
-    setDefaultMonitors(*$9, $5);
-    delete $9;
-}
-| MONITOR ',' TYPE '(' NAME ')' THIN '(' INT ')' {
-    setDefaultMonitors(*$5, $9);
-}
-| MONITOR ',' TYPE '(' NAME ')' {
-    setDefaultMonitors(*$5, 1);
-    delete $5;
-}
-| MONITOR ',' THIN '(' INT ')' {
-    setDefaultMonitors("trace", $5);
-}
-| MONITOR {
-    setDefaultMonitors("trace", 1);
-}
 ;
 
 monitor_clear: MONITOR CLEAR var {
@@ -478,10 +464,51 @@ coda: CODA var {
 load: LOAD file_name { loadModule(*$2); }
 ;
 
+unload: UNLOAD NAME { unloadModule(*$2); }
+;
+
 samplers_to: SAMPLERS TO file_name 
 {
     dumpSamplers(*$3);
     delete $3;
+}
+;
+
+list_factories: LIST FACTORIES ',' TYPE '(' SAMPLER ')'
+{
+    listFactories(SAMPLER_FACTORY);
+}
+|
+LIST FACTORIES ',' TYPE '(' RNG ')'
+{
+    listFactories(RNG_FACTORY);
+}
+|
+LIST FACTORIES ',' TYPE '(' MONITOR ')'
+{
+    listFactories(MONITOR_FACTORY);
+}
+;
+
+set_factory: SET FACTORY STRING NAME ',' TYPE '(' SAMPLER ')'
+{
+    setFactory(*$3, SAMPLER_FACTORY, *$4);
+    delete $3;
+    delete $4;
+}
+|
+SET FACTORY NAME NAME ',' TYPE '(' RNG ')'
+{
+    setFactory(*$3, RNG_FACTORY, *$4);
+    delete $3;
+    delete $4;
+}
+|
+SET FACTORY NAME NAME ',' TYPE '(' MONITOR ')'
+{
+    setFactory(*$3, MONITOR_FACTORY, *$4);
+    delete $3;
+    delete $4;
 }
 ;
 
@@ -724,121 +751,13 @@ void clearMonitor(ParseTree const *var, std::string const &type)
     }
 }
 
-void setDefaultMonitors(std::string const &type, unsigned int thin)
-{
-    console->setDefaultMonitors(type, thin);
-}
-
-/*
-void doCoda (ParseTree const *var, std::string const &stem)
-{
-  unsigned int nchain = console->nchain();
-
-  for (unsigned int n = 0; n < nchain; ++n) {
-      std::ostringstream outstream;
-    outstream << stem << n << ".out";
-    std::string outname = outstream.str();
-    std::ofstream out(outname.c_str());
-    if (!out) {
-      std::cerr << "Failed to open file " << outname << std::endl;
-      return;
-    }
-    std::ostringstream indstream;
-    indstream << stem << n << ".ind";
-    std::string indname = indstream.str();
-    std::ofstream ind(indname.c_str());
-    if (!ind) {
-      std::cerr << "Failed to open file " << indname << std::endl;
-      out.close();
-      return;
-    }
-
-    if (var->parameters().empty()) {
-      console->coda(var->name(), Range(), out, ind, n);
-    }
-    else {
-      console->coda(var->name(), getRange(var), out, ind, n);
-    }
-    out.close();
-    ind.close();
-  }
-}
-*/
-
 void doAllCoda (std::string const &stem)
 {
-
-    /* Open index file */
-    std::ostringstream indstream;
-    indstream << stem << "index.txt";
-    std::string indname = indstream.str();
-    std::ofstream ind(indname.c_str());
-    if (!ind) {
-      std::cerr << "Failed to open file " << indname << std::endl;
-      return;
-    }
-
-    std::vector<std::ofstream*> output;
-    for (unsigned int n = 0; n < console->nchain(); ++n) {
-	/* Open output file */
-	std::ostringstream outstream;
-	outstream << stem << "chain" << n + 1 << ".txt";
-	std::string outname = outstream.str();
-	std::ofstream *out = new std::ofstream(outname.c_str());
-        if (*out) {
-            output.push_back(out);
-        }
-	else {
-	    ind.close();
-	    for (unsigned int i = 0; i < output.size(); ++i) {
-		output[i]->close();
-	    }
-	    std::cerr << "Failed to open file " << outname << std::endl;
-	    return;
-	}
-    }
-    console->coda(ind, output);
-    ind.close();
-    for (unsigned int i = 0; i < output.size(); ++i) {
-	output[i]->close();
-        delete output[i];
-    }
+    console->coda(stem);
 }
 
 void doCoda (ParseTree const *var, std::string const &stem)
 {
-
-    /* Open index file */
-    std::ostringstream indstream;
-    indstream << stem << "index.txt";
-    std::string indname = indstream.str();
-    std::ofstream ind(indname.c_str());
-    if (!ind) {
-      std::cerr << "Failed to open file " << indname << std::endl;
-      return;
-    }
-
-    std::vector<std::ofstream*> output;
-    for (unsigned int n = 0; n < console->nchain(); ++n) {
-	/* Open output file */
-	std::ostringstream outstream;
-	outstream << stem << "chain" << n + 1 << ".txt";
-	std::string outname = outstream.str();
-	std::ofstream *out = new std::ofstream(outname.c_str());
-
-        if (*out) {
-            output.push_back(out);
-        }
-        else {
-            ind.close();
-            for (unsigned int i = 0; i < output.size(); ++i) {
-                output[i]->close();
-            }
-            std::cerr << "Failed to open file " << outname << std::endl;
-            return;
-        }
-    }
-
     //FIXME: Allow list of several nodes
 
     std::vector<std::pair<std::string, Range> > dmp;
@@ -850,13 +769,7 @@ void doCoda (ParseTree const *var, std::string const &stem)
 	/* Requesting subset of a multivariate node */
 	dmp.push_back(std::pair<std::string,Range>(var->name(), getRange(var)));
     }
-    console->coda(dmp, ind, output);
-
-    ind.close();
-    for (unsigned int i = 0; i < output.size(); ++i) {
-	output[i]->close();
-        delete output[i];
-    }
+    console->coda(dmp, stem);
 }
 
 /* Helper function for doDump that handles all the special cases
@@ -958,9 +871,8 @@ void doDump(std::string const &file, DumpType type, unsigned int chain)
 void dumpMonitors(std::string const &file, std::string const &type)
 {
     std::map<std::string,SArray> data_table;
-    std::map<std::string,unsigned int> weight_table;
 
-    if (!console->dumpMonitors(data_table, weight_table, type)) {
+    if (!console->dumpMonitors(data_table, type, false)) {
 	return;
     }
 
@@ -1231,29 +1143,21 @@ static void adaptstar(long niter, long refresh, int width)
 
 static void loadModule(std::string const &name)
 {
-  //Record number of masked distributions before loading module
-  std::list<Distribution const *> const &masked_dist = 
-     Compiler::distTab().masked();
-  unsigned int n_dist = masked_dist.size(); 
-  lt_dlhandle mod = lt_dlopenext(name.c_str());
-  if (mod == NULL) {
-      std::cout << lt_dlerror() << std::endl;
-  }
-  else {
-      _modules.push_front(mod);
-      std::cout << "Loading module: " << name << std::endl;
-      //Warn about newly masked distributions
-      if (masked_dist.size() > n_dist) {
-	  std::cerr << "Warning: the following distributions were masked "
-		    << "by module " << name << ":\n";
-	  std::list<Distribution const *>::const_iterator p = 
-             masked_dist.begin();
-	  for(unsigned int i = masked_dist.size(); i > n_dist; --i, ++p) {
-	      std::cerr << (*p)->name() << "\n";
-	  }
-	  std::cerr << std::endl;
-      }
-  }
+    lt_dlhandle mod = lt_dlopenext(name.c_str());
+    if (mod == NULL) {
+	std::cout << lt_dlerror() << std::endl;
+    }
+    else {
+	std::cout << "Loading module: " << name << std::endl;
+	_dyn_lib.push_front(mod);
+	Console::loadModule(name);
+    }
+}
+
+static void unloadModule(std::string const &name)
+{
+    std::cout << "Unloading module: " << name << std::endl;
+    Console::unloadModule(name);
 }
 
 int main (int argc, char **argv)
@@ -1266,7 +1170,7 @@ int main (int argc, char **argv)
   }
   else if (argc == 2) {
     interactive = false;
-    cmdfile = std::fopen(argv[1],"r");
+    cmdfile = std::fopen(ExpandFileName(argv[1]).c_str(),"r");
     if (cmdfile) {
       zzin = cmdfile;
     }
@@ -1279,9 +1183,15 @@ int main (int argc, char **argv)
     interactive = true;
   }
 
-  /* Allows emulation of dynamic loading on platforms that do not
-     support it by preloading modules */
+#ifndef WIN32
+  /* 
+     - Allows emulation of dynamic loading on platforms that do not
+     support it by preloading modules. 
+     - Causes build failures on mingw-w64 (as at 21 April 2010) so
+     not used on Windows platform.
+  */
   LTDL_SET_PRELOADED_SYMBOLS();
+#endif
 
   if(lt_dlinit()) {
       std::cerr << lt_dlerror() << std::endl;
@@ -1315,10 +1225,16 @@ int main (int argc, char **argv)
   if (argc==2) {
       std::fclose(cmdfile);
   }
+  
+  //Unload modules
+  std::vector<std::string> mods = Console::listModules();
+  for (unsigned int i = 0; i < mods.size(); ++i) {
+      Console::unloadModule(mods[i]);
+  }
   delete console;
-  //We have to unload modules *AFTER* deleting the console. 
-  for (unsigned int i = 0; i < _modules.size(); ++i) {
-      lt_dlclose(_modules[i]);
+  //Release dynamic libraries. 
+  for (unsigned int i = 0; i < _dyn_lib.size(); ++i) {
+      lt_dlclose(_dyn_lib[i]);
   }
   lt_dlexit();
 }
@@ -1403,7 +1319,79 @@ static void print_unused_variables()
 
 }
 
+std::string ExpandFileName(char const *s)
+{
+    if(s[0] != '~') return s;
+    std::string name = s;
+    if(name.size() > 1 && s[1] != '/') return s;
+
+    char const *p = getenv("HOME");
+    if (p) {
+	std::string UserHOME = p;
+	if (!UserHOME.empty()) {
+	    if (name.size() == 1) 
+		return UserHOME;
+	    else
+		return UserHOME + name.substr(1);
+	}
+    }
+    return name;
+}
+
+
 void doSystem(std::string const *command)
 {
     std::system(command->c_str());
 }
+
+void listFactories(FactoryType type)
+{
+    std::vector<std::pair<std::string, bool> > faclist = 
+	Console::listFactories(type);
+
+    std::vector<std::pair<std::string, bool> >::const_iterator p;
+    unsigned int max_strlen = 0;
+    for (p = faclist.begin(); p != faclist.end(); ++p) {
+	if (p->first.length() > max_strlen)
+	    max_strlen = p->first.length();
+    }
+    if (max_strlen < 4)
+	max_strlen = 4;
+
+    //Header
+    std::cout << "Name";
+    for (int i = max_strlen - 4; i >=0; --i) {
+	std::cout << " ";
+    }
+    std::cout << "Status\n";
+
+    //Body
+    for (p = faclist.begin(); p != faclist.end(); ++p) {
+	std::cout << p->first << " ";
+	for (int i = max_strlen - p->first.length(); i >= 0; --i) {
+	    std::cout << " ";
+	}
+	if (p->second) {
+	    std::cout << "on";
+	}
+	else {
+	    std::cout << "off";
+	}
+	std::cout << "\n";
+    }
+}
+
+void setFactory(std::string const &name, FactoryType type, 
+		std::string const &status)
+{
+    if (status == "on") {
+	Console::setFactoryActive(name, type, true);
+    }
+    else if (status == "off") {
+	Console::setFactoryActive(name, type, false);
+    }
+    else {
+	std::cout << "status should be \"on\" or \"off\"";
+    }
+}
+	    

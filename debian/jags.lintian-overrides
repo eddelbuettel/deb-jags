@@ -1,3 +1,3 @@
 jags: non-dev-pkg-with-shlib-symlink usr/lib/libjrmath.so.0.0.0 usr/lib/libjrmath.so
-jags: non-dev-pkg-with-shlib-symlink usr/lib/libjags.so.1.0.2 usr/lib/libjags.so
-jags: package-name-doesnt-match-sonames libjags1 libjrmath0
+jags: package-name-doesnt-match-sonames libjags2 libjrmath0
+jags: non-dev-pkg-with-shlib-symlink usr/lib/libjags.so.2.0.0 usr/lib/libjags.so

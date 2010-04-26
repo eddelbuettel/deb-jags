@@ -1,5 +1,6 @@
 #include <config.h>
 #include <model/NodeArray.h>
+#include <model/Model.h>
 #include <graph/ConstantNode.h>
 #include <graph/StochasticNode.h>
 #include <graph/AggNode.h>
@@ -19,10 +20,6 @@ using std::runtime_error;
 using std::logic_error;
 using std::set;
 using std::numeric_limits;
-
-static ConstantNode const *asConstant(Node const *node) {
-    return dynamic_cast<ConstantNode const *>(node);
-}
 
 NodeArray::NodeArray(string const &name, vector<unsigned int> const &dim, 
 		     unsigned int nchain)
@@ -111,13 +108,14 @@ Node *NodeArray::find(Range const &target_range) const
   return node;
 }
 
-Node *NodeArray::getSubset(Range const &target_range, Graph &graph)
+Node *NodeArray::getSubset(Range const &target_range, Model &model)
 {
-    //Check validity of target_range
+  //Check validity of target range
     if (!_range.contains(target_range)) {
-	throw runtime_error(string("Cannot get subset ") + _name +
-			    print(target_range) + ".  Range out of bounds");
+	throw runtime_error(string("Cannot get subset ") + name() + 
+			    print(target_range) + ". Range out of bounds");
     }
+    
   /* If range corresponds to a set node, then return this */
   Node *node = find(target_range);
   if (node)
@@ -130,6 +128,7 @@ Node *NodeArray::getSubset(Range const &target_range, Graph &graph)
   }
 
   /* Otherwise create an aggregate node */
+
   vector<Node const *> nodes;
   vector<unsigned int> offsets;
   for (RangeIterator i(target_range); !i.atEnd(); i.nextLeft()) {
@@ -140,11 +139,11 @@ Node *NodeArray::getSubset(Range const &target_range, Graph &graph)
     nodes.push_back(_node_pointers[offset]);
     offsets.push_back(_offsets[offset]);
   }
-  node = new AggNode(target_range.dim(true), nodes, offsets);
-  _generated_nodes.insert(std::pair<Range,Node*>(target_range, node));
-  graph.add(node);
-  _member_graph.add(node);
-  return node;
+  AggNode *anode = new AggNode(target_range.dim(true), nodes, offsets);
+  _generated_nodes.insert(std::pair<Range,Node*>(target_range, anode));
+  model.addNode(anode);
+  _member_graph.add(anode);
+  return anode;
 }
 
 void NodeArray::setValue(SArray const &value, unsigned int chain)
@@ -166,7 +165,7 @@ void NodeArray::setValue(SArray const &value, unsigned int chain)
 		throw runtime_error(msg + name() + 
 				    print(value.range().leftIndex(i)));
 	    }
-	    if (asStochastic(node) || asConstant(node)) {
+	    if (node->isRandomVariable()) {
 		setnodes.insert(node);
 	    }
 	    else {
@@ -235,7 +234,7 @@ void NodeArray::getValue(SArray &value, unsigned int chain,
 //FIXME: A lot of code overlap with setValue here.
 
 #include <iostream>
-void NodeArray::setData(SArray const &value, Graph &graph)
+void NodeArray::setData(SArray const &value, Model *model)
 {
     if (!(_range == value.range())) {
 	throw runtime_error(string("Dimension mismatch when setting value of node array ") + name());
@@ -251,7 +250,7 @@ void NodeArray::setData(SArray const &value, Graph &graph)
 	    if (_node_pointers[i] == 0) {
 		//Insert a new constant node
 		ConstantNode *cnode = new ConstantNode(x[i], _nchain);
-		graph.add(cnode);
+		model->addNode(cnode);
 		insert(cnode, _range.leftIndex(i));
 	    }
 	    else {
@@ -300,13 +299,6 @@ Range const &NodeArray::range() const
 {
   return _range;
 }
-
-/*
-Graph const &NodeArray::graph() const
-{
-  return _graph;
-}
-*/
 
 bool NodeArray::findActiveIndices(vector<unsigned int> &ind, unsigned int k, 
 				  vector<int> const &lower, vector<unsigned int> const &dim) const

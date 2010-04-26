@@ -11,26 +11,21 @@ using std::string;
 
 namespace base {
 
-Neg::Neg () : ScalarFunc ("NEG", 1)
+Neg::Neg () : ScalarFunction ("NEG", 1)
 {
 }
 
-double Neg::evaluateScalar(vector<double const*> const &args) const
+double Neg::evaluate(vector<double const*> const &args) const
 {
     return -args[0][0];
 }
 
 bool Neg::isDiscreteValued(vector<bool> const &mask) const
 {
-  return allTrue(mask);
+  return mask[0];
 }
 
-bool Neg::isLinear(vector<bool> const &mask, vector<bool> const &fix) const
-{
-    return true;
-}
-
-bool Neg::isScale(unsigned int index, vector<bool> const &fix) const
+bool Neg::isScale(vector<bool> const &mask, vector<bool> const &fix) const
 {
     return true;
 }

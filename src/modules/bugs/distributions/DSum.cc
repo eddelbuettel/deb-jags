@@ -10,37 +10,40 @@ using std::vector;
 using std::fabs;
 using std::runtime_error;
 using std::logic_error;
+using std::sqrt;
 
-static inline double SUM(vector<double const *> const &par)
+static double SUM(vector<double const *> const &par)
 {
-    return *par[0] + *par[1];
+    double ans = 0;
+    for (unsigned int i = 0; i < par.size(); ++i) {
+	ans += *par[i];
+    }
+    return ans;
 }
 
 DSum::DSum()
-    : DistScalar("dsum", 2, DIST_SPECIAL, false, true)
+    : ScalarDist("dsum", 0, DIST_SPECIAL)
 {
 }
 
-bool DSum::checkParameterDiscrete(vector<bool> const &mask) const
+bool DSum::isDiscreteValued(vector<bool> const &mask) const
 {
     return allTrue(mask);
 }
 
-double DSum::scalarLogLikelihood(double x, vector<double const *> const &par,
-				 double const *lower, double const *upper) 
-  const
+double DSum::logLikelihood(double x, vector<double const *> const &par,
+			   double const *lower, double const *upper) const
 {
-    if (fabs(x - SUM(par)) > 16 * DBL_EPSILON) {
-	// If this happens by accident, you have no chance of getting it right
+    if (fabs(x - SUM(par)) > sqrt(DBL_EPSILON)) {
 	throw runtime_error("Inconsistent arguments for dsum");
     }
     
     return 0;
 }
 
-double DSum::scalarRandomSample(vector<double const *> const &par, 
-				double const *lower, double const *upper,
-				RNG *rng) const
+double DSum::randomSample(vector<double const *> const &par, 
+			  double const *lower, double const *upper,
+			  RNG *rng) const
 {
     /* The random sample from DSum is not random at all, but
        deterministic. */
@@ -57,18 +60,32 @@ double DSum::u(std::vector<double const *> const &par) const
     return SUM(par);
 }
 
-double DSum::typicalScalar(vector<double const *> const &par,
-			   double const *lower, double const *upper) const
+double DSum::typicalValue(vector<double const *> const &par,
+			  double const *lower, double const *upper) const
 {
     return SUM(par);
 }
 
 bool DSum::isSupportFixed(vector<bool> const &fixmask) const
 {
-    return fixmask[0] && fixmask[1];
+    return allTrue(fixmask);
 }
 
-unsigned int DSum::df(vector<vector<unsigned int> > const &dims) const
+unsigned int DSum::df() const
 {
     return 0;
+}
+
+bool DSum::checkParameterValue(vector<double const *> const &params) const
+{
+    return true;
+}
+
+bool DSum::checkParameterDiscrete(vector<bool> const &mask) const
+{
+    for (unsigned int i = 1; i < mask.size(); ++i) {
+	if (mask[i] != mask[0])
+	    return false;
+    }
+    return true;
 }

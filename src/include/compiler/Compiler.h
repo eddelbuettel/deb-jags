@@ -5,9 +5,11 @@
 #include <compiler/ConstantFactory.h>
 #include <compiler/MixtureFactory.h>
 #include <compiler/CounterTab.h>
+#include <compiler/ObsFuncTab.h>
 #include <distribution/DistTab.h>
 #include <function/FuncTab.h>
 #include <model/BUGSModel.h>
+#include <graph/Graph.h>
 
 #include <map>
 #include <string>
@@ -15,7 +17,6 @@
 #include <list>
 
 class ParseTree;
-class Graph;
 class SymTab;
 class FuncTab;
 class DistTab;
@@ -36,10 +37,11 @@ class Compiler {
   bool *_is_resolved;
   bool _strict_resolution;
   int _index_expression;
-  Graph _index_graph;
+  std::vector<Node*> _index_nodes;
   ConstantFactory _constantfactory;
   LogicalFactory _logicalfactory;
-  MixtureFactory _mixfactory;
+  MixtureFactory _mixfactory1;
+  MixtureFactory _mixfactory2;
   std::map<std::string, std::vector<std::vector<int> > > _node_array_ranges;
 
   Node *getArraySubset(ParseTree const *t);
@@ -60,7 +62,6 @@ class Compiler {
   void getArrayDim(ParseTree const *p);
   bool getParameterVector(ParseTree const *t,
 			  std::vector<Node const *> &parents);
-  Node * getSubsetNode(ParseTree const *var);
   Node * constFromTable(ParseTree const *p);
   void addDevianceNode();
 public:
@@ -111,7 +112,13 @@ public:
    * @see Module
    */
   static DistTab &distTab();
-  MixtureFactory &mixtureFactory();
+  /**
+   * The table for observalbe functions used by the compiler to substitute
+   * a logical node for a stochastic node when required
+   */
+  static ObsFuncTab &obsFuncTab();
+  MixtureFactory &mixtureFactory1();
+  MixtureFactory &mixtureFactory2();
 };
 
 

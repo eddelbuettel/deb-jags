@@ -68,22 +68,27 @@
      NCHAINS = 284,
      CHAIN = 285,
      LOAD = 286,
-     SAMPLERS = 287,
-     LIST = 288,
-     STRUCTURE = 289,
-     DIM = 290,
-     NA = 291,
-     R_NULL = 292,
-     DIMNAMES = 293,
-     ITER = 294,
-     ARROW = 295,
-     ENDDATA = 296,
-     ASINTEGER = 297,
-     DIRECTORY = 298,
-     CD = 299,
-     PWD = 300,
-     RUN = 301,
-     ENDSCRIPT = 302
+     UNLOAD = 287,
+     SAMPLER = 288,
+     SAMPLERS = 289,
+     RNG = 290,
+     FACTORY = 291,
+     FACTORIES = 292,
+     LIST = 293,
+     STRUCTURE = 294,
+     DIM = 295,
+     NA = 296,
+     R_NULL = 297,
+     DIMNAMES = 298,
+     ITER = 299,
+     ARROW = 300,
+     ENDDATA = 301,
+     ASINTEGER = 302,
+     DIRECTORY = 303,
+     CD = 304,
+     PWD = 305,
+     RUN = 306,
+     ENDSCRIPT = 307
    };
 #endif
 /* Tokens.  */
@@ -116,22 +121,27 @@
 #define NCHAINS 284
 #define CHAIN 285
 #define LOAD 286
-#define SAMPLERS 287
-#define LIST 288
-#define STRUCTURE 289
-#define DIM 290
-#define NA 291
-#define R_NULL 292
-#define DIMNAMES 293
-#define ITER 294
-#define ARROW 295
-#define ENDDATA 296
-#define ASINTEGER 297
-#define DIRECTORY 298
-#define CD 299
-#define PWD 300
-#define RUN 301
-#define ENDSCRIPT 302
+#define UNLOAD 287
+#define SAMPLER 288
+#define SAMPLERS 289
+#define RNG 290
+#define FACTORY 291
+#define FACTORIES 292
+#define LIST 293
+#define STRUCTURE 294
+#define DIM 295
+#define NA 296
+#define R_NULL 297
+#define DIMNAMES 298
+#define ITER 299
+#define ARROW 300
+#define ENDDATA 301
+#define ASINTEGER 302
+#define DIRECTORY 303
+#define CD 304
+#define PWD 305
+#define RUN 306
+#define ENDSCRIPT 307
 
 
 
@@ -141,7 +151,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 91 "parser.yy"
+#line 86 "parser.yy"
 
   int intval;
   double val;
@@ -154,7 +164,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 158 "parser.h"
+#line 168 "parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

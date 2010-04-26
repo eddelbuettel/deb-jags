@@ -7,14 +7,15 @@ using std::vector;
 
 namespace bugs {
 
+    //FIXME: deparse?
+
     MatMult::MatMult()
-	: Function("%*%", 2)
+	: ArrayFunction("%*%", 2)
     {
     }
 
     void 
     MatMult::evaluate (double *value, vector<double const *> const &args,
-		       vector<unsigned int> const &lengths,
 		       vector<vector<unsigned int> > const &dims) const
     {
 	unsigned int d1, d2, d3;
@@ -76,22 +77,18 @@ namespace bugs {
 
 
     bool 
-    MatMult::isLinear(vector<bool> const &mask, vector<bool> const &fix) const
+    MatMult::isScale(vector<bool> const &mask, vector<bool> const &fix) const
     {
 	//Test for quadratic terms
 	if (mask[0] && mask[1]) {
 	    return false;
 	}
     
-	if (!fix.empty()) {
-	    for (unsigned int i = 0; i < 2; ++i) {
-		if (!mask[i] && !fix[i]) {
-		    return false;
-		}
-	    }
+	if (fix.empty()) {
+	    return true;
 	}
-
-	return true;
+	else {
+	    return (mask[0] || fix[0]) && (mask[1] || fix[1]);
+	}
     }
-
 }

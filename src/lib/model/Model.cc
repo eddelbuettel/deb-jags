@@ -8,8 +8,11 @@
 #include <rng/RNG.h>
 #include <graph/GraphMarks.h>
 #include <graph/StochasticNode.h>
+#include <graph/DeterministicNode.h>
+#include <graph/ConstantNode.h>
 #include <graph/NodeError.h>
 #include <graph/Node.h>
+#include <util/nainf.h>
 
 #include <fstream>
 #include <sstream>
@@ -34,6 +37,8 @@ using std::string;
 using std::ostringstream;
 using std::stable_sort;
 using std::copy;
+using std::min;
+using std::max;
 
 Model::Model(unsigned int nchain)
     : _samplers(0), _nchain(nchain), _rng(nchain, 0), _iteration(0),
@@ -53,9 +58,20 @@ Model::~Model()
     {
 	delete *p;
     }
+
+    //Delete nodes in reverse sampling order
+    vector<Node*> managed_nodes;
+    _graph.getSortedNodes(managed_nodes);
+    while(!managed_nodes.empty())
+    {
+	Node *node = managed_nodes.back();
+	delete node;
+	managed_nodes.pop_back();
+    }
+
 }
 
-Graph &Model::graph() 
+Graph const &Model::graph() 
 {
     return _graph;
 }
@@ -78,15 +94,22 @@ void Model::chooseRNGs()
     }
 
     vector<RNG*> new_rngs;
-    for (list<RNGFactory*>::const_iterator p = rngFactories().begin();
-	 p != rngFactories().end(); ++p) 
-    {
-	vector<RNG*> rngs = (*p)->makeRNGs(n);
-	for (unsigned int j = 0; j < rngs.size(); ++j) {
-	    new_rngs.push_back(rngs[j]);
+    list<pair<RNGFactory*, bool> >::const_iterator p;
+    for (p = rngFactories().begin(); p != rngFactories().end(); ++p) {
+	if (p->second) {
+	    vector<RNG*> rngs = p->first->makeRNGs(n);
+	    if (rngs.size() > n) {
+		throw logic_error("Too many rngs produced by RNG factory");
+	    }
+	    else {
+		n -= rngs.size();
+	    }
+	    for (unsigned int j = 0; j < rngs.size(); ++j) {
+		new_rngs.push_back(rngs[j]);
+	    }
+	    if (n == 0)
+		break;
 	}
-	if (n == 0)
-	    break;
     }
     
     if (n > 0) {
@@ -102,30 +125,6 @@ void Model::chooseRNGs()
     }
 }
 
-/*
-static Node *checkDataGen(vector<Node*> const &nodes)
-{
-    // A data generating model is valid if there are no observed
-    //   nodes with unobserved parents 
-    
-    //FIXME: Not using the fact that vector of nodes is sorted
-
-    for (unsigned int i = 0; i < nodes.size(); ++i) {
-	if (nodes[i]->isObserved()) {
-	    vector<Node const*> const &parents = nodes[i]->parents();
-	    for(vector<Node const*>::const_iterator p = parents.begin();
-		p != parents.end(); ++p) 
-	    {
-		if (!((*p)->isObserved())) {
-		    return nodes[i]; //Return invalid node
-		}
-	    }
-	}
-    }
-    return 0;
-}
-*/
-
 void Model::initialize(bool datagen)
 {
     if (_is_initialized)
@@ -133,21 +132,15 @@ void Model::initialize(bool datagen)
 
     if (!_graph.isClosed())
 	throw runtime_error("Graph not closed");
-    if (_graph.hasCycle()) 
-	throw runtime_error("Directed cycle in graph");
-    
-    //Get nodes in forward-sampling order
-    vector<Node*> sorted_nodes;
-    _graph.getSortedNodes(sorted_nodes);
 
     // Choose random number generators
     chooseRNGs();
 
     //Initialize nodes
-    initializeNodes(sorted_nodes);
+    initializeNodes();
 
     // Choose Samplers
-    chooseSamplers(sorted_nodes);
+    chooseSamplers();
     
     if (datagen) {
 	Graph egraph;
@@ -169,11 +162,54 @@ void Model::initialize(bool datagen)
 	}
     }
     
+    // Check initial values of all stochastic nodes
+    if (!datagen) {
+	for (unsigned int ch = 0; ch < _nchain; ++ch) {
+	    for (unsigned int i = 0; i < _stochastic_nodes.size(); ++i) {
+		StochasticNode const *snode = _stochastic_nodes[i];
+		double ld = snode->logDensity(ch);
+		if (jags_isnan(ld)) {
+		    string msg = "Error calculating log density at initial values";
+		    throw NodeError(snode, msg);
+		}
+		else if (ld == JAGS_NEGINF || (!jags_finite(ld) && ld < 0)) {
+		    string msg;
+		    if (snode->isObserved()) {
+			msg = "Observed node";
+		    }
+		    else {
+			msg = "Unobserved node";
+		    }
+		    msg.append(" inconsistent with ");
+		    bool obs_par = true;
+		    for (unsigned int j = 0; j < snode->parents().size(); ++j) {
+			if (!snode->parents()[j]->isObserved()) {
+			    obs_par = false;
+			    break;
+			}
+		    }
+		    if (obs_par) {
+			msg.append("observed parents");
+		    }
+		    else {
+			msg.append("unobserved parents");
+		    }
+		    msg.append(" at initialization");
+		    throw NodeError(snode, msg);
+		}
+	    }
+	}
+    }
+    
     _is_initialized = true;
 }
 
-void Model::initializeNodes(vector<Node*> const &sorted_nodes)
+void Model::initializeNodes()
 {
+    //Get nodes in forward-sampling order
+    vector<Node*> sorted_nodes;
+    _graph.getSortedNodes(sorted_nodes);
+
     vector<Node*>::const_iterator i;
     for (i = sorted_nodes.begin(); i != sorted_nodes.end(); ++i) {
 	Node *node = *i;
@@ -181,7 +217,7 @@ void Model::initializeNodes(vector<Node*> const &sorted_nodes)
 	    if (!node->checkParentValues(n)) {
 		throw NodeError(node, "Invalid parent values");
 	    }
-	    if (!node->initialize(_rng[n], n)) {
+	    if (!node->initialize(n)) {
 		throw NodeError(node, "Initialization failure");
 	    } 
 	}
@@ -189,115 +225,146 @@ void Model::initializeNodes(vector<Node*> const &sorted_nodes)
 }
 
 struct less_sampler {  
-  /* 
-     Comparison operator for Samplers which sorts them according to
-     the partial ordering defined by the DAG, using the first node
-     in the vector of nodes sampled by the sampler
-  */
-  map<Node const*, int> const &_node_map;
+    /* 
+       Comparison operator for Samplers which sorts them in 
+       order according to the supplied sampler map
+    */
+    map<Sampler const*, unsigned int>  const & _sampler_map;
 
-  less_sampler(map<Node const*, int> const &node_map) : _node_map(node_map) {};
-  
-  bool operator()(Sampler *x, Sampler *y) const {
-    int indx = _node_map.find(x->nodes()[0])->second;
-    int indy = _node_map.find(y->nodes()[0])->second;
-    //return indx < indy; //Forward sampling order
-    return indx > indy; //Backward sampling order
-  };
+    less_sampler(map<Sampler const*, unsigned int> const &sampler_map) 
+	: _sampler_map(sampler_map) {};
+
+    bool operator()(Sampler const *x, Sampler const *y) const {
+	return _sampler_map.find(x)->second < _sampler_map.find(y)->second;
+    };
+
 };
 
-
-void Model::chooseSamplers(vector<Node*> const &sorted_nodes)
+void Model::chooseSamplers()
 {
     /*
-     * Selects samplers. For each chain, samplers are selected by
-     * traversing the list of SamplerFactories in order. If there are
-     * any informative stochastic nodes left without samplers after all
-     * factories have been tried, then a runtime error is thrown
+     * Selects samplers. Samplers are selected by traversing the list
+     * of SamplerFactories in order. If there are any informative
+     * stochastic nodes left without samplers after all factories have
+     * been tried, then a runtime error is thrown
      *
      * @see Model#samplerFactories
      */
 
-    // Mark observed nodes
     GraphMarks marks(_graph);
-    vector<Node*>::const_reverse_iterator i = sorted_nodes.rbegin();
-    for (; i != sorted_nodes.rend(); ++i) {
-	if ((*i)->isObserved()) {
-	    marks.mark(*i,2);
+    Graph sample_graph;
+
+    // Add observed stochastic nodes to the sample graph and mark
+    // the informative nodes
+
+    vector<Node const*> informative;
+    vector<StochasticNode*>::const_iterator p;
+    for (p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
+	if ((*p)->isObserved()) {
+	    sample_graph.add(*p);
+	    informative.push_back(*p);
 	}
     }
-    
-    // Now mark ancestors of observed nodes
-    for (i = sorted_nodes.rbegin(); i != sorted_nodes.rend(); ++i) {
-	if (marks.mark(*i) != 2) {
-	    for (set<Node*>::const_iterator ch = (*i)->children()->begin(); 
-		 ch != (*i)->children()->end(); ++ch) 
-	    {
-		if (marks.mark(*ch) != 0) {
-		    marks.mark(*i,1);
-		    break;
-		}
-	    }
+    marks.markAncestors(informative, 1);
+
+    for (p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
+	if ((*p)->isObserved()) {
+	    marks.mark(*p, 2);
 	}
     }
 
-    // Create set of unobserved stochastic nodes, for which we need
-    // to find a sampler,  a graph within which sampling will take
-    // place (excluding uninformative nodes), and a set of "extra"
-    // uninformative nodes that will be updated by the model at the
-    // end of every iteration.
-    set<StochasticNode*> stochastic_nodes;
-    Graph sample_graph;
-    vector<Node*>::const_iterator j;
-    for (j = sorted_nodes.begin(); j != sorted_nodes.end(); j++) {
-	Node *node = *j;
-	switch(marks.mark(node)) {
+    //Triage on marked nodes. We do this twice: once for stochastic
+    //nodes and once for all nodes.
+
+    set<StochasticNode*> sset;
+    for(p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
+	switch(marks.mark(*p)) {
 	case 0:
-	    _extra_nodes.insert(node);
+	    _extra_nodes.insert(*p);
 	    break;
 	case 1:
-	    sample_graph.add(node);
-	    if (asStochastic(node) && node->isRandomVariable()) {
-		//FIXME: dynamic casting of non-constant pointer
-		stochastic_nodes.insert(dynamic_cast<StochasticNode*>(node));
-	    }
+	    sset.insert(*p); 
+	    sample_graph.add(*p);
 	    break;
 	case 2:
-	    sample_graph.add(node);
+	    sample_graph.add(*p);
+	    break;
+	default:
+	    throw logic_error("Invalid mark");
+	}
+    }
+
+    set<Node*> const &nodes = _graph.nodes();
+    set<Node*>::const_iterator j;
+    for (j = nodes.begin(); j != nodes.end(); ++j) {
+	switch(marks.mark(*j)) {
+	case 0:
+	    _extra_nodes.insert(*j);
+	    break;
+	case 1: case 2:
+	    sample_graph.add(*j);
 	    break;
 	}
     }
 
-    set<StochasticNode*> sset = stochastic_nodes;
     // Traverse the list of samplers, selecting nodes that can be sampled
-    list<SamplerFactory const *> const &sfactories = samplerFactories();
-    for (list<SamplerFactory const *>::const_iterator p = sfactories.begin();
-	 p != sfactories.end(); ++p)
+    list<pair<SamplerFactory *, bool> > const &sf = samplerFactories();
+    for(list<pair<SamplerFactory *, bool> >::const_iterator q = sf.begin();
+	q != sf.end(); ++q) 
     {
-	(*p)->makeSampler(sset, sample_graph, _samplers);
+	if (q->second) {
+	    vector<Sampler*> svec = q->first->makeSamplers(sset, sample_graph);
+	    while (!svec.empty()) {
+		for (unsigned int i = 0; i < svec.size(); ++i) {
+		    vector<StochasticNode*> const &nodes = svec[i]->nodes();
+		    for (unsigned int j = 0; j < nodes.size(); ++j) {
+			sset.erase(nodes[j]);
+		    }
+		    _samplers.push_back(svec[i]);
+		}
+		svec = q->first->makeSamplers(sset, sample_graph);
+	    }
+	}
     }
   
     // Make sure we found a sampler for all the nodes
     if (!sset.empty()) {
-      
 	throw NodeError(*sset.begin(),
 			"Unable to find appropriate sampler");
     }
   
-    // Now sort the samplers in order
-    //
-    // The map node_map associates each node in the graph with its index
-    // in the vector of sorted nodes. This is used by the comparison
-    // operator less_sampler.
-    static map <Node const *, int> node_map;
-    int index = 0;
-    for (j = sorted_nodes.begin(); j != sorted_nodes.end(); j++)
-    {
-	node_map.insert(pair<Node const*, int>(*j, index));
-	index++;
+    // Samplers are sorted in reverse sampling order: i.e. samplers
+    // that are closer to the data are updated before samplers that
+    // only affect higher-order parameters
+    
+    // Create a map associating each stochastic node with its index
+    // in the vector _stochastic_nodes, corresponding to the order
+    // in which they were added to the model
+    map<StochasticNode const *, unsigned int> snode_map;
+    for (unsigned int i = 0; i < _stochastic_nodes.size(); ++i) {
+	snode_map[_stochastic_nodes[i]] = i;
     }
 
-    stable_sort(_samplers.begin(), _samplers.end(), less_sampler(node_map));
+    // Create a map associating each sampler with the minimal index
+    // of its sampled nodes.
+    map<Sampler const *, unsigned int> sampler_map;
+    for (unsigned int i = 0; i < _samplers.size(); ++i) {
+	unsigned int min_index = _stochastic_nodes.size();
+	vector<StochasticNode*> const &snodes = _samplers[i]->nodes();
+	for (unsigned int j = 0; j < snodes.size(); ++j) {
+	    map<StochasticNode const*, unsigned int>::const_iterator p 
+		= snode_map.find(snodes[j]);
+	    if (p == snode_map.end()) {
+		throw logic_error("Invalid stochastic node map");
+	    }
+	    if (p->second < min_index) {
+		min_index = p->second;
+	    }
+	}
+	sampler_map[_samplers[i]] = min_index;
+    }
+
+    stable_sort(_samplers.begin(), _samplers.end(), less_sampler(sampler_map));
 }
 
 void Model::update(unsigned int niter)
@@ -306,9 +373,9 @@ void Model::update(unsigned int niter)
 	throw logic_error("Attempt to update uninitialized model");
     }
 
-    list<Monitor*>::const_iterator p;
+    list<MonitorControl>::iterator p;
     for (p = _monitors.begin(); p != _monitors.end(); ++p) {
-	(*p)->reserve(niter);
+	p->reserve(niter);
     }
 
     for (unsigned int iter = 0; iter < niter; ++iter) {    
@@ -323,15 +390,18 @@ void Model::update(unsigned int niter)
 	    for (vector<Node*>::const_iterator k = _sampled_extra.begin();
 		 k != _sampled_extra.end(); ++k)
 	    {
+                if (!(*k)->checkParentValues(n)) {
+                     throw NodeError(*k, "Invalid parent values");
+                }
 		(*k)->randomSample(_rng[n], n);
 	    }
 	}
 	_iteration++;
 
-	for (list<Monitor*>::iterator k = _monitors.begin(); 
+	for (list<MonitorControl>::iterator k = _monitors.begin(); 
 	     k != _monitors.end(); k++) 
 	{
-	    (*k)->update(_iteration);
+	    k->update(_iteration);
 	}
     }
 }
@@ -387,13 +457,16 @@ void Model::setSampledExtra()
     }
     //Mark the ancestors of all monitored nodes in this graph
     GraphMarks emarks(egraph);
-    for (list<Monitor*>::const_iterator p = _monitors.begin();
+    for (list<MonitorControl>::const_iterator p = _monitors.begin();
 	 p != _monitors.end(); ++p)
     {
-	Node const *node = (*p)->node();
-	if (egraph.contains(node)) {
-	    emarks.mark(node, 1);
-	    emarks.markAncestors(node, 1);
+	for (unsigned int i = 0; i < p->monitor()->nodes().size(); ++i) {
+	    Node const *node = p->monitor()->nodes()[i];
+	    if (egraph.contains(node)) {
+		emarks.mark(node, 1);
+		//FIXME: call once
+		emarks.markAncestors(vector<Node const *>(1, node), 1);
+	    }
 	}
     }
     //Remove unmarked nodes from graph
@@ -408,21 +481,26 @@ void Model::setSampledExtra()
     egraph.getSortedNodes(_sampled_extra);
 }
 
-
-
-void Model::addMonitor(Monitor *monitor)
+void Model::addMonitor(Monitor *monitor, unsigned int thin)
 {
     if (_adapt) {
 	throw logic_error("Cannot add monitor to adapting model");
     }
     
-    _monitors.push_back(monitor);
+    _monitors.push_back(MonitorControl(monitor, _iteration+1, thin));
     setSampledExtra();
 }
 
 void Model::removeMonitor(Monitor *monitor)
 {
-    _monitors.remove(monitor);
+    for(list<MonitorControl>::iterator p = _monitors.begin();
+	p != _monitors.end(); ++p)
+    {
+	if (p->monitor() == monitor) {
+	    _monitors.erase(p);
+	    break;
+	}
+    }
     setSampledExtra();
 }
 
@@ -432,9 +510,12 @@ void Model::addExtraNode(Node *node)
 	throw logic_error("Attempt to add extra node to uninitialized model");
     }
     if (node->isObserved()) {
-	throw logic_error("Cannot add observed node to initialized model");
+	for (unsigned int i = 0; i < node->parents().size(); ++i) {
+	    if (!node->parents()[i]->isObserved())
+		throw logic_error("Cannot add observed node to initialized model");
+	}
     }
-    if (!node->children()->empty()) {
+    if (!node->stochasticChildren()->empty() || !node->deterministicChildren()->empty()) {
 	throw logic_error("Cannot add extra node with children");
     }
 
@@ -461,21 +542,21 @@ void Model::addExtraNode(Node *node)
     }
 }
 
-list<SamplerFactory const *> &Model::samplerFactories()
+list<pair<SamplerFactory *, bool> > &Model::samplerFactories()
 {
-  static list<SamplerFactory const *> _samplers;
-  return _samplers;
+    static list<pair<SamplerFactory *, bool> > _samplers;
+    return _samplers;
 }
 
-list<RNGFactory *> &Model::rngFactories()
+list<pair<RNGFactory *, bool> > &Model::rngFactories()
 {
-  static list<RNGFactory *> _rngfac;
-  return _rngfac;
+    static list<pair<RNGFactory *, bool> > _rngfac;
+    return _rngfac;
 }
 
-list<MonitorFactory *> &Model::monitorFactories()
+list<pair<MonitorFactory *, bool> > &Model::monitorFactories()
 {
-    static list<MonitorFactory *> _monitorfac;
+    static list<pair<MonitorFactory *, bool> > _monitorfac;
     return _monitorfac;
 }
 
@@ -491,19 +572,18 @@ RNG *Model::rng(unsigned int chain) const
 
 bool Model::setRNG(string const &name, unsigned int chain)
 {
-  /* Assign default RNG objects for any chain that does not
-     currently have one */
-
   if (chain >= _nchain)
      throw logic_error("Invalid chain number in Model::setRNG");
 
-  list<RNGFactory*>::const_iterator p;
+  list<pair<RNGFactory*, bool> >::const_iterator p;
   for (p = rngFactories().begin(); p != rngFactories().end(); ++p) {
-    RNG *rng = (*p)->makeRNG(name);
-    if (rng) {
-      _rng[chain] = rng;
-      return true;
-    }
+      if (p->second) {
+	  RNG *rng = p->first->makeRNG(name);
+	  if (rng) {
+	      _rng[chain] = rng;
+	      return true;
+	  }
+      }
   }
 
   return false;
@@ -518,11 +598,12 @@ bool Model::setRNG(RNG *rng, unsigned int chain)
   return true;
 }
 
-list<Monitor*> const &Model::monitors() const
+list<MonitorControl> const &Model::monitors() const
 {
   return _monitors;
 }
 
+/*
 bool Model::setDefaultMonitors(string const &type, unsigned int thin)
 {
     list<MonitorFactory*> const &faclist = monitorFactories();
@@ -535,12 +616,12 @@ bool Model::setDefaultMonitors(string const &type, unsigned int thin)
 	    unsigned int start = iteration() + 1;
 	    for (unsigned int i = 0; i < default_nodes.size(); ++i) {
 		Monitor *monitor = (*j)->getMonitor(default_nodes[i], this,
-						    start, thin, type);
+						    type);
 		if (!monitor) {
 		    throw logic_error("Invalid default monitor");
 		}
-		addMonitor(monitor);
-		/* Model takes ownership of default monitors */
+		addMonitor(monitor, thin);
+		// Model takes ownership of default monitors
 		_default_monitors.push_back(monitor);
 	    }
 	    return true;
@@ -558,10 +639,31 @@ void Model::clearDefaultMonitors(string const &type)
 	Monitor *monitor = *p;
 	if (monitor->type() == type) {
 	    _default_monitors.remove(monitor);
-	    _monitors.remove(monitor);
+	    removeMonitor(monitor);
 	    delete monitor;
 	}
     }
     setSampledExtra();
 }
+*/
 
+void Model::addNode(StochasticNode *node)
+{
+    _graph.add(node);
+    _stochastic_nodes.push_back(node);
+}
+
+void Model::addNode(DeterministicNode *node)
+{
+    _graph.add(node);
+}
+
+void Model::addNode(ConstantNode *node)
+{
+    _graph.add(node);
+}
+
+vector<StochasticNode*> const &Model::stochasticNodes() const
+{
+    return _stochastic_nodes;
+}

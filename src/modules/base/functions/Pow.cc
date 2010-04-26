@@ -14,12 +14,12 @@ Pow::Pow () : Infix ("^")
 {
 }
 
-double Pow::evaluateScalar(vector<double const *> const &args) const
+double Pow::evaluate(vector<double const *> const &args) const
 {
     return pow (*args[0], *args[1]);
 }
 
-bool Pow::checkScalarValue(vector<double const *> const &args) const
+bool Pow::checkParameterValue(vector<double const *> const &args) const
 {
     if (*args[0] >= 0) {
 	return true;
@@ -31,4 +31,11 @@ bool Pow::checkScalarValue(vector<double const *> const &args) const
     }
 }
 
+    bool Pow::isPower(vector<bool> const &mask, vector<bool> const &fix) const
+    {
+	if (mask[1])
+	    return false;
+        else
+            return fix.empty() || fix[1];
+    }
 }

@@ -1,12 +1,14 @@
 #include <config.h>
 
 #include "ConjugateWishart.h"
-#include "ConjugateSampler.h"
 #include "DWish.h"
 
 #include <rng/RNG.h>
 #include <graph/LogicalNode.h>
 #include <graph/StochasticNode.h>
+#include <graph/MixtureNode.h>
+#include <sampler/Linear.h>
+#include <sampler/GraphView.h>
 
 #include <set>
 #include <stdexcept>
@@ -30,29 +32,17 @@ bool ConjugateWishart::canSample(StochasticNode *snode, Graph const &graph)
     if (isBounded(snode))
 	return false;
   
-    vector<StochasticNode const*> stoch_nodes;
-    vector<Node*> dtrm_nodes;
-    Sampler::classifyChildren(vector<StochasticNode*>(1,snode), 
-			      graph, stoch_nodes, dtrm_nodes);
-    /* 
-       Create a set of nodes containing snode and its deterministic
-       descendants for the checks below.
-    */
-    set<Node const *> paramset;
-    paramset.insert(snode);
-    for (unsigned int j = 0; j < dtrm_nodes.size(); ++j) {
-	paramset.insert(dtrm_nodes[j]);
-    }
+    GraphView gv(snode, graph);
+    vector<StochasticNode const*> const &schild = gv.stochasticChildren();
 
     // Check stochastic children
-    for (unsigned int i = 0; i < stoch_nodes.size(); ++i) {
-	vector<Node const*> const &param = stoch_nodes[i]->parents();
-	if (isBounded(stoch_nodes[i])) {
+    for (unsigned int i = 0; i < schild.size(); ++i) {
+	if (isBounded(schild[i])) {
 	    return false; //Bounded
 	}
-	switch(getDist(stoch_nodes[i])) {
+	switch(getDist(schild[i])) {
 	case MNORM:
-	    if (paramset.count(param[0])) {
+	    if (gv.isDependent(schild[i]->parents()[0])) {
 		return false; //mean parameter depends on snode
 	    }
 	    break;
@@ -60,30 +50,38 @@ bool ConjugateWishart::canSample(StochasticNode *snode, Graph const &graph)
 	    return false;
 	}
     }
-  
-    // Only direct children are allowed
-    if (!dtrm_nodes.empty()) {
-	return false;
+
+    vector<DeterministicNode*> const &dchild = gv.deterministicChildren();
+    if (!dchild.empty()) {
+	// Deterministic children must be scale functions
+	if (!checkScale(&gv, false)) {
+	    return false;
+	}
+	// Only mixture nodes are allowed.  If we allowed arbitrary
+	// functions, the complexity would be O(nrow^4).
+	for (unsigned int i = 0; i < dchild.size(); ++i) {
+	    if (!isMixture(dchild[i]))
+		return false;
+	}
     }
 
-    return true; //We made it!
+    return true;
 }
 
-void ConjugateWishart::initialize(ConjugateSampler *sampler,
-				  Graph const &graph)
-{
-}
+ConjugateWishart::ConjugateWishart(GraphView const *gv)
+    : ConjugateMethod(gv)
+{}
 
-void ConjugateWishart::update(ConjugateSampler *sampler, unsigned int chain, 
-			      RNG *rng) const
+void 
+ConjugateWishart::update(unsigned int chain, RNG *rng) const
 {
     vector<StochasticNode const*> const &stoch_children = 
-	sampler->stochasticChildren();
+	_gv->stochasticChildren();
     unsigned int nchildren = stoch_children.size();
 
-    vector<Node const *> const &param = sampler->node()->parents();  
+    vector<Node const *> const &param = _gv->nodes()[0]->parents();  
 
-    double k = *param[1]->value(chain);
+    double df = *param[1]->value(chain);
     double const *Rprior = param[0]->value(chain);
     int nrow = param[0]->dim()[0];
 
@@ -93,34 +91,56 @@ void ConjugateWishart::update(ConjugateSampler *sampler, unsigned int chain,
 	R[i] = Rprior[i];
     }
 
-    vector<ConjugateDist> const &child_dist = sampler->childDist();
-    double *delta = new double[nrow];
-    for (unsigned int i = 0; i < nchildren; ++i) {
-	StochasticNode const *schild = stoch_children[i];
-	if (child_dist[i] != MNORM)
-	    throw logic_error("Invalid distribution in Conjugate Wishart sampler");
-	vector<Node const *> const &cparam = schild->parents();
-    
-	double const *Y = schild->value(chain);
-	double const *mu = cparam[0]->value(chain);
+    //Logical mask to determine which stochastic children are active.
+    vector<bool> active(nchildren, true);
 
-	for (int j = 0; j < nrow; j++) {
-	    delta[j] = Y[j] - mu[j];
+    if (!_gv->deterministicChildren().empty()) {
+	//Save first element of precision matrix for each child
+	vector<double> precision0(nchildren); 
+	for (unsigned int i = 0; i < nchildren; ++i) {
+	    precision0[i] = stoch_children[i]->value(chain)[0];
 	}
-	for (int j = 0; j < nrow; j++) {
-	    for (int l = 0; l < nrow; l++) {
-		R[j*nrow + l] += delta[j] * delta[l];
+	//Double the current value
+	double const *x = _gv->nodes()[0]->value(chain);
+	double *x2 = new double[N];
+	for (int j = 0; j < N; ++j) {
+	    x2[j] = 2 * x[j];
+	}
+	_gv->setValue(x2, N, chain);
+	delete [] x2;
+	//See if precision matrix has changed
+	for (unsigned int i = 0; i < nchildren; ++i) {
+	    if (stoch_children[i]->value(chain)[0] == precision0[i]) {
+		active[i] = false; //not active
 	    }
 	}
-	k += 1;
+    }
+
+    double *delta = new double[nrow];
+    for (unsigned int i = 0; i < nchildren; ++i) {
+	if (active[i]) {
+	    StochasticNode const *schild = stoch_children[i];
+	    double const *Y = schild->value(chain);
+	    double const *mu = schild->parents()[0]->value(chain);
+	    
+	    for (int j = 0; j < nrow; j++) {
+		delta[j] = Y[j] - mu[j];
+	    }
+	    for (int j = 0; j < nrow; j++) {
+		for (int k = 0; k < nrow; k++) {
+		    R[j*nrow + k] += delta[j] * delta[k];
+		}
+	    }
+	    df += 1;
+	}
     }
     delete [] delta;
 
     double *xnew = new double[N];
-    DWish::randomSample(xnew, N, R, k, nrow, rng);
+    DWish::randomSample(xnew, N, R, df, nrow, rng);
 
     delete [] R;
-    sampler->setValue(xnew, N, chain);
+    _gv->setValue(xnew, N, chain);
     delete [] xnew;
 }
 

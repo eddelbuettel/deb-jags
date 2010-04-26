@@ -1,7 +1,8 @@
 #include "DevianceMonitorFactory.h"
-#include "DevianceMonitor.h"
+#include "DevianceMean.h"
+#include "DevianceTrace.h"
 
-#include <model/Model.h>
+#include <model/BUGSModel.h>
 #include <graph/StochasticNode.h>
 
 #include <set>
@@ -12,40 +13,49 @@ using std::vector;
 
 namespace dic {
 
-    Monitor *DevianceMonitorFactory::getMonitor(Node const *node, 
-						Model *model,
-						unsigned int start,
-						unsigned int thin, 
+    Monitor *DevianceMonitorFactory::getMonitor(string const &name, 
+						Range const &range,
+						BUGSModel *model,
 						string const &type)
     {
-	if (type != "deviance")
+
+	if (type != "mean" && type != "trace")
 	    return 0;
-	if (!node->isObserved()) 
+	if (name != "deviance")
+	    return 0;
+	if (!isNULL(range))
 	    return 0;
 
-	StochasticNode const *snode = asStochastic(node);
-	if (snode)
-	    return new DevianceMonitor(snode, start, thin);
-	else 
-	    return 0;
-    }
-
-    vector<Node const*> 
-    DevianceMonitorFactory::defaultNodes(Model *model, 
-					 string const &type) const
-    {
-	vector<Node const*> dnodes;
-
-        if (type == "deviance") {
-	    set<Node*> const &nodes = model->graph().nodes();
-	    set<Node*>::const_iterator p = nodes.begin(); 
-	    for ( ; p != nodes.end(); ++p) {
-		if ((*p)->isObserved() && asStochastic(*p)) {
-		    dnodes.push_back(*p);
-		}
+	vector<StochasticNode *> const &snodes = model->stochasticNodes();
+	vector<StochasticNode const *> observed_snodes;
+	for (unsigned int i = 0; i < snodes.size(); ++i) {
+	    if (snodes[i]->isObserved()) {
+		observed_snodes.push_back(snodes[i]);
 	    }
 	}
-	return dnodes;
+	if (observed_snodes.empty())
+	    return 0;
+
+	Monitor *m;
+	if (type == "mean") {
+	    m = new DevianceMean(observed_snodes);
+	    m->setName(name);
+	    vector<string> onames(observed_snodes.size());
+	    for (unsigned int i = 0; i < observed_snodes.size(); ++i) {
+		onames[i] = model->symtab().getName(observed_snodes[i]);
+	    }
+	    m->setElementNames(onames);
+	}
+	else if (type == "trace") {
+	    m = new DevianceTrace(observed_snodes);
+	    m->setName("deviance");
+	    m->setElementNames(vector<string>(1,"deviance"));
+	}
+	return m;
     }
-	
+
+    string DevianceMonitorFactory::name() const
+    {
+	return "dic::Deviance";
+    }
 }

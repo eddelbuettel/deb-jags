@@ -1,107 +1,263 @@
 #include <config.h>
 #include <Module.h>
 #include <compiler/Compiler.h>
-#include <function/InverseLinkFunc.h>
-#include <function/Function.h>
 #include <model/Model.h>
 #include <algorithm>
 
 using std::vector;
 using std::list;
+using std::string;
+using std::find;
+using std::pair;
 
-Module::Module()
-{}
+Module::Module(string const &name)
+    : _name(name), _loaded(false)
+{
+    modules().push_back(this);
+}
 
 Module::~Module()
 {
-    unsigned int i;
-    for (i = 0; i < _internal_functions.size(); ++i) {
-	Compiler::funcTab().erase(_internal_functions[i]);
-    }
-    for (i = 0; i < _internal_link_functions.size(); ++i) {
-	Compiler::funcTab().erase(_internal_link_functions[i]);
-    }
-    for (i = 0; i < _distributions.size(); ++i) {
-	Compiler::distTab().erase(_distributions[i]);
-    }
-
-    list<RNGFactory *> &rngf = Model::rngFactories();
-    for (i = 0; i < _rng_factories.size(); ++i) {
-	RNGFactory *f = _rng_factories[i];
-	for (;;) {
-	    /* A little paranoiac, in case someone inserted the
-	       same sampler factory more than once */
-	    list<RNGFactory *>::iterator p = find(rngf.begin(), rngf.end(), f);
-	    if (p == rngf.end())
-		break;
-	    rngf.erase(p);
-	}
-    }
-
-    list<SamplerFactory const*> &sf = Model::samplerFactories();
-    for (i = 0; i < _sampler_factories.size(); ++i) {
-	SamplerFactory *f = _sampler_factories[i];
-	for (;;) {
-	    /* A little paranoiac, in case someone inserted the
-	       same sampler factory more than once */
-	    list<SamplerFactory const*>::iterator p
-		= find(sf.begin(), sf.end(), f);
-	    if (p == sf.end())
-		break;
-	    sf.erase(p);
-	}
+    unload();
+    list<Module*>::iterator p = find(modules().begin(), modules().end(), this);
+    if (p != modules().end()) {
+	modules().erase(p);
     }
 }
 
-void Module::insert(InverseLinkFunc *lfunc)
+void Module::insert(ScalarFunction *func)
 {
-    _internal_link_functions.push_back(lfunc);
-    _functions.push_back(lfunc);
-    Compiler::funcTab().insert(lfunc);
-}
-
-void Module::insert(Function *func)
-{
-    _internal_functions.push_back(func);
     _functions.push_back(func);
-    Compiler::funcTab().insert(func);
+    _fp_list.push_back(FunctionPtr(func));
 }
 
-void Module::insert(Distribution *dist)
+void Module::insert(LinkFunction *func)
+{
+    _functions.push_back(func);
+    _fp_list.push_back(FunctionPtr(func));
+
+}
+
+void Module::insert(VectorFunction *func)
+{
+    _functions.push_back(func);
+    _fp_list.push_back(FunctionPtr(func));
+
+}
+
+void Module::insert(ArrayFunction *func)
+{
+    _functions.push_back(func);
+    _fp_list.push_back(FunctionPtr(func));
+
+}
+
+void Module::insert(ScalarDist *dist)
 {
     _distributions.push_back(dist);
-    Compiler::distTab().insert(dist);
+    _dp_list.push_back(DistPtr(dist));
+}
+
+void Module::insert(VectorDist *dist)
+{
+    _distributions.push_back(dist);
+    _dp_list.push_back(DistPtr(dist));
+
+}
+
+void Module::insert(ArrayDist *dist)
+{
+    _distributions.push_back(dist);
+    _dp_list.push_back(DistPtr(dist));
+
+}
+
+void Module::insert(ScalarDist *dist, ScalarFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(ScalarDist *dist, LinkFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(ScalarDist *dist, VectorFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(ScalarDist *dist, ArrayFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+//
+
+void Module::insert(VectorDist *dist, ScalarFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(VectorDist *dist, LinkFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(VectorDist *dist, VectorFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(VectorDist *dist, ArrayFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+//
+
+void Module::insert(ArrayDist *dist, ScalarFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(ArrayDist *dist, LinkFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(ArrayDist *dist, VectorFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
+}
+
+void Module::insert(ArrayDist *dist, ArrayFunction *func)
+{
+    _obs_functions.push_back(pair<DistPtr,FunctionPtr>(dist,func));
+    insert(dist);
+    insert(func);
 }
 
 void Module::insert(SamplerFactory *fac)
 {
     _sampler_factories.push_back(fac);
-    Model::samplerFactories().push_front(fac);
 }
 
 void Module::insert(RNGFactory *fac)
 {
     _rng_factories.push_back(fac);
-    Model::rngFactories().push_front(fac);
 }
 
 void Module::insert(MonitorFactory *fac)
 {
     _monitor_factories.push_back(fac);
-    Model::monitorFactories().push_front(fac);
 }
 
-vector<Function*> const  &Module::functions() const
+void Module::load()
+{
+    if (_loaded)
+	return;
+
+    for (unsigned int i = 0; i < _monitor_factories.size(); ++i) {
+	pair<MonitorFactory*,bool> p(_monitor_factories[i], true);
+	Model::monitorFactories().push_front(p);
+    }
+    for (unsigned int i = 0; i < _rng_factories.size(); ++i) {
+	pair<RNGFactory*, bool> p(_rng_factories[i], true);
+	Model::rngFactories().push_front(p);
+    }
+    for (unsigned int i = 0; i < _sampler_factories.size(); ++i) {
+	pair<SamplerFactory*, bool> p(_sampler_factories[i], true);
+	Model::samplerFactories().push_front(p);
+    }
+    for (unsigned int i = 0; i < _distributions.size(); ++i) {
+	Compiler::distTab().insert(_dp_list[i]);
+    }
+    for (unsigned int i = 0; i < _fp_list.size(); ++i) {
+	Compiler::funcTab().insert(_fp_list[i]);
+    }
+    for (unsigned int i = 0; i < _obs_functions.size(); ++i) {
+	Compiler::obsFuncTab().insert(_obs_functions[i].first,
+				      _obs_functions[i].second);
+    }
+
+    loadedModules().push_back(this);
+}
+
+void Module::unload()
+{
+    if (!_loaded)
+	return;
+
+    for (unsigned int i = 0; i < _obs_functions.size(); ++i) {
+	Compiler::obsFuncTab().erase(_obs_functions[i].first,
+				     _obs_functions[i].second);
+    }
+    for (unsigned int i = 0; i < _fp_list.size(); ++i) {
+	Compiler::funcTab().erase(_fp_list[i]);
+    }
+    for (unsigned int i = 0; i < _distributions.size(); ++i) {
+	Compiler::distTab().erase(_dp_list[i]);
+    }
+
+    list<pair<RNGFactory *, bool> > &rngf = Model::rngFactories();
+    for (unsigned int i = 0; i < _rng_factories.size(); ++i) {
+	RNGFactory *f = _rng_factories[i];
+	list<pair<RNGFactory *, bool> >::iterator p;
+	for (p = rngf.begin(); p != rngf.end(); ++p) {
+	    if (p->first == f) {
+		rngf.erase(p);
+	    }
+	}
+    }
+
+    list<pair<SamplerFactory *, bool> > &sf = Model::samplerFactories();
+    for (int i = 0; i < _sampler_factories.size(); ++i) {
+	SamplerFactory *f = _sampler_factories[i];
+	list<pair<SamplerFactory *, bool> >::iterator p;
+	for (p = sf.begin(); p != sf.end(); ++p) {
+	    if (p->first == f) {
+		sf.erase(p);
+	    }
+	}
+    }
+
+    loadedModules().remove(this);
+}
+
+vector<Function*> const &Module::functions() const
 {
     return _functions;
 }
 
-vector<Distribution*> const  &Module::distributions() const
+vector<Distribution*> const &Module::distributions() const
 {
     return _distributions;
 }
 
-vector<SamplerFactory*> const  &Module::samplerFactories() const
+vector<SamplerFactory*> const &Module::samplerFactories() const
 {
     return _sampler_factories;
 }
@@ -115,3 +271,21 @@ vector<MonitorFactory*> const &Module::monitorFactories() const
 {
     return _monitor_factories;
 }
+
+string const &Module::name() const
+{
+    return _name;
+}
+
+list<Module *> &Module::modules()
+{
+    static list<Module*> _modules;
+    return _modules;
+}
+
+list<Module *> &Module::loadedModules()
+{
+    static list<Module*> _modules;
+    return _modules;
+}
+

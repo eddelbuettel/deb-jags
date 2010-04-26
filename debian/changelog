@@ -1,3 +1,11 @@
+jags (2.0.0-1) unstable; urgency=low
+
+  * New upstream release
+
+  * debian/control: Updated Standards-Version: to current version
+  
+ -- Dirk Eddelbuettel <edd@debian.org>  Mon, 26 Apr 2010 11:05:20 -0500
+
 jags (1.0.4-4) unstable; urgency=low
 
   * configure: Applied patch by Nobuhiro Iwamatsu to support the

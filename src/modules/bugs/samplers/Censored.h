@@ -1,26 +1,20 @@
-#ifndef CENSORED_SAMPLER_H_
-#define CENSORED_SAMPLER_H_
+#ifndef CENSORED_H_
+#define CENSORED_H_
 
-#include <sampler/Sampler.h>
+#include "ConjugateMethod.h"
+
+class StochasticNode;
 
 /**
- *
- * A sampler for censored real-valued distributions.
- *
+ * Update Method for censored real-valued distributions.
  */
-class Censored : public Sampler {
-    StochasticNode const *_snode;
-    Node const *_breaks;
-    int _y;
+class Censored : public ConjugateMethod {
+    StochasticNode *_snode;
 public:
-    Censored(StochasticNode *snode, Graph const &graph);
-    ~Censored();
-
+    Censored(GraphView const *gv);
     static bool canSample(StochasticNode *snode, Graph const &graph);
-    void update(std::vector<RNG *> const &rng);
-    bool isAdaptive() const;
-    bool adaptOff();
+    void update(unsigned int chain, RNG * rng) const;
     std::string name() const;
 };
 
-#endif /* CONJUGATE_NORMAL_H_ */
+#endif /* CENSORED_H_ */

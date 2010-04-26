@@ -1,5 +1,6 @@
 #include <config.h>
 #include <compiler/ConstantFactory.h>
+#include <model/Model.h>
 #include <graph/ConstantNode.h>
 #include <compiler/NodeFactory.h>
 #include <util/integer.h>
@@ -19,24 +20,22 @@ ConstantFactory::ConstantFactory(unsigned int nchain)
 {
 }
 
-ConstantNode * ConstantFactory::getConstantNode(double value, Graph &graph)
+ConstantNode * ConstantFactory::getConstantNode(double value, Model &model)
 {
     ConstantNode *cnode = 0;
 
     map<double, ConstantNode*, ltdouble>::const_iterator i 
 	= _constmap.find(value);
     if (i == _constmap.end()) {
-	bool is_discrete;
-	int ivalue = checkInteger(value, is_discrete);
-	if (is_discrete) {
-	    cnode = new ConstantNode(ivalue, _nchain);
+	if (checkInteger(value)) {
+	    cnode = new ConstantNode(asInteger(value), _nchain);
 	}
 	else {
 	    cnode = new ConstantNode(value, _nchain);
 	}
-
+	
 	_constmap[value] = cnode;
-	graph.add(cnode);
+	model.addNode(cnode);
 	return cnode;
     }
     else {
@@ -46,7 +45,7 @@ ConstantNode * ConstantFactory::getConstantNode(double value, Graph &graph)
 
 ConstantNode * ConstantFactory::getConstantNode(vector<unsigned int> const &dim,
 						vector<double> const &value,
-                                                Graph &graph)
+                                                Model &model)
 {
     ConstantNode *cnode = 0;
 
@@ -61,10 +60,11 @@ ConstantNode * ConstantFactory::getConstantNode(vector<unsigned int> const &dim,
 	bool is_discrete = true;
 
 	for (unsigned int j = 0; j < value.size(); ++j) {
-	    ivalue[j] = checkInteger(value[j], is_discrete);
+	    is_discrete = checkInteger(value[j]);
 	    if (!is_discrete) {
 		break;
 	    }
+	    ivalue[j] = asInteger(value[j]);
 	}
 	
 	if (is_discrete) {
@@ -75,7 +75,7 @@ ConstantNode * ConstantFactory::getConstantNode(vector<unsigned int> const &dim,
 	}
 	
 	_mv_constmap[cp] = cnode;
-	graph.add(cnode);
+	model.addNode(cnode);
 	return cnode;
     }
     else {

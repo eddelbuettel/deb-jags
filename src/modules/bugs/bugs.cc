@@ -10,6 +10,7 @@
 #include <distributions/DDirch.h>
 #include <distributions/DExp.h>
 #include <distributions/DGamma.h>
+#include <distributions/DGenGamma.h>
 #include <distributions/DInterval.h>
 #include <distributions/DLnorm.h>
 #include <distributions/DLogis.h>
@@ -30,6 +31,8 @@
 #include <functions/Abs.h>
 #include <functions/CLogLog.h>
 #include <functions/Cos.h>
+#include <functions/DIntervalFunc.h>
+#include <functions/DSumFunc.h>
 #include <functions/Exp.h>
 #include <functions/Equals.h>
 #include <functions/ICLogLog.h>
@@ -61,9 +64,12 @@
 #include <functions/Transpose.h>
 #include <functions/Trunc.h>
 
+#include <functions/DFunction.h>
+#include <functions/PFunction.h>
+#include <functions/QFunction.h>
+
 #include <samplers/ConjugateFactory.h>
 #include <samplers/DSumFactory.h>
-//#include <samplers/REFactory.h>
 #include <samplers/MNormalFactory.h>
 #include <samplers/DirichletFactory.h>
 
@@ -74,36 +80,37 @@ class BUGSModule : public Module {
 public:
     BUGSModule();
     ~BUGSModule();
+    void Rinsert(RScalarDist *dist);
 };
 
-BUGSModule::BUGSModule() {
+BUGSModule::BUGSModule() 
+    : Module("bugs")
+{
 
     //Load distributions
     insert(new DBern);
-    insert(new DBeta);
-    insert(new DBin);
+    Rinsert(new DBeta);
+    Rinsert(new DBin);
     insert(new DCat);
-    insert(new DChisqr);
-    insert(new DDexp);
+    Rinsert(new DChisqr);
+    Rinsert(new DDexp);
     insert(new DDirch);
-    insert(new DExp);
-    insert(new DGamma);
-    insert(new DInterval);
-    insert(new DLnorm);
-    insert(new DLogis);
+    Rinsert(new DExp);
+    Rinsert(new DGamma);
+    Rinsert(new DLnorm);
+    Rinsert(new DLogis);
     insert(new DMNorm);
     insert(new DMT);
     insert(new DMulti);
-    insert(new DNegBin);
-    insert(new DNorm);
-    insert(new DPar);
-    insert(new DPois);
-    insert(new DT);
+    Rinsert(new DNegBin);
+    Rinsert(new DNorm);
+    Rinsert(new DPar);
+    Rinsert(new DPois);
+    Rinsert(new DT);
     insert(new DUnif);
-    insert(new DWeib);
+    Rinsert(new DWeib);
     insert(new DWish);
-    insert(new DHyper);
-    insert(new DSum); 
+    Rinsert(new DHyper);
 
     //Load functions
     insert(new Abs);
@@ -140,6 +147,10 @@ BUGSModule::BUGSModule() {
     insert(new Transpose);
     insert(new Trunc);
 
+    //Load observable functions
+    insert(new DSum, new DSumFunc);
+    insert(new DInterval, new DIntervalFunc);
+        
     //Load sampler factories
     insert(new MNormalFactory);
     insert(new DirichletFactory);
@@ -164,6 +175,14 @@ BUGSModule::~BUGSModule() {
     for (unsigned int i = 0; i < svec.size(); ++i) {
 	delete svec[i];
     }
+}
+
+void BUGSModule::Rinsert(RScalarDist *dist)
+{
+    insert(dist);    
+    insert(new DFunction(dist));
+    insert(new PFunction(dist));
+    insert(new QFunction(dist));
 }
 
 BUGSModule _bugs_module;

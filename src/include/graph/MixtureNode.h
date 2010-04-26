@@ -5,6 +5,15 @@
 #include <map>
 #include <vector>
 
+class Node;
+
+/**
+ * A MixMap is an STL map object.  The key represents an integer-valued
+ * index, and the value is the corresponding Node from which a
+ * MixtureNode will copy its values when its indices take that value.
+ */
+typedef std::map<std::vector<int> , Node const *>  MixMap;
+
 /**
  * @short Node for mixture models.
  *
@@ -21,7 +30,7 @@
  * x[1], ... x[M].
  */
 class MixtureNode : public DeterministicNode {
-    std::map<std::vector<int>, Node const *> _map;
+    MixMap _map;
     unsigned int _Nindex;
 public:
     /**
@@ -51,15 +60,16 @@ public:
      */
     unsigned int index_size() const;
     /**
-     * A MixtureNode preserves linearity if none of the index nodes
-     * are parameters. It is never a fixed linear function.
+     * A MixtureNode is discrete valued if all of its possible
+     * parents are discrete
      */
-    bool isLinear(GraphMarks const &linear_marks, bool fixed) const;
+    bool isDiscreteValued() const;
     /**
-     * A MixtureNode is a scale transformation if none of the indices
-     * are parameters. It is never a fixed scale transformation.
+     * A MixtureNode preserves all closed classes if none of its index
+     * nodes are descendants of X. It is never fixed
      */
-    bool isScale(GraphMarks const &scale_marks, bool fixed) const;
+    bool isClosed(std::set<Node const *> const &ancestors, 
+		  ClosedFuncClass fc, bool fixed) const;
     /**
      * This function always returns true. It ignores possible errors
      * in the index nodes.  This is because the deterministicSample
@@ -80,6 +90,8 @@ public:
      * of its BUGS-language definition.
      */
     std::string deparse(std::vector<std::string> const &parents) const;
+    DeterministicNode *clone(std::vector<Node const *> const &parents) const;
+    
 };
 
 bool isMixture(Node const *);

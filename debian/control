@@ -3,7 +3,7 @@ Section: math
 Priority: optional
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
 Build-Depends: debhelper (>= 7.0.50~), gfortran, liblapack-dev, libltdl-dev (>= 2.2.6b)
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 Homepage: http://www-fis.iarc.fr/~martyn/software/jags/
 
 Package: jags

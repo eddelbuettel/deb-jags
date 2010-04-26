@@ -37,117 +37,65 @@ public:
      */
     std::string const &name () const;
     /**
-     * Evaluates the function. 
-     *
-     * @param value array of doubles which contains the result of
-     * the evaluation 
-     * @param args Vector of arguments. 
-     * @param lengths Respective lengths hof each element of args.
-     * @param dims Respective dimensions of each element of args.
-     */
-    virtual void
-	evaluate(double *value, 
-		 std::vector<double const *> const &args,
-		 std::vector<unsigned int> const &lengths,
-		 std::vector<std::vector<unsigned int> > const &dims) const = 0;
-    /**
      * Checks that a vector of parameters of length npar is consistent
      * with the function.
      */
-    bool checkParameterLength(unsigned int npar) const;
+    bool checkNPar(unsigned int npar) const;
     /**
-     * Checks whether dimensions of the function parameters are correct.  
-     *
-     * @param dims Vector of length npar denoting the dimensions of
-     * the parameters, with any redundant dimensions dropped.
-     */
-    virtual bool
-	checkParameterDim(std::vector<std::vector<unsigned int> > const &dims) 
-	const = 0;
-    /**
-     * Checks whether the parameter values lie in the domain of the
-     * function.  
-     *
-     * Since many functions do not need to check their parameter
-     * values, a default method is provided which always returns
-     * true.
-     */
-    virtual bool
-	checkParameterValue(std::vector <double const *> const &args,
-			    std::vector <unsigned int> const &lengths,
-                            std::vector<std::vector<unsigned int> > const &dims) 
-        const;
-    /**
-     * Calculates what the dimension of the return value should be,
-     * based on the dimensions of the arguments. The dimension of the
-     * return value cannot depend on the value of any of the arguments,
-     * only their dimensions.
-     *
-     * This is a virtual function. The default implementation assumes
-     * that the function is scalar-valued.
-     *
-     * @param dims Vector of Indices denoting the dimensions of the 
-     * parameters. This vector must return true when passed to
-     * checkParameterDim.
-     */
-    virtual std::vector<unsigned int> 
-	dim(std::vector <std::vector<unsigned int> > const &dims) const;
-    /**
-     * Returns true if the function returns integer values. The default
-     * implementation returns false, so any function that can return
+     * Returns true if the function returns integer values. The
+     * default implementation returns false. A function that returns
      * integer values will need to overload this.
      *
      * @param mask Vector indicating whether parameters are discrete
-     * or not. 
-     *
-     * @see SArray#isDiscreteValued
+     * or not.
      */
     virtual bool isDiscreteValued(std::vector<bool> const &mask) const;
     /**
-     * Tests whether the value of the function is linear, i.e. a
-     * function of the form f(x) = A + B %*% x.  False negative
-     * responses are permitted: i.e. the value false may be returned
-     * when the value is, in fact, a linear function of the given
-     * parameters, but false positives are not allowed. Since most
-     * functions of interest are non-linear, the default method
-     * returns false, so linear Functions must overload this.
+     * Tests whether the function preserves scale transformations, i.e.
+     * it can be represented in the form f(x) = B %*% x.
+     *
+     * It is permitted for the isScale function to return false
+     * negatives, i.e. to return false when the function does preserve
+     * scale transformations.  Since most functions are not scale
+     * transformations, the default method returns false.
      * 
      * @param mask boolean vector of length equal to the number of
-     * parameters.  The mask indicates a subset of parameters (those with
-     * value true) to be tested for linearity. The function may be 
-     * non-linear for parameters with mask value false.
+     * parameters.  The mask indicates a subset of parameters (those
+     * with value true) that are themselves scale transformations of x
+     * (the others are not functions of x). At least one element of
+     * mask must be true.
      *
      * @param isfixed boolean vector. This may be empty, in which case
-     * it is ignored. A non-empty vector must have length equal to mask,
-     * and denotes the parameters whose values are fixed. In this case
-     * the test is more restrictive, and the function returns true only
-     * if the coefficient B is fixed.
+     * it is ignored.  A non-empty vector must have length equal to
+     * mask, and denotes the parameters whose values are fixed. In
+     * this case the test is more restrictive, and returns true only
+     * if the coefficient B is fixed, assuming that the parameters for
+     * which mask is true are themselves fixed scale transformations.
      *
-     * @see DeterministicNode#isLinear
+     * @see DeterministicNode#isClosed
+     */
+    virtual bool isScale(std::vector<bool> const &mask,
+			 std::vector<bool> const &isfixed) const;
+    /**
+     * Tests whether the function preserves linear transformations, i.e. 
+     * a function of the form f(x) = A + B %*% x.
+     *
+     * All scale functions are linear functions. Therefore, the
+     * default method calls isScale. It only needs to be overridden
+     * for linear functions that are not scale functions.
+     *
+     * @see Function#isScale
      */
     virtual bool isLinear(std::vector<bool> const &mask,
 			  std::vector<bool> const &isfixed) const;
     /**
-     * Tests whether the value of the function is a scale
-     * transformation of the given scalar parameter, i.e. a trivial
-     * linear function of the form f(x) = A + B %*% x, where A or B is
-     * zero..  False negative responses are permitted.  Since most
-     * functions of interest are not scale transformations, the
-     * default method returns false.
-     * 
-     * @param index The index of the parameter to be tested. The function
-     * may be a non-scale transformation of the other pararameters (e.g.
-     * the function x/y is a scale transformation of x but not of y).
+     * Tests whether the function preserves power transformations,
+     * i.e.  can be expressed as f(x) = a*b^x for some value of a,b,
+     * where a,b, and x are all scalar.
      *
-     * @param isfixed boolean vector. This may be empty, in which case
-     * it is ignored.  A non-empty vector must have length equal to
-     * mask, and denotes the parameters whose values are fixed. In this
-     * case the test is more restrictive, and the function returns true
-     * only if the coeffiicent B is fixed.
-     *
-     * @see DeterministicNode#isScale
+     * The default method returns false.
      */
-    virtual bool isScale(unsigned int index,
+    virtual bool isPower(std::vector<bool> const &mask,
 			 std::vector<bool> const &isfixed) const;
     /**
      * Returns a BUGS-language expression representing the function call.

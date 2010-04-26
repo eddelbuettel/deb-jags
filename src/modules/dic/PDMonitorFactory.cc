@@ -1,9 +1,11 @@
 #include "PDMonitorFactory.h"
-#include "DefaultPDMonitor.h"
-#include "KLPDMonitor.h"
+#include "PDMonitor.h"
+#include "PoptMonitor.h"
 #include "KLTab.h"
+#include "CalKLExact.h"
+#include "CalKLApprox.h"
 
-#include <model/Model.h>
+#include <model/BUGSModel.h>
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
 
@@ -13,57 +15,79 @@ using std::set;
 using std::string;
 using std::vector;
 
-
 namespace dic {
 
-    extern KLTab _kltab;
+    static KL const *findKL(string const &name) {
+	static KLTab _kltab;
+	return _kltab.find(name);
+    }
 
-    Monitor *PDMonitorFactory::getMonitor(Node const *node, 
-					  Model *model,
-					  unsigned int start,
-					  unsigned int thin, 
+    Monitor *PDMonitorFactory::getMonitor(string const &name,
+					  Range const &range,
+					  BUGSModel *model,
 					  string const &type)
     {
-	if (type != "pD" || node->nchain() < 2)
+	if (model->nchain() < 2)
+	    return 0;
+
+	if ((name != "pD" && name != "popt") || !isNULL(range))
 	    return 0;
 	
-	StochasticNode const *snode = asStochastic(node);
-	if (!snode)
+	if (type != "mean")
 	    return 0;
-	
-/*
-	if (isSupportFixed(snode)) {
-	    
-	    KL const *kl = _kltab.find(snode->distribution()->name());
-	    if (kl) {
-		return new KLPDMonitor(snode, start, thin, kl);
+
+	vector<StochasticNode const *> observed_nodes;
+	vector<StochasticNode *> const &snodes = model->stochasticNodes();
+	for (unsigned int i = 0; i < snodes.size(); ++i) {
+	    if (snodes[i]->isObserved()) {
+		observed_nodes.push_back(snodes[i]);
+	    }
+	    if (!isSupportFixed(snodes[i])) {
+		return 0;
 	    }
 	}
-*/
-	
+	if (observed_nodes.empty())
+	    return 0;
+
 	unsigned int nchain = model->nchain();
 	vector<RNG*> rngs;
 	for (unsigned int i = 0; i < nchain; ++i) {
 	    rngs.push_back(model->rng(i));
 	}
-	return new DefaultPDMonitor(snode, start, thin, rngs, 10);	
-    }
-    
-    vector<Node const*> 
-    PDMonitorFactory::defaultNodes(Model *model, string const &type) const
-    {
-	vector<Node const*> dnodes;
 
-        if (type == "pD" && model->nchain() >= 2) {
-	    set<Node*> const &nodes = model->graph().nodes();
-	    set<Node*>::const_iterator p = nodes.begin(); 
-	    for ( ; p != nodes.end(); ++p) {
-		if ((*p)->isObserved() && asStochastic(*p)) {
-		    dnodes.push_back(*p);
-		}
+	vector<CalKL*> calkl;
+	for (unsigned int i = 0; i < observed_nodes.size(); ++i) {
+	    
+	    StochasticNode const *snode = observed_nodes[i];
+	    KL const *kl = findKL(snode->distribution()->name());
+	    if (kl) {
+		calkl.push_back(new CalKLExact(snode, kl));
+	    }
+	    else {
+		calkl.push_back(new CalKLApprox(snode, rngs, 10));
 	    }
 	}
-	return dnodes;
+
+	Monitor *m = 0;
+	if (name =="pD") {
+	    m = new PDMonitor(observed_nodes, calkl);
+	}
+	else if (name == "popt") {
+	    m = new PoptMonitor(observed_nodes, calkl);
+	}
+	if (m) {
+	    m->setName(name);
+	    vector<string> onames(observed_nodes.size());
+	    for (unsigned int i = 0; i < observed_nodes.size(); ++i) {
+		onames[i] = model->symtab().getName(observed_nodes[i]);
+	    }
+	    m->setElementNames(onames);
+	}
+	return m;
     }
-	
+
+    string PDMonitorFactory::name() const
+    {
+	return "dic::PD";
+    }
 }

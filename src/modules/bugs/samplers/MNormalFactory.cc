@@ -4,13 +4,14 @@
 #include "MNormalFactory.h"
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
-#include <sampler/DensitySampler.h>
+#include <sampler/ParallelSampler.h>
+#include <sampler/GraphView.h>
 
 #include <string>
 #include <vector>
 
 using std::vector;
-
+using std::string;
 
 bool 
 MNormalFactory::canSample(StochasticNode * snode, Graph const &graph) const
@@ -19,14 +20,19 @@ MNormalFactory::canSample(StochasticNode * snode, Graph const &graph) const
 }
 
 Sampler *
-MNormalFactory::makeSingletonSampler(StochasticNode *snode, Graph const &graph)
-				      const
+MNormalFactory::makeSampler(StochasticNode *snode, Graph const &graph) const
 {
-    unsigned int nchain = snode->nchain();
-    vector<DensityMethod*> methods(nchain, 0);
-    vector<StochasticNode*> nodes(1, snode);
-    for (unsigned int ch = 0; ch < nchain; ++ch) {
-        methods[ch] = new MNormMetropolis(snode);
+    unsigned int N = snode->nchain();
+    vector<SampleMethod*> methods(N, 0);
+
+    GraphView *gv = new GraphView(snode, graph);
+    for (unsigned int ch = 0; ch < N; ++ch) {
+        methods[ch] = new MNormMetropolis(gv, ch);
     }
-    return new DensitySampler(nodes, graph, methods);
+    return new ParallelSampler(gv, methods);
+}
+
+string MNormalFactory::name() const 
+{
+    return "bugs::MNormal";
 }

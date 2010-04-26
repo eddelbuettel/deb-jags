@@ -2,17 +2,20 @@
 #define MODEL_H_
 
 #include <graph/Graph.h>
+#include <model/MonitorControl.h>
 
 #include <vector>
 #include <list>
 #include <string>
 
 class Sampler;
-class Monitor;
 class SamplerFactory;
 class RNG;
 class RNGFactory;
 class MonitorFactory;
+class StochasticNode;
+class DeterministicNode;
+class ConstantNode;
 
 /**
  * @short Graphical model 
@@ -30,14 +33,15 @@ private:
   Graph _graph;
   std::set<Node*> _extra_nodes;
   std::vector<Node*> _sampled_extra;
-  std::list<Monitor*> _monitors;
+  std::list<MonitorControl> _monitors;
   std::list<Monitor*> _default_monitors;
+  std::vector<StochasticNode*> _stochastic_nodes;
   bool _is_initialized;
   bool _adapt;
   bool _data_gen;
-  void initializeNodes(std::vector<Node*> const &sorted_nodes);
+  void initializeNodes();
   void chooseRNGs();
-  void chooseSamplers(std::vector<Node*> const &sorted_nodes);
+  void chooseSamplers();
   void setSampledExtra();
 public:
   /**
@@ -49,7 +53,7 @@ public:
    * Returns the Graph associated with the model. This graph contains
    * all the nodes in the model
    */
-  Graph &graph();
+  Graph const &graph();
   /**
    * Initializes the model.  Initialization takes place in three steps.
    *
@@ -89,7 +93,7 @@ public:
    * iteration.  This can only be done if Model#adaptOff has been
    * successfully called. Otherwise, a logic_error is thrown.
    */
-  void addMonitor(Monitor *monitor);
+  void addMonitor(Monitor *monitor, unsigned int thin);
   /**
    * Clears the monitor from the model, so that it will no longer
    * be updated. If the monitor has not previously been added to the
@@ -99,30 +103,31 @@ public:
   /**
    * Returns the list of Monitors 
    */
-  std::list<Monitor*> const &monitors() const;
+  std::list<MonitorControl> const &monitors() const;
   /**
-   * Traverses the list of monitor factories requesting default
-   * monitors of the given type. The function returns true after the
-   * first monitor factory has added at least one node to the monitor
-   * list. If none of the available monitor factories can create
-   * default monitors of the given type, the return value is false.
-   *
-   * Monitors created by a call to setDefaultMonitors are owned by
-   * the Model.
-   *
-   * @see MonitorFactory#addDefaultMonitors
+   * Adds a stochastic node to the model.  The node must be
+   * dynamically allocated.  The model is responsible for memory
+   * management of the added node and will delete the node when it is
+   * destroyed.
    */
-  bool setDefaultMonitors(std::string const &type, unsigned int thin);
+  void addNode(StochasticNode *node);
   /**
-   * Removes all Monitors of the given type created by a previous call
-   * to setDefaultMonitors, and deletes them.
+   * Adds a deterministc node to the model.  The node must be
+   * dynamically allocated.  The model is responsible for memory
+   * management of the added node and will delete the node when it is
+   * destroyed.
    */
-  void clearDefaultMonitors(std::string const &type);
+  void addNode(DeterministicNode *node);
+  /**
+   * Adds a constant node to the model.  The node must be dynamically
+   * allocated.  The model is responsible for memory management of the
+   * added node and will delete the node when it is destroyed.
+   */
+  void addNode(ConstantNode *node);
   /**
    * After the model is initialized, extra uninformative nodes may be
-   * added to the graph (For example, a node may be added that
-   * calculates the deviance of the model).  The model takes
-   * responsibility for updating the extra node.
+   * added to the graph.  The model takes responsibility for updating
+   * the extra node.
    *
    * The extra node cannot be observed, it must not already be in the
    * model graph, it may not have any children, and all of its parents
@@ -132,18 +137,24 @@ public:
   /**
    * Access the list of sampler factories, which is common to all
    * models. This is used during initialization to choose samplers.
+   * Each sampler factory is paired with a boolean flag which is used
+   * to determine whether the factory is active or not
    *
    * @seealso Model#chooseSamplers
    */
-  static std::list<SamplerFactory const *> &samplerFactories();
+  static std::list<std::pair<SamplerFactory *, bool> > &samplerFactories();
   /**
-   * Access the list of RNG factories, which is common to all models
+   * Access the list of RNG factories, which is common to all models.
+   * Each factory is paired with a boolean flag which is used to determine
+   * whether the factory is active or not.
    */
-  static std::list<RNGFactory *> &rngFactories();
+  static std::list<std::pair<RNGFactory *, bool> > &rngFactories();
   /**
    * Access the list of monitor factories, which is commmon to all models
+   * Each factory is paired with a boolean flag which is used to determine
+   * whether the factory is active or not.
    */
-  static std::list<MonitorFactory *> &monitorFactories();
+  static std::list<std::pair<MonitorFactory *, bool> > &monitorFactories();
   /**
    * Returns the number of chains in the model
    */
@@ -181,6 +192,10 @@ public:
    * adaptOff function has been called).
    */
   bool isAdapting() const;
+  /**
+   * Returns a vector of all stochastic nodes in the model
+   */
+  std::vector<StochasticNode*> const &stochasticNodes() const;
 };
 
 #endif /* MODEL_H_ */

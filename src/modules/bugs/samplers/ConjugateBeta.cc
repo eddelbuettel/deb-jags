@@ -7,6 +7,8 @@
 #include <graph/LogicalNode.h>
 #include <graph/StochasticNode.h>
 #include <graph/MixtureNode.h>
+#include <sampler/GraphView.h>
+#include <sampler/Linear.h>
 
 #include <set>
 #include <stdexcept>
@@ -42,46 +44,29 @@ bool ConjugateBeta::canSample(StochasticNode *snode, Graph const &graph)
 	return false;
     }
 
-    vector<StochasticNode const*> stoch_nodes;
-    vector<Node*> dtrm_nodes;
-    Sampler::classifyChildren(vector<StochasticNode*>(1,snode), 
-		              graph, stoch_nodes, dtrm_nodes);
-
-    /* 
-       Create a set of nodes containing snode and its deterministic
-       descendants for the checks below.
-    */
-    set<Node const *> paramset;
-    paramset.insert(snode);
-    for (unsigned int j = 0; j < dtrm_nodes.size(); ++j) {
-	paramset.insert(dtrm_nodes[j]);
-    }
+    GraphView gv(snode, graph);
+    vector<DeterministicNode*> const &dchild = gv.deterministicChildren();
+    vector<StochasticNode const*> const &schild = gv.stochasticChildren();
 
     // Check deterministic descendants
     // Only Mixture nodes are allowed
-    for (unsigned int j = 0; j < dtrm_nodes.size(); ++j) {
-	if (isMixture(dtrm_nodes[j])) {
-	    // Check that indices do not depend on snode
-	    vector<Node const*> const &parents = dtrm_nodes[j]->parents();
-	    unsigned int nindex = asMixture(dtrm_nodes[j])->index_size();
-	    for (unsigned int i = 0; i < nindex; ++i) {
-		if (paramset.count(parents[i]))
-		    return false;
-	    }
-	}
-	else {
+    for (unsigned int j = 0; j < dchild.size(); ++j) {
+	if (!isMixture(dchild[j])) {
 	    return false;
 	}
     }
+    if (!checkScale(&gv, false)) {
+	return false;
+    }
 
     // Check stochastic children
-    for (unsigned int i = 0; i < stoch_nodes.size(); ++i) {
-	if (isBounded(stoch_nodes[i])) {
+    for (unsigned int i = 0; i < schild.size(); ++i) {
+	if (isBounded(schild[i])) {
 	    return false; //Bounded
 	}
-	switch(getDist(stoch_nodes[i])) {
-	case BIN: 
-	    if (paramset.count(stoch_nodes[i]->parents()[1])) {
+	switch(getDist(schild[i])) {
+	case BIN: case NEGBIN:
+	    if (gv.isDependent(schild[i]->parents()[1])) {
 		return false; //n depends on snode
 	    }      
 	    break;
@@ -95,20 +80,21 @@ bool ConjugateBeta::canSample(StochasticNode *snode, Graph const &graph)
     return true; //We made it!
 }
 
-void ConjugateBeta::initialize(ConjugateSampler *sampler, Graph const &graph)
+
+ConjugateBeta::ConjugateBeta(GraphView const *gv)
+    : ConjugateMethod(gv)
 {
 }
 
-void 
-ConjugateBeta::update(ConjugateSampler *sampler, unsigned int chain, 
-                      RNG *rng) const
+void ConjugateBeta::update(unsigned int chain, RNG *rng)
+    const
 {
     vector<StochasticNode const*> const &stoch_children = 
-	sampler->stochasticChildren();
-    StochasticNode const *snode = sampler->node();
+	_gv->stochasticChildren();
+    StochasticNode const *snode = _gv->nodes()[0];
 
     double a, b;
-    switch (getDist(snode)) {
+    switch (_target_dist) {
     case BETA:
 	a = *snode->parents()[0]->value(chain);
 	b = *snode->parents()[1]->value(chain);
@@ -116,6 +102,7 @@ ConjugateBeta::update(ConjugateSampler *sampler, unsigned int chain,
     case UNIF:
 	a = 1;
 	b = 1;
+	break;
     default:
         throw logic_error("invalid distribution in ConjugateBeta sampler");
     }
@@ -124,7 +111,7 @@ ConjugateBeta::update(ConjugateSampler *sampler, unsigned int chain,
     /* For mixture models, we count only stochastic children that
        depend on snode */
     double *C = 0;
-    bool is_mix = !sampler->deterministicChildren().empty();
+    bool is_mix = !_gv->deterministicChildren().empty();
     if (is_mix) {
 	C = new double[Nchild];
 	for (unsigned int i = 0; i < Nchild; ++i) {
@@ -133,7 +120,7 @@ ConjugateBeta::update(ConjugateSampler *sampler, unsigned int chain,
 	// Perturb current value, keeping in the legal range [0,1]
 	double x = *snode->value(chain);
 	x = x > 0.5 ? x - 0.4 : x + 0.4;
-	sampler->setValue(&x, 1, chain);
+	_gv->setValue(&x, 1, chain);
 	// C[i] == 1 if parameter of child i has changed (so depends on snode)
 	// C[i] == 0 otherwise
 	for (unsigned int i = 0; i < Nchild; ++i) {
@@ -141,23 +128,30 @@ ConjugateBeta::update(ConjugateSampler *sampler, unsigned int chain,
 	}
     }
 
-    vector<ConjugateDist> const &child_dist = sampler->childDist();
+
     for (unsigned int i = 0; i < stoch_children.size(); ++i) {
 	if (!(is_mix && C[i] == 0)) {
 	    double y = *stoch_children[i]->value(chain);
-	    double n;
-	    switch(child_dist[i]) {
+	    double n, aplus, bplus;
+	    switch(_child_dist[i]) {
 	    case BIN:
 		n = *stoch_children[i]->parents()[1]->value(chain);
+		aplus = y;
+		bplus = n - y;
 		break;
+	    case NEGBIN:
+		n = *stoch_children[i]->parents()[1]->value(chain);
+		aplus = n;
+		bplus = y;
 	    case BERN:
-		n = 1;
+		aplus = y;
+		bplus = 1 - y;
 		break;
 	    default:
 		throw logic_error("Invalid distribution in Conjugate Beta sampler");
 	    }
-	    a += y;
-	    b += (n - y);
+	    a += aplus;
+	    b += bplus;
 	}
     }
 
@@ -177,7 +171,8 @@ ConjugateBeta::update(ConjugateSampler *sampler, unsigned int chain,
 	/* Try 4 more attempts to get random sample within the bounds */
 	for (int i = 0; i < 4; i++) {
 	    if (xnew >= lower && xnew <= upper) {
-		sampler->setValue(&xnew, 1, chain);
+		_gv->setValue(&xnew, 1, chain);
+                if (is_mix) delete [] C;
 		return;
 	    }
 	    xnew = rbeta(a, b, rng);
@@ -188,7 +183,7 @@ ConjugateBeta::update(ConjugateSampler *sampler, unsigned int chain,
 	double p = runif(plower, pupper, rng);
 	xnew = qbeta(p, a, b, 1, 0);   
     }
-    sampler->setValue(&xnew, 1, chain);
+    _gv->setValue(&xnew, 1, chain);
 
     if (is_mix) {
 	delete [] C;

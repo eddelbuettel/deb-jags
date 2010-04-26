@@ -45,24 +45,25 @@
      NAME = 261,
      FUNC = 262,
      SPECIAL = 263,
-     IN = 264,
-     ARROW = 265,
-     FOR = 266,
-     GT = 267,
-     GE = 268,
-     LT = 269,
-     LE = 270,
-     EQ = 271,
-     NE = 272,
-     AND = 273,
-     OR = 274,
-     LENGTH = 275,
-     DIM = 276,
-     DOUBLE = 277,
-     INT = 278,
-     NOT = 279,
-     NEG = 280,
-     ENDL = 281
+     BADCHAR = 264,
+     IN = 265,
+     ARROW = 266,
+     FOR = 267,
+     GT = 268,
+     GE = 269,
+     LT = 270,
+     LE = 271,
+     EQ = 272,
+     NE = 273,
+     AND = 274,
+     OR = 275,
+     LENGTH = 276,
+     DIM = 277,
+     DOUBLE = 278,
+     INT = 279,
+     NOT = 280,
+     NEG = 281,
+     ENDL = 282
    };
 #endif
 /* Tokens.  */
@@ -72,31 +73,32 @@
 #define NAME 261
 #define FUNC 262
 #define SPECIAL 263
-#define IN 264
-#define ARROW 265
-#define FOR 266
-#define GT 267
-#define GE 268
-#define LT 269
-#define LE 270
-#define EQ 271
-#define NE 272
-#define AND 273
-#define OR 274
-#define LENGTH 275
-#define DIM 276
-#define DOUBLE 277
-#define INT 278
-#define NOT 279
-#define NEG 280
-#define ENDL 281
+#define BADCHAR 264
+#define IN 265
+#define ARROW 266
+#define FOR 267
+#define GT 268
+#define GE 269
+#define LT 270
+#define LE 271
+#define EQ 272
+#define NE 273
+#define AND 274
+#define OR 275
+#define LENGTH 276
+#define DIM 277
+#define DOUBLE 278
+#define INT 279
+#define NOT 280
+#define NEG 281
+#define ENDL 282
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 36 "parser.yy"
+#line 37 "parser.yy"
 {
   /*
     We can't put any C++ class that requires a constructor in
@@ -113,7 +115,7 @@ typedef union YYSTYPE
   std::vector<ParseTree*> *pvec;
 }
 /* Line 1489 of yacc.c.  */
-#line 117 "parser.h"
+#line 119 "../../../../JAGS/src/lib/compiler/parser.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -11,11 +11,11 @@ using std::pow;
 namespace bugs {
 
     Pow::Pow ()
-	: ScalarFunc ("pow", 2)
+	: ScalarFunction ("pow", 2)
     {
     }
 
-    double Pow::evaluateScalar(vector<double const *> const &args) const
+    double Pow::evaluate(vector<double const *> const &args) const
     {
 	return pow (*args[0], *args[1]);
     }
@@ -31,5 +31,15 @@ namespace bugs {
 	    return fabs(arg2 - iarg2) < DBL_EPSILON;
 	}
     }
-
+    
+    bool Pow::isPower(vector<bool> const &mask, vector<bool> const &fix) const
+    {
+ 	if (mask[1])
+ 	    return false;
+	
+ 	if (!fix.empty() && !fix[1])
+ 	    return false;
+	
+ 	return true;
+    }
 }

@@ -19,15 +19,7 @@ string const & Function::name () const
   return _name;
 }
 
-bool Function::checkParameterValue(vector<double const *> const &args,
-                                   vector<unsigned int> const &lengths,
-			           vector<vector<unsigned int> > const &dims)
-const
-{
-  return true;
-}
-
-bool Function::checkParameterLength (unsigned int npar) const
+bool Function::checkNPar (unsigned int npar) const
 {
   return _npar == 0 ||  npar == _npar;
 }
@@ -37,22 +29,22 @@ bool Function::isDiscreteValued(vector<bool> const &mask) const
   return false;
 }
 
-bool Function::isLinear(vector<bool> const &mask,
-			vector<bool> const &isfixed) const
-{
-  return false;
-}
-
-bool Function::isScale(unsigned int index,
+bool Function::isScale(vector<bool> const &mask,
 		       vector<bool> const &isfixed) const
 {
     return false;
 }
 
-vector<unsigned int> 
-Function::dim(vector <vector<unsigned int> > const &dims) const
+bool Function::isLinear(vector<bool> const &mask,
+			vector<bool> const &isfixed) const
 {
-    return vector<unsigned int>(1,1);
+    return isScale(mask, isfixed);
+}
+
+bool Function::isPower(std::vector<bool> const &mask,
+		       std::vector<bool> const &isfixed) const
+{
+    return false;
 }
 
 string Function::deparse(vector<string> const &par) const

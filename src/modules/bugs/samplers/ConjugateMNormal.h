@@ -3,8 +3,6 @@
 
 #include "ConjugateMethod.h"
 
-class Graph;
-
 /**
  * Conjugate sampler for multivariate normal distribution
  *
@@ -20,12 +18,11 @@ class Graph;
  */
 class ConjugateMNormal : public ConjugateMethod {
   double *_betas;
-  unsigned int _length_betas;
+  const unsigned int _length_betas;
  public:
-  ConjugateMNormal();
+  ConjugateMNormal(GraphView const *gv);
   ~ConjugateMNormal();
-  void initialize(ConjugateSampler *sampler, Graph const &graph);
-  void update(ConjugateSampler *sampler, unsigned int chain, RNG *rng) const;
+  void update(unsigned int chain, RNG *rng) const;
   static bool canSample(StochasticNode *snode, Graph const &graph);
   std::string name() const;
 };

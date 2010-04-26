@@ -1,10 +1,12 @@
 #include <config.h>
 #include <distribution/Distribution.h>
 #include <graph/StochasticNode.h>
-#include <sampler/DensitySampler.h>
+#include <sampler/ParallelSampler.h>
 #include <rng/RNG.h>
 #include <util/nainf.h>
 #include <graph/NodeError.h>
+#include <sampler/GraphView.h>
+
 #include "FiniteMethod.h"
 
 #include <cmath>
@@ -22,14 +24,19 @@ using std::max;
 
 namespace base {
 
-    FiniteMethod::FiniteMethod(StochasticNode const *snode)
+    FiniteMethod::FiniteMethod(GraphView const *gv, unsigned int chain)
+	: _gv(gv), _chain(chain)
     {
+	if (gv->nodes().size() != 1)
+	    throw logic_error("Invalid FiniteMethod");
+
+	StochasticNode const *snode = gv->nodes().front();
 	if (!canSample(snode)) {
 	    throw logic_error("Invalid FiniteMethod");
 	}
 
 	double lower = 0, upper = 0;
-	support(&lower, &upper, 1, snode, 0);
+	snode->support(&lower, &upper, 1, 0);
 
 	_lower = static_cast<int>(lower);
 	_upper = static_cast<int>(upper);
@@ -44,8 +51,8 @@ namespace base {
 	double lik_max = JAGS_NEGINF;
 	for (int i = 0; i < size; i++) {
 	    double ivalue = _lower + i;
-	    _sampler->setValue(&ivalue, 1, _chain);
-	    lik[i] = _sampler->logFullConditional(_chain);
+	    _gv->setValue(&ivalue, 1, _chain);
+	    lik[i] = _gv->logFullConditional(_chain);
 	    lik_max = max(lik_max, lik[i]);
 	}
 
@@ -57,7 +64,7 @@ namespace base {
 	}
 	
 	if (!jags_finite(liksum)) {
-	    throw NodeError(_sampler->nodes()[0],
+	    throw NodeError(_gv->nodes()[0],
 			    "Cannot normalize density");
 	}
 
@@ -72,7 +79,7 @@ namespace base {
 	    }
 	}
 	double ivalue = _lower + i;
-	_sampler->setValue(&ivalue, 1, _chain);
+	_gv->setValue(&ivalue, 1, _chain);
     }
 
     bool FiniteMethod::isAdaptive() const
@@ -88,14 +95,13 @@ namespace base {
     bool FiniteMethod::canSample(StochasticNode const * node)
     {
 	//Node must be scalar with discrete-valued distribution of full rank
-	Distribution const *dist = node->distribution();
-	if (!dist->isDiscreteValued())
+	if (!node->isDiscreteValued())
 	    return false;
 
 	if (node->length() != 1)
 	    return false;
 
-	if (df(node) == 0)
+	if (node->df() == 0)
 	    return false;
 
 	//Support must be fixed
@@ -107,7 +113,7 @@ namespace base {
 	for (unsigned int ch = 0; ch < node->nchain(); ++ch) {
 	    //Distribution cannot be unbounded
 	    double ulimit = JAGS_NEGINF, llimit = JAGS_POSINF;
-	    support(&llimit, &ulimit, 1, node, ch);
+	    node->support(&llimit, &ulimit, 1, ch);
 	    if (!jags_finite(ulimit) || !jags_finite(llimit))
 		return false;
 

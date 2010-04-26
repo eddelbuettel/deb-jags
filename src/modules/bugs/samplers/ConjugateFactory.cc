@@ -8,10 +8,12 @@
 #include "ConjugateMNormal.h"
 #include "ConjugateWishart.h"
 #include "ConjugateSampler.h"
-#include "Censored.h"
+//#include "Censored.h"
+#include "TruncatedGamma.h"
 
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
+#include <sampler/GraphView.h>
 
 #include <stdexcept>
 #include <string>
@@ -20,65 +22,99 @@
 using std::string;
 using std::map;
 using std::invalid_argument;
-
-ConjugateFactory::ConjugateFactory()
-{
-    _func_table["dnorm"] = ConjugateNormal::canSample;
-    _func_table["dgamma"] = ConjugateGamma::canSample;
-    _func_table["dexp"] = ConjugateGamma::canSample;
-    _func_table["dchisq"] = ConjugateGamma::canSample;
-    _func_table["dbeta"] = ConjugateBeta::canSample;
-    _func_table["ddirch"] = ConjugateDirichlet::canSample;
-    _func_table["dmnorm"] = ConjugateMNormal::canSample;
-    _func_table["dwish"] = ConjugateWishart::canSample;
-}
+using std::logic_error;
 
 bool ConjugateFactory::canSample(StochasticNode * snode,
 				 Graph const &graph) const
 {
+/*
     if (Censored::canSample(snode, graph))
       return true;
-
-    //FIXME: Could use a typedef here to make it readable
-    map<string, bool (*)(StochasticNode *, Graph const &)>::const_iterator
-	p = _func_table.find(snode->distribution()->name());
-
-    if (p == _func_table.end())
-	return false;
-    else {
-	return p->second(snode, graph);
-    }
-}
-
-Sampler *ConjugateFactory::makeSingletonSampler(StochasticNode *snode, 
-						Graph const &graph) const
-{
-    if (Censored::canSample(snode, graph))
-      return new Censored(snode, graph);
-    
-    ConjugateMethod* method = 0;
-    switch (getDist(snode)) {
+*/
+    bool ans = false;
+    switch(getDist(snode)) {
     case NORM:
-	method = new ConjugateNormal();
+	ans = ConjugateNormal::canSample(snode, graph);
 	break;
     case GAMMA: case EXP: case CHISQ:
-	method = new ConjugateGamma();
+	ans = ConjugateGamma::canSample(snode, graph);
 	break;
     case BETA:
-	method = new ConjugateBeta();
+	ans = ConjugateBeta::canSample(snode, graph);
 	break;
     case DIRCH:
-	method = new ConjugateDirichlet();
+	ans = ConjugateDirichlet::canSample(snode, graph);
 	break;
     case MNORM:
-	method = new ConjugateMNormal();
+	ans = ConjugateMNormal::canSample(snode, graph);
 	break;
     case WISH:
-	method = new ConjugateWishart();
+	ans = ConjugateWishart::canSample(snode, graph);
+	break;
+    case UNIF:
+	ans = TruncatedGamma::canSample(snode, graph) ||
+	      ConjugateBeta::canSample(snode, graph);
 	break;
     default:
-	throw invalid_argument("Unable to create conjugate sampler");
+	break;
     }
     
-    return new ConjugateSampler(snode, graph, method);
+    return ans;
+}
+
+Sampler *ConjugateFactory::makeSampler(StochasticNode *snode, 
+				       Graph const &graph) const
+{
+    GraphView *gv = new GraphView(snode, graph);
+    ConjugateMethod* method = 0;
+    
+/*
+    if (Censored::canSample(snode, graph)) {
+	method = new Censored(gv);
+    }
+    else {
+*/
+	switch (getDist(snode)) {
+	case NORM:
+	    method = new ConjugateNormal(gv);
+	    break;
+	case GAMMA: case EXP: case CHISQ:
+	    method = new ConjugateGamma(gv);
+	    break;
+	case BETA:
+	    method = new ConjugateBeta(gv);
+	    break;
+	case DIRCH:
+	    method = new ConjugateDirichlet(gv);
+	    break;
+	case MNORM:
+	    method = new ConjugateMNormal(gv);
+	    break;
+	case WISH:
+	    method = new ConjugateWishart(gv);
+	    break;
+	case UNIF:
+	    if (TruncatedGamma::canSample(snode, graph)) {
+		method = new TruncatedGamma(gv);
+	    }
+	    else if (ConjugateBeta::canSample(snode, graph)) {
+		method = new ConjugateBeta(gv);
+	    }
+	    else {
+		logic_error("Cannot find conjugate sampler for uniform");
+	    }
+	    break;
+	default:
+	    throw invalid_argument("Unable to create conjugate sampler");
+	}
+/* 
+   }
+*/  
+    
+    return new ConjugateSampler(gv, method);
+}
+
+string ConjugateFactory::name() const
+{
+    return "bugs::Conjugate";
 }

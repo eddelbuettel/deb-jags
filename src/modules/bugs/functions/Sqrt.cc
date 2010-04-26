@@ -8,11 +8,11 @@ using std::sqrt;
 
 namespace bugs {
 
-    Sqrt::Sqrt ():ScalarFunc ("sqrt", 1)
+    Sqrt::Sqrt ():ScalarFunction ("sqrt", 1)
     {
     }
 
-    double Sqrt::evaluateScalar(vector<double const *> const &args) const
+    double Sqrt::evaluate(vector<double const *> const &args) const
     {
 	return sqrt(*args[0]);
     }
@@ -21,5 +21,12 @@ namespace bugs {
     {
 	return *args[0] >= 0;
     }
+
+    bool Sqrt::isPower(std::vector<bool> const &mask,
+                       std::vector<bool> const &fix) const
+    {
+        return true;
+    }
+
 
 }

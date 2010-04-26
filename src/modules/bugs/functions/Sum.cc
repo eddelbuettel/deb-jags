@@ -1,18 +1,16 @@
 #include <config.h>
-#include <util/logical.h>
 #include "Sum.h"
 
 using std::vector;
 
 namespace bugs {
 
-    Sum::Sum () : Function("sum", 1)
+    Sum::Sum () : VectorFunction("sum", 1)
     {
     }
 
     void Sum::evaluate(double *x, vector <double const *> const &args,
-		       vector<unsigned int> const &lengths,
-		       vector<vector<unsigned int> > const &dims) const
+		       vector<unsigned int> const &lengths) const
     {
 	double value = args[0][0];
 	for (unsigned long i = 1; i < lengths[0]; ++i) {
@@ -21,25 +19,18 @@ namespace bugs {
 	*x = value;
     }
 
-    bool 
-    Sum::checkParameterDim (vector<vector<unsigned int> > const &args) const
+    bool Sum::checkParameterLength (vector<unsigned int> const &args) const
     {
 	return true;
     }
 
     bool Sum::isDiscreteValued(vector<bool> const &mask) const
     {
-	return allTrue(mask);
+	return mask[0];
     }
 
-    bool Sum::isLinear(vector<bool> const &mask, vector<bool> const &fix) const
+    bool Sum::isScale(vector<bool> const &mask, vector<bool> const &fix) const
     {
 	return true;
     }
-
-    bool Sum::isScale(unsigned int index, vector<bool> const &fix) const
-    {
-	return true;
-    }
-
 }

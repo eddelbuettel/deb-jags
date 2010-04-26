@@ -4,13 +4,14 @@
 #include "DirichletFactory.h"
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
-#include <sampler/DensitySampler.h>
+#include <sampler/ParallelSampler.h>
+#include <sampler/GraphView.h>
 
 #include <string>
 #include <vector>
 
 using std::vector;
-
+using std::string;
 
 bool 
 DirichletFactory::canSample(StochasticNode * snode, Graph const &graph) const
@@ -19,15 +20,19 @@ DirichletFactory::canSample(StochasticNode * snode, Graph const &graph) const
 }
 
 Sampler *
-DirichletFactory::makeSingletonSampler(StochasticNode *snode, 
-				       Graph const &graph)
-    const
+DirichletFactory::makeSampler(StochasticNode *snode, Graph const &graph) const
 {
     unsigned int nchain = snode->nchain();
-    vector<DensityMethod*> methods(nchain, 0);
+    vector<SampleMethod*> methods(nchain, 0);
     vector<StochasticNode*> nodes(1, snode);
+    GraphView *gv = new GraphView(snode, graph);
     for (unsigned int ch = 0; ch < nchain; ++ch) {
-        methods[ch] = new DirchMetropolis(snode);
+        methods[ch] = new DirchMetropolis(gv, ch);
     }
-    return new DensitySampler(nodes, graph, methods);
+    return new ParallelSampler(gv, methods);
+}
+
+string DirichletFactory::name() const
+{
+    return "bugs::Dirichlet";
 }

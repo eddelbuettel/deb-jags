@@ -1,24 +1,22 @@
 #ifndef MAT_MULT_H_
 #define MAT_MULT_H_
 
-#include <function/Function.h>
+#include <function/ArrayFunction.h>
 
 namespace bugs {
 
-    class MatMult : public Function
+    class MatMult : public ArrayFunction
     {
     public:
 	MatMult();
 	void evaluate(double *value, std::vector<double const *> const &args,
-		      std::vector<unsigned int> const &lengths,
 		      std::vector<std::vector<unsigned int> > const &dims) 
 	    const;
 	std::vector<unsigned int> 
 	    dim(std::vector<std::vector<unsigned int> > const &dims) const;
 	bool checkParameterDim(std::vector <std::vector<unsigned int> > const &dims) const;
-	bool isLinear(std::vector<bool> const &mask, 
-		      std::vector<bool> const &fix) const;
-	
+	bool isScale(std::vector<bool> const &mask, 
+		     std::vector<bool> const &fix) const;
     };
 
 }

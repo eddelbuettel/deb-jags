@@ -91,23 +91,9 @@ MixtureNode::MixtureNode (vector<Node const *> const &index,
 	if (p->first.size() != _Nindex) {
 	    throw invalid_argument("Invalid index in MixtureNode");
 	}
-    }
-
-    // A mixture node is discrete if all its parents are discrete
-
-    bool isdiscrete = true;
-    vector<Node const *> const &par = parents();
-    for(unsigned int i = _Nindex; i < par.size(); ++i) {
-	if (!par[i]->isDiscreteValued()) {
-	    isdiscrete = false;
-	    break;
-	}
-    }
-
-    if (isdiscrete) {
-	setDiscreteValued();
-    }
+    }    
 }
+
 
 MixtureNode::~MixtureNode()
 {
@@ -116,7 +102,7 @@ MixtureNode::~MixtureNode()
 /* Do not delete commented sections: they are useful for debugging
 #include <iostream>
 #include <sarray/Range.h>
-#include <util/nainf.h>
+#include <sarray/nainf.h>
 #include <graph/NodeError.h>
 */
 void MixtureNode::deterministicSample(unsigned int chain)
@@ -190,41 +176,66 @@ bool isMixture(Node const *node)
   return dynamic_cast<MixtureNode const*>(node);
 }
 
-bool MixtureNode::isLinear(GraphMarks const &linear_marks, bool fixed) const
+
+bool MixtureNode::isClosed(set<Node const *> const &ancestors, 
+			   ClosedFuncClass fc, bool fixed) const
 {
     if (fixed)
 	return false;
 
-    //Check that none of the indices are marked in the graph
-    //(indicating that they are linear or non-linear functions of the
-    //source nodes)
+    //Check that none of the indices are in the ancestor set
     vector<Node const*> const &par = parents();
     for (unsigned int i = 0; i < _Nindex; ++i) {
-	if (linear_marks.graph().contains(par[i]) &&
-	    linear_marks.mark(par[i]) != 0) 
-	    {
-		return false;
-	    }
-    }
-
-    //Check that there are no other non-linear parents
-    for (unsigned int i = _Nindex; i < par.size(); ++i) {
-	if (linear_marks.graph().contains(par[i]) && 
-	    linear_marks.mark(par[i]) == MARK_FALSE) 
-	{
+	if (ancestors.count(par[i])) {
 	    return false;
 	}
     }
 
+    switch(fc) {
+    case DNODE_LINEAR: case DNODE_SCALE_MIX: case DNODE_POWER:
+	break;
+    case DNODE_SCALE:
+	//Only a scale function if all possible parents are scale functions
+	for (unsigned int i = _Nindex; i < par.size(); ++i) {
+	    if (ancestors.count(par[i])==0)
+		return false;
+	}
+	break;
+    }
+    
     return true;
-}
-
-bool MixtureNode::isScale(GraphMarks const &scale_marks, bool fixed) const
-{
-    return isLinear(scale_marks, fixed);
 }
 
 bool MixtureNode::checkParentValues(unsigned int chain) const
 {
+    return true;
+}
+
+DeterministicNode *MixtureNode::clone(vector<Node const *> const &parents) const
+{
+    vector<Node const *> index(_Nindex);
+    vector<Node const *>::const_iterator p = parents.begin();
+    for (unsigned int i = 0; i < _Nindex; ++i) {
+	index[i] = *p;
+	++p;
+    }
+    
+    map<vector<int>, Node const *> mixmap;
+    map<vector<int>, Node const *>::const_iterator q = _map.begin();
+    while (p != parents.end() && q != _map.end()) {
+	mixmap[q->first] = *p;
+	++q;
+	++p;
+    }
+    
+    return new MixtureNode(index, mixmap);
+}
+
+bool MixtureNode::isDiscreteValued() const
+{
+    for(unsigned int i = _Nindex; i < parents().size(); ++i) {
+	if (!parents()[i]->isDiscreteValued())
+	    return false;
+    }
     return true;
 }

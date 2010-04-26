@@ -1,110 +1,115 @@
 #include <config.h>
 #include "MixSamplerFactory.h"
-#include "MixSampler.h"
+#include "NormMix.h"
 #include <graph/GraphMarks.h>
 #include <graph/Graph.h>
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
-#include <sampler/DensitySampler.h>
+#include <sampler/ParallelSampler.h>
+#include <sampler/GraphView.h>
 
 #include <set>
 
 using std::set;
 using std::vector;
+using std::string;
 
-static bool isStoch(Node const *node)
+#define NLEVEL 200
+#define MAX_TEMP 100
+#define NREP 5
+
+/* 
+ * Returns a pointer to a newly allocated GraphView if snode has a
+ * stochastic child with distribution "dnormmix", otherwise a null
+ * pointer.
+ */
+static GraphView * isCandidate(StochasticNode *snode, Graph const &graph)
 {
-    return asStochastic(node);
+    GraphView *gv = new GraphView(snode, graph);
+    vector<StochasticNode const*> const &schildren = gv->stochasticChildren();
+    for (unsigned int i = 0; i < schildren.size(); ++i) {
+	if (schildren[i]->distribution()->name() == "dnormmix") {
+	    return gv;
+	}
+    }
+    delete gv;
+    return 0;
+}
+
+/*
+ * Used to aggregate nodes with common stochastic children.
+ */
+static void aggregate(GraphView const *gv, vector<StochasticNode *> &nodes,
+		      set<StochasticNode const*> &common_children)
+{
+    bool agg = nodes.empty();
+    vector<StochasticNode const *> const &schildren = gv->stochasticChildren();
+    for (unsigned int i = 0; i < schildren.size(); ++i) {
+	if (common_children.count(schildren[i])) {
+	    agg = true;
+	    break;
+	}
+    }
+    if (agg) {
+	for (unsigned int i = 0; i < schildren.size(); ++i) {
+	    common_children.insert(schildren[i]);
+	}
+	nodes.push_back(gv->nodes()[0]);
+    }
+    
 }
 
 namespace mix {
 
-    void MixSamplerFactory::makeSampler(set<StochasticNode*> &nodes, 
-					Graph const &graph,
-					vector<Sampler *> &samplers) const
+    Sampler * MixSamplerFactory::makeSampler(set<StochasticNode*> const &nodes, 
+					     Graph const &graph) const
     {
-	GraphMarks marks(graph);
-
-	/* Find observed nodes in the graph and mark their ancestors:
-	   these are the informative nodes */
-	set<Node*>::const_iterator p;
-	for (p = graph.nodes().begin(); p != graph.nodes().end(); ++p) {
-	    if ((*p)->isObserved()) {
-		marks.mark(*p, 1);
-		marks.markAncestors(*p, 1);
+	vector<GraphView*> gvec;
+	for (set<StochasticNode*>::const_iterator p = nodes.begin();
+	     p != nodes.end(); ++p)
+	{
+	    GraphView *gv = isCandidate(*p, graph);
+	    if (gv) {
+		gvec.push_back(gv);
 	    }
 	}
+	if (gvec.empty())
+	    return 0;
 
-	/* Find informative nodes in the graph with distribution DNormMix
-	   and add them to the vector "mix_nodes" */
-	vector<StochasticNode const*> mix_nodes;
-	for (p = graph.nodes().begin(); p != graph.nodes().end(); ++p) {
-	    if (marks.mark(*p) == 1) {
-		StochasticNode const *snode = asStochastic(*p);
-		if (snode && snode->distribution()->name() == "dnormmix") {
-		    mix_nodes.push_back(snode);
-		}
-	    }
-	}
-	if (mix_nodes.empty()) {
-	    return; //Nothing to do
-	}
+	vector<StochasticNode *> sample_nodes;
+	set<StochasticNode const *> common_children;
 
-	/* Now find the stochastic parents of mix_nodes */
-	for (unsigned int i = 0; i < mix_nodes.size(); ++i) {
-	    marks.markParents(mix_nodes[i], isStoch, 2);
+	for (unsigned int i = 0; i < gvec.size(); ++i) {
+	    aggregate(gvec[i], sample_nodes, common_children);
+	    delete gvec[i];
 	}
-	/* The stochastic parents can be sampled if
-	   1) They are in the given set of nodes
-	   2) They are not discrete valued
-	   3) They have no dimensional constraints 
-	   4) They have fixed support.
-    
-	   Condition 4 is necessary because the sampler uses log or logit
-	   transformation of bounded variables, which must remain constant
-	   between iterations to ensure stationarity of the chain.
-	*/
-	vector<StochasticNode*> sample_nodes;
-	set<StochasticNode*>::const_iterator q;
-	for (q = nodes.begin(); q != nodes.end(); ++q) {
-	    StochasticNode *snode = *q;
-	    bool cansample = true;
-	    if (marks.mark(snode) != 2) {
-		cansample = false;
-	    }
-	    else if (snode->isDiscreteValued()) {
-		cansample = false;
-	    }
-	    else if (df(snode) != (snode)->length()) {
-		/* FIXME: Excluding Dirichlet priors with this */
-		cansample = false;
-	    }
-	    else if(!isSupportFixed(snode)) {
-		cansample = false;
-	    }
-	    if (cansample) {
-		sample_nodes.push_back(snode);
-	    }
-	}
-
-	if (sample_nodes.empty()) {
-	    return; //Nothing to do
-	}
-	else if (MixSampler::canSample(sample_nodes, graph)) {
-
-	    for (unsigned int i = 0; i < sample_nodes.size(); ++i) {
-		nodes.erase(sample_nodes[i]);
-	    }
-
+	if (NormMix::canSample(sample_nodes)) {
+	    GraphView *gv = new GraphView(sample_nodes, graph);
 	    unsigned int nchain = sample_nodes[0]->nchain();
-	    vector<DensityMethod*> methods(nchain,0);	    
+	    vector<SampleMethod*> methods(nchain,0);	    
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
-		methods[ch] = new MixSampler(sample_nodes);
+		methods[ch] = new NormMix(gv, ch, NLEVEL, MAX_TEMP, NREP);
 	    }
-	    Sampler *mix = new DensitySampler(sample_nodes, graph, 
-						      methods);
-	    samplers.push_back(mix);
+	    return new ParallelSampler(gv, methods);		
+	}
+	else {
+	    return 0;
 	}
     }
 
+    string MixSamplerFactory::name() const
+    {
+	return "mix::TemperedMix";
+    }
+
+    vector<Sampler*>  
+    MixSamplerFactory::makeSamplers(set<StochasticNode*> const &nodes, 
+				    Graph const &graph) const
+    {
+	Sampler *s = makeSampler(nodes, graph);
+	if (s) 
+	    return vector<Sampler*>(1, s);
+	else 
+	    return vector<Sampler*>();
+    }
 }

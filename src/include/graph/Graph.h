@@ -3,6 +3,7 @@
 
 #include <set>
 #include <vector>
+
 class Node;
 
 /**
@@ -24,19 +25,11 @@ public:
    */
   Graph();
   /**
-   * Destructor.  The reference count of all nodes in the graph
-   * is decremented.
-   */
-  ~Graph();
-  /**
-   * Adds node to graph.  The reference count of the node is
-   * incremented.  If node is already in the graph, no action is
-   * taken.
+   * Adds node to graph.  
    */
   void add(Node *node);
   /**
-   * Removes node from graph. The reference count of the node is
-   * decremented. If node is not a member, no action is taken.
+   * Removes node from graph. 
    */
   void remove(Node *node);
   /**
@@ -52,19 +45,10 @@ public:
    */
   unsigned int size() const;
   /**
-   * Checks if the graph is connected.
-   */
-  bool isConnected() const;
-  /**
    * Checks if the parents and children of every node in the
    * graph are also contained in the graph.
    */
   bool isClosed() const;
-  /**
-   * Checks if there is any path in the graph leading from a
-   * node to itself.
-   */
-  bool hasCycle() const;
   /**
    * The set of nodes contained in the graph
    */
@@ -85,6 +69,11 @@ public:
    * this vector will contain the sorted nodes.
    */
   void getSortedNodes(std::vector<Node*> &sorted) const; 
+  /**
+   * Static version of the getSortedNodes function which works with
+   * a set instead of a graph.  
+   */
+  static void getSortedNodes(std::set<Node*> &nodes, std::vector<Node*> &sorted);
 };
 
 #endif /* GRAPH_H_ */

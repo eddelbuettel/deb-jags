@@ -5,18 +5,16 @@
 using std::vector;
 using std::set;
 
-void SingletonFactory::makeSampler(set<StochasticNode*> &nodes, 
-				   Graph const &graph,
-				   vector<Sampler*> &samplers) const
+vector<Sampler *>
+SingletonFactory::makeSamplers(set<StochasticNode*> const &nodes, 
+			       Graph const &graph) const
 {
-    for (set<StochasticNode*>::iterator p(nodes.begin()); p != nodes.end(); )
+    vector<Sampler *> samplers;
+    for (set<StochasticNode*>::iterator p = nodes.begin();p != nodes.end(); ++p)
     {
 	if (canSample(*p, graph)) {
-	    samplers.push_back(makeSingletonSampler(*p, graph));
-	    nodes.erase(p++); //Avoid invalidating the iterator
-	}
-	else {
-	    ++p;
+	    samplers.push_back(makeSampler(*p, graph));
 	}
     }
+    return samplers;
 }
