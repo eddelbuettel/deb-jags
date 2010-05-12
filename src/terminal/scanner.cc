@@ -1204,7 +1204,7 @@ zzlval.intval=SAMPLERS; return SAMPLERS;
 case 22:
 YY_RULE_SETUP
 #line 52 "scanner.ll"
-zzlval.intval=RNG; return RNG;
+zzlval.intval=RNGTOK; return RNGTOK;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP

@@ -46,6 +46,7 @@ static Node const * getParent(StochasticNode const *snode)
 	return snode->parents()[0];
 	break;
     default:
+        throw logic_error("Invalid distribution in TruncatedGamma sampler");
 	return 0;
     } 
 }
@@ -103,6 +104,26 @@ bool TruncatedGamma::canSample(StochasticNode *snode, Graph const &graph)
 	return false;
 
     GraphView gv(vector<StochasticNode*>(1,snode), graph);
+    vector<StochasticNode const*> const &stoch_nodes = gv.stochasticChildren();
+
+    //Check that stochastic children are valid and that there are
+    //no unwanted paths 
+    for (unsigned int i = 0; i < stoch_nodes.size(); ++i) {
+      if (isBounded(stoch_nodes[i])) {
+	return false; //Bounded
+      }
+      switch(getDist(stoch_nodes[i])) {
+      case EXP: case POIS:
+	break;
+      case GAMMA: case NORM: case DEXP: case WEIB: case LNORM:
+	if (gv.isDependent(stoch_nodes[i]->parents()[0])) {
+	  return false; //non-scale parameter depends on snode
+	}
+	break;
+      default:
+	return false;
+      }
+    }
 
     /* Deterministic children must be fixed power functions */
     if (!checkPower(&gv, true)) {
@@ -111,40 +132,23 @@ bool TruncatedGamma::canSample(StochasticNode *snode, Graph const &graph)
 
     /* Power function must be increasing */
     double shape = calShape(&gv, 0);
+    if (shape == 0) {
+	//Trivial power function
+	return false;
+    }
 
     // Check stochastic children
-    vector<StochasticNode const*> const &stoch_nodes = gv.stochasticChildren();
     Node const *par0 = getParent(stoch_nodes[0]);
     for (unsigned int i = 0; i < stoch_nodes.size(); ++i) {
-
-	//Check that stochastic children are not bounded
-	if (isBounded(stoch_nodes[i])) {
-	    return false;
-	}
 	
 	//Check that parent is common to all stochastic children
 	Node const *pari = getParent(stoch_nodes[i]);
-	if (pari == 0 || pari != par0) {
+	if (pari != par0) {
 	    return false;
 	}
 
 	ConjugateDist dist = getDist(stoch_nodes[i]);
 	vector<Node const*> const &cparam = stoch_nodes[i]->parents();
-
-	//Check that there are no unwanted paths to the stochastic children
-
-	switch(dist) {
-	case EXP: case POIS:
-	    break;
-	case GAMMA: case NORM: case DEXP: case WEIB: case LNORM:
-	    if (gv.isDependent(cparam[0])) {
-		return false; //non-scale parameter depends on snode
-	    }
-	    break;
-	default:
-	    return false;
-	}
-
 
 	//Check that we can guarantee a positive shape parameter a posteriori
 	switch(dist) {
@@ -237,6 +241,11 @@ void TruncatedGamma::update(unsigned int chain, RNG *rng) const
 	throw logic_error("Inconsistent prior in TruncatedGamma method");
     }
 
+    if (mu == 0) {
+	double xnew = (_shape > 0) ? lx : ux;
+	_gv->setValue(&xnew, 1, chain);
+	return;
+    }
 
     // Find boundaries on the scale of y
     // We need to take care that they may be inverted
@@ -245,16 +254,12 @@ void TruncatedGamma::update(unsigned int chain, RNG *rng) const
     double uy = JAGS_POSINF;
 
     if (_shape > 0) {
-
 	if (lx > 0) {
-
 	    ly = yold * exp((log(lx) - log(xold))/_shape);
 	}
 	uy = yold * exp((log(ux) - log(xold))/_shape);
-
     }
     else {
-
 	if (lx > 0) {
 	    uy = yold * exp((log(lx) - log(xold))/_shape);
 	}

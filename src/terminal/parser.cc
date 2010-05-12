@@ -80,9 +80,14 @@
 
 #include <config.h>
 
+#ifdef Win32
+#include <windows.h>   /* For getCurrentDirectory */
+#include <io.h>        /* For chdir */
+#else
+#include <unistd.h>    /* For getcwd, chdir */
+#endif
 
 //#include <limits.h>
-//#include <unistd.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -159,7 +164,7 @@
     
 
 /* Line 189 of yacc.c  */
-#line 163 "parser.cc"
+#line 168 "parser.cc"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -218,7 +223,7 @@
      UNLOAD = 287,
      SAMPLER = 288,
      SAMPLERS = 289,
-     RNG = 290,
+     RNGTOK = 290,
      FACTORY = 291,
      FACTORIES = 292,
      LIST = 293,
@@ -271,7 +276,7 @@
 #define UNLOAD 287
 #define SAMPLER 288
 #define SAMPLERS 289
-#define RNG 290
+#define RNGTOK 290
 #define FACTORY 291
 #define FACTORIES 292
 #define LIST 293
@@ -298,7 +303,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 86 "parser.yy"
+#line 91 "parser.yy"
 
   int intval;
   double val;
@@ -311,7 +316,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 315 "parser.cc"
+#line 320 "parser.cc"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -323,7 +328,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 327 "parser.cc"
+#line 332 "parser.cc"
 
 #ifdef short
 # undef short
@@ -672,20 +677,20 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   163,   163,   167,   173,   174,   175,   176,   177,   178,
-     181,   182,   183,   184,   185,   186,   187,   188,   189,   190,
-     191,   192,   193,   194,   195,   196,   197,   198,   199,   200,
-     201,   202,   205,   216,   221,   229,   232,   238,   249,   255,
-     274,   287,   290,   294,   300,   309,   321,   325,   331,   338,
-     342,   347,   352,   357,   360,   363,   369,   372,   377,   380,
-     386,   389,   390,   393,   396,   399,   402,   405,   409,   413,
-     419,   422,   428,   434,   446,   447,   450,   453,   456,   459,
-     464,   467,   470,   477,   482,   487,   493,   500,   507,   517,
-     520,   523,   528,   531,   536,   544,   545,   546,   551,   562,
-     563,   564,   565,   568,   573,   574,   577,   580,   584,   590,
-     591,   594,   595,   601,   604,   605,   608,   609,   612,   613,
-     614,   615,   616,   617,   620,   621,   624,   625,   628,   629,
-     632,   633,   638,   649,   657,   681
+       0,   168,   168,   172,   178,   179,   180,   181,   182,   183,
+     186,   187,   188,   189,   190,   191,   192,   193,   194,   195,
+     196,   197,   198,   199,   200,   201,   202,   203,   204,   205,
+     206,   207,   210,   221,   226,   234,   237,   243,   254,   260,
+     279,   292,   295,   299,   305,   314,   326,   330,   336,   343,
+     347,   352,   357,   362,   365,   368,   374,   377,   382,   385,
+     391,   394,   395,   398,   401,   404,   407,   410,   414,   418,
+     424,   427,   433,   439,   451,   452,   455,   458,   461,   464,
+     469,   472,   475,   482,   487,   492,   498,   505,   512,   522,
+     525,   528,   533,   536,   541,   549,   550,   551,   556,   567,
+     568,   569,   570,   573,   578,   579,   582,   585,   589,   595,
+     596,   599,   600,   606,   609,   610,   613,   614,   617,   618,
+     619,   620,   621,   622,   625,   626,   629,   630,   633,   634,
+     637,   638,   643,   654,   662,   686
 };
 #endif
 
@@ -698,7 +703,7 @@ static const char *const yytname[] =
   "SYSCMD", "ENDCMD", "MODEL", "DATA", "IN", "TO", "INITS", "PARAMETERS",
   "COMPILE", "INITIALIZE", "ADAPT", "UPDATE", "BY", "MONITORS", "MONITOR",
   "TYPE", "SET", "CLEAR", "THIN", "CODA", "STEM", "EXIT", "NCHAINS",
-  "CHAIN", "LOAD", "UNLOAD", "SAMPLER", "SAMPLERS", "RNG", "FACTORY",
+  "CHAIN", "LOAD", "UNLOAD", "SAMPLER", "SAMPLERS", "RNGTOK", "FACTORY",
   "FACTORIES", "LIST", "STRUCTURE", "DIM", "NA", "R_NULL", "DIMNAMES",
   "ITER", "ARROW", "ENDDATA", "ASINTEGER", "DIRECTORY", "CD", "PWD", "RUN",
   "ENDSCRIPT", "','", "'('", "')'", "'['", "']'", "':'", "'*'", "';'",
@@ -1778,7 +1783,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 163 "parser.yy"
+#line 168 "parser.yy"
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1788,7 +1793,7 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 167 "parser.yy"
+#line 172 "parser.yy"
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1798,49 +1803,49 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 173 "parser.yy"
+#line 178 "parser.yy"
     {}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 174 "parser.yy"
+#line 179 "parser.yy"
     {}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 175 "parser.yy"
+#line 180 "parser.yy"
     {if(interactive) yyerrok; else exit(1); }
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 176 "parser.yy"
+#line 181 "parser.yy"
     {}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 177 "parser.yy"
+#line 182 "parser.yy"
     {}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 178 "parser.yy"
+#line 183 "parser.yy"
     { doSystem((yyvsp[(1) - (2)].stringptr)); delete (yyvsp[(1) - (2)].stringptr);}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 205 "parser.yy"
+#line 210 "parser.yy"
     {
     std::FILE *file = std::fopen(ExpandFileName(((yyvsp[(3) - (3)].stringptr))->c_str()).c_str(), "r");
     if (!file) {
@@ -1857,7 +1862,7 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 216 "parser.yy"
+#line 221 "parser.yy"
     {
     console->clearModel();
 }
@@ -1866,7 +1871,7 @@ yyreduce:
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 221 "parser.yy"
+#line 226 "parser.yy"
     {
     std::string rngname;
     readRData((yyvsp[(2) - (3)].pvec), _data_table, rngname);
@@ -1880,14 +1885,14 @@ yyreduce:
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 229 "parser.yy"
+#line 234 "parser.yy"
     {}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 232 "parser.yy"
+#line 237 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_DATA, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -1897,7 +1902,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 238 "parser.yy"
+#line 243 "parser.yy"
     {
     if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
 	std::cout << "Reading data file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
@@ -1912,7 +1917,7 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 249 "parser.yy"
+#line 254 "parser.yy"
     {
   std::cout << "Clearing data table " << std::endl;
   _data_table.clear();
@@ -1922,7 +1927,7 @@ yyreduce:
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 256 "parser.yy"
+#line 261 "parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -1946,7 +1951,7 @@ yyreduce:
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 275 "parser.yy"
+#line 280 "parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -1964,14 +1969,14 @@ yyreduce:
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 287 "parser.yy"
+#line 292 "parser.yy"
     {}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 290 "parser.yy"
+#line 295 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_PARAMETERS, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -1981,7 +1986,7 @@ yyreduce:
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 294 "parser.yy"
+#line 299 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (8)].stringptr), DUMP_PARAMETERS, (yyvsp[(7) - (8)].intval));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -1991,7 +1996,7 @@ yyreduce:
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 300 "parser.yy"
+#line 305 "parser.yy"
     {
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
     std::cout << "Reading parameter file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
@@ -2006,7 +2011,7 @@ yyreduce:
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 309 "parser.yy"
+#line 314 "parser.yy"
     {
   /* Legacy option to not break existing scripts */
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
@@ -2022,7 +2027,7 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 321 "parser.yy"
+#line 326 "parser.yy"
     {
     console->compile(_data_table, 1, true);
     print_unused_variables();
@@ -2032,7 +2037,7 @@ yyreduce:
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 325 "parser.yy"
+#line 330 "parser.yy"
     {
     console->compile(_data_table, (yyvsp[(5) - (6)].intval), true);
     print_unused_variables();
@@ -2042,7 +2047,7 @@ yyreduce:
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 331 "parser.yy"
+#line 336 "parser.yy"
     {
   if (!console->initialize()) {
     errordump();
@@ -2053,7 +2058,7 @@ yyreduce:
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 338 "parser.yy"
+#line 343 "parser.yy"
     {
     long refresh = (yyvsp[(2) - (2)].intval)/40;
     adaptstar((yyvsp[(2) - (2)].intval), refresh, 40);
@@ -2063,7 +2068,7 @@ yyreduce:
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 342 "parser.yy"
+#line 347 "parser.yy"
     {
     adaptstar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval),40);
 }
@@ -2072,7 +2077,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 347 "parser.yy"
+#line 352 "parser.yy"
     {
   //fixme: put refresh option
   long refresh = (yyvsp[(2) - (2)].intval)/40;
@@ -2083,7 +2088,7 @@ yyreduce:
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 352 "parser.yy"
+#line 357 "parser.yy"
     {
   updatestar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval), 40);
 }
@@ -2092,14 +2097,14 @@ yyreduce:
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 357 "parser.yy"
+#line 362 "parser.yy"
     { return 0; }
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 360 "parser.yy"
+#line 365 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (1)].stringptr));
 }
@@ -2108,7 +2113,7 @@ yyreduce:
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 363 "parser.yy"
+#line 368 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (4)].stringptr));
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
@@ -2118,7 +2123,7 @@ yyreduce:
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 369 "parser.yy"
+#line 374 "parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); 
 }
@@ -2127,7 +2132,7 @@ yyreduce:
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 372 "parser.yy"
+#line 377 "parser.yy"
     {
   (yyval.pvec)=(yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
@@ -2136,7 +2141,7 @@ yyreduce:
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 377 "parser.yy"
+#line 382 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree),(yyvsp[(1) - (1)].ptree));
 }
@@ -2145,7 +2150,7 @@ yyreduce:
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 380 "parser.yy"
+#line 385 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree), (yyvsp[(1) - (3)].ptree), (yyvsp[(3) - (3)].ptree));
 }
@@ -2154,14 +2159,14 @@ yyreduce:
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 386 "parser.yy"
+#line 391 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].intval));}
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 393 "parser.yy"
+#line 398 "parser.yy"
     { 
     setMonitor((yyvsp[(3) - (3)].ptree), 1, "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
@@ -2170,7 +2175,7 @@ yyreduce:
   case 64:
 
 /* Line 1455 of yacc.c  */
-#line 396 "parser.yy"
+#line 401 "parser.yy"
     { 
     setMonitor((yyvsp[(3) - (8)].ptree), (yyvsp[(7) - (8)].intval), "trace"); delete (yyvsp[(3) - (8)].ptree);
 }
@@ -2179,7 +2184,7 @@ yyreduce:
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 399 "parser.yy"
+#line 404 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (2)].ptree), 1, "trace"); delete (yyvsp[(2) - (2)].ptree);
 }
@@ -2188,7 +2193,7 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 402 "parser.yy"
+#line 407 "parser.yy"
     { 
     setMonitor((yyvsp[(2) - (7)].ptree), (yyvsp[(6) - (7)].intval), "trace"); delete (yyvsp[(2) - (7)].ptree);
 }
@@ -2197,7 +2202,7 @@ yyreduce:
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 405 "parser.yy"
+#line 410 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (7)].ptree), 1, *(yyvsp[(6) - (7)].stringptr));
     delete (yyvsp[(6) - (7)].stringptr);
@@ -2207,7 +2212,7 @@ yyreduce:
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 409 "parser.yy"
+#line 414 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(10) - (11)].intval), *(yyvsp[(6) - (11)].stringptr)); 
     delete (yyvsp[(6) - (11)].stringptr);
@@ -2217,7 +2222,7 @@ yyreduce:
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 413 "parser.yy"
+#line 418 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(6) - (11)].intval), *(yyvsp[(10) - (11)].stringptr)); 
     delete (yyvsp[(10) - (11)].stringptr);
@@ -2227,7 +2232,7 @@ yyreduce:
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 419 "parser.yy"
+#line 424 "parser.yy"
     {
     clearMonitor((yyvsp[(3) - (3)].ptree), "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
@@ -2236,7 +2241,7 @@ yyreduce:
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 422 "parser.yy"
+#line 427 "parser.yy"
     {
     clearMonitor((yyvsp[(3) - (8)].ptree), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(7) - (8)].stringptr);
@@ -2246,7 +2251,7 @@ yyreduce:
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 429 "parser.yy"
+#line 434 "parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (3)].stringptr), "trace");
     delete (yyvsp[(3) - (3)].stringptr);
@@ -2256,7 +2261,7 @@ yyreduce:
   case 73:
 
 /* Line 1455 of yacc.c  */
-#line 434 "parser.yy"
+#line 439 "parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (8)].stringptr), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -2267,21 +2272,21 @@ yyreduce:
   case 74:
 
 /* Line 1455 of yacc.c  */
-#line 446 "parser.yy"
+#line 451 "parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr);}
     break;
 
   case 75:
 
 /* Line 1455 of yacc.c  */
-#line 447 "parser.yy"
+#line 452 "parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr); }
     break;
 
   case 76:
 
 /* Line 1455 of yacc.c  */
-#line 450 "parser.yy"
+#line 455 "parser.yy"
     {
   doCoda ((yyvsp[(2) - (2)].ptree), "CODA"); delete (yyvsp[(2) - (2)].ptree);
 }
@@ -2290,7 +2295,7 @@ yyreduce:
   case 77:
 
 /* Line 1455 of yacc.c  */
-#line 453 "parser.yy"
+#line 458 "parser.yy"
     {
   doCoda ((yyvsp[(2) - (7)].ptree), *(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(2) - (7)].ptree); delete (yyvsp[(6) - (7)].stringptr);
 }
@@ -2299,7 +2304,7 @@ yyreduce:
   case 78:
 
 /* Line 1455 of yacc.c  */
-#line 456 "parser.yy"
+#line 461 "parser.yy"
     {
   doAllCoda ("CODA"); 
 }
@@ -2308,7 +2313,7 @@ yyreduce:
   case 79:
 
 /* Line 1455 of yacc.c  */
-#line 459 "parser.yy"
+#line 464 "parser.yy"
     {
   doAllCoda (*(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(6) - (7)].stringptr); 
 }
@@ -2317,21 +2322,21 @@ yyreduce:
   case 80:
 
 /* Line 1455 of yacc.c  */
-#line 464 "parser.yy"
+#line 469 "parser.yy"
     { loadModule(*(yyvsp[(2) - (2)].stringptr)); }
     break;
 
   case 81:
 
 /* Line 1455 of yacc.c  */
-#line 467 "parser.yy"
+#line 472 "parser.yy"
     { unloadModule(*(yyvsp[(2) - (2)].stringptr)); }
     break;
 
   case 82:
 
 /* Line 1455 of yacc.c  */
-#line 471 "parser.yy"
+#line 476 "parser.yy"
     {
     dumpSamplers(*(yyvsp[(3) - (3)].stringptr));
     delete (yyvsp[(3) - (3)].stringptr);
@@ -2341,7 +2346,7 @@ yyreduce:
   case 83:
 
 /* Line 1455 of yacc.c  */
-#line 478 "parser.yy"
+#line 483 "parser.yy"
     {
     listFactories(SAMPLER_FACTORY);
 }
@@ -2350,7 +2355,7 @@ yyreduce:
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 483 "parser.yy"
+#line 488 "parser.yy"
     {
     listFactories(RNG_FACTORY);
 }
@@ -2359,7 +2364,7 @@ yyreduce:
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 488 "parser.yy"
+#line 493 "parser.yy"
     {
     listFactories(MONITOR_FACTORY);
 }
@@ -2368,7 +2373,7 @@ yyreduce:
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 494 "parser.yy"
+#line 499 "parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), SAMPLER_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2379,7 +2384,7 @@ yyreduce:
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 501 "parser.yy"
+#line 506 "parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), RNG_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2390,7 +2395,7 @@ yyreduce:
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 508 "parser.yy"
+#line 513 "parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), MONITOR_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2401,7 +2406,7 @@ yyreduce:
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 517 "parser.yy"
+#line 522 "parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree));
 }
@@ -2410,7 +2415,7 @@ yyreduce:
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 520 "parser.yy"
+#line 525 "parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (2)].pvec); (yyval.pvec)->push_back((yyvsp[(2) - (2)].ptree));
 }
@@ -2419,7 +2424,7 @@ yyreduce:
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 523 "parser.yy"
+#line 528 "parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
@@ -2428,7 +2433,7 @@ yyreduce:
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 528 "parser.yy"
+#line 533 "parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
 }
@@ -2437,7 +2442,7 @@ yyreduce:
   case 93:
 
 /* Line 1455 of yacc.c  */
-#line 531 "parser.yy"
+#line 536 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY);
   setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2448,7 +2453,7 @@ yyreduce:
   case 94:
 
 /* Line 1455 of yacc.c  */
-#line 536 "parser.yy"
+#line 541 "parser.yy"
     {
   /* Allow this for setting the NAME of the random number generator */
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2460,7 +2465,7 @@ yyreduce:
   case 97:
 
 /* Line 1455 of yacc.c  */
-#line 546 "parser.yy"
+#line 551 "parser.yy"
     {
     /* R >= 2.4.0 uses backticks for quoted names */
     (yyval.stringptr) = (yyvsp[(2) - (3)].stringptr);
@@ -2470,7 +2475,7 @@ yyreduce:
   case 98:
 
 /* Line 1455 of yacc.c  */
-#line 551 "parser.yy"
+#line 556 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY); 
   if ((yyvsp[(5) - (6)].ptree)) 
@@ -2483,21 +2488,21 @@ yyreduce:
   case 100:
 
 /* Line 1455 of yacc.c  */
-#line 563 "parser.yy"
+#line 568 "parser.yy"
     {(yyval.ptree)=0;}
     break;
 
   case 102:
 
 /* Line 1455 of yacc.c  */
-#line 565 "parser.yy"
+#line 570 "parser.yy"
     {(yyval.ptree)=(yyvsp[(3) - (3)].ptree);}
     break;
 
   case 103:
 
 /* Line 1455 of yacc.c  */
-#line 568 "parser.yy"
+#line 573 "parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree);
 }
@@ -2506,14 +2511,14 @@ yyreduce:
   case 106:
 
 /* Line 1455 of yacc.c  */
-#line 577 "parser.yy"
+#line 582 "parser.yy"
     {(yyval.ptree) = (yyvsp[(3) - (4)].ptree);}
     break;
 
   case 107:
 
 /* Line 1455 of yacc.c  */
-#line 580 "parser.yy"
+#line 585 "parser.yy"
     { 
   (yyval.ptree) = new ParseTree(P_VECTOR); 
   setParameters((yyval.ptree), (yyvsp[(1) - (1)].ptree));
@@ -2523,7 +2528,7 @@ yyreduce:
   case 108:
 
 /* Line 1455 of yacc.c  */
-#line 584 "parser.yy"
+#line 589 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VECTOR);
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
@@ -2533,161 +2538,161 @@ yyreduce:
   case 109:
 
 /* Line 1455 of yacc.c  */
-#line 590 "parser.yy"
+#line 595 "parser.yy"
     {(yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); }
     break;
 
   case 110:
 
 /* Line 1455 of yacc.c  */
-#line 591 "parser.yy"
+#line 596 "parser.yy"
     {(yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));}
     break;
 
   case 111:
 
 /* Line 1455 of yacc.c  */
-#line 594 "parser.yy"
+#line 599 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].val));}
     break;
 
   case 112:
 
 /* Line 1455 of yacc.c  */
-#line 595 "parser.yy"
+#line 600 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
     break;
 
   case 113:
 
 /* Line 1455 of yacc.c  */
-#line 601 "parser.yy"
+#line 606 "parser.yy"
     {;}
     break;
 
   case 114:
 
 /* Line 1455 of yacc.c  */
-#line 604 "parser.yy"
+#line 609 "parser.yy"
     {;}
     break;
 
   case 115:
 
 /* Line 1455 of yacc.c  */
-#line 605 "parser.yy"
+#line 610 "parser.yy"
     {;}
     break;
 
   case 116:
 
 /* Line 1455 of yacc.c  */
-#line 608 "parser.yy"
+#line 613 "parser.yy"
     {;}
     break;
 
   case 117:
 
 /* Line 1455 of yacc.c  */
-#line 609 "parser.yy"
+#line 614 "parser.yy"
     {;}
     break;
 
   case 118:
 
 /* Line 1455 of yacc.c  */
-#line 612 "parser.yy"
+#line 617 "parser.yy"
     {;}
     break;
 
   case 119:
 
 /* Line 1455 of yacc.c  */
-#line 613 "parser.yy"
+#line 618 "parser.yy"
     {;}
     break;
 
   case 120:
 
 /* Line 1455 of yacc.c  */
-#line 614 "parser.yy"
+#line 619 "parser.yy"
     {;}
     break;
 
   case 121:
 
 /* Line 1455 of yacc.c  */
-#line 615 "parser.yy"
+#line 620 "parser.yy"
     {;}
     break;
 
   case 122:
 
 /* Line 1455 of yacc.c  */
-#line 616 "parser.yy"
+#line 621 "parser.yy"
     {;}
     break;
 
   case 123:
 
 /* Line 1455 of yacc.c  */
-#line 617 "parser.yy"
+#line 622 "parser.yy"
     {;}
     break;
 
   case 124:
 
 /* Line 1455 of yacc.c  */
-#line 620 "parser.yy"
+#line 625 "parser.yy"
     {;}
     break;
 
   case 126:
 
 /* Line 1455 of yacc.c  */
-#line 624 "parser.yy"
+#line 629 "parser.yy"
     {;}
     break;
 
   case 127:
 
 /* Line 1455 of yacc.c  */
-#line 625 "parser.yy"
+#line 630 "parser.yy"
     {;}
     break;
 
   case 128:
 
 /* Line 1455 of yacc.c  */
-#line 628 "parser.yy"
+#line 633 "parser.yy"
     {;}
     break;
 
   case 129:
 
 /* Line 1455 of yacc.c  */
-#line 629 "parser.yy"
+#line 634 "parser.yy"
     {;}
     break;
 
   case 130:
 
 /* Line 1455 of yacc.c  */
-#line 632 "parser.yy"
+#line 637 "parser.yy"
     {;}
     break;
 
   case 131:
 
 /* Line 1455 of yacc.c  */
-#line 633 "parser.yy"
+#line 638 "parser.yy"
     {;}
     break;
 
   case 132:
 
 /* Line 1455 of yacc.c  */
-#line 639 "parser.yy"
+#line 644 "parser.yy"
     {
     std::string name;
     if (getWorkingDirectory(name)) {
@@ -2702,7 +2707,7 @@ yyreduce:
   case 133:
 
 /* Line 1455 of yacc.c  */
-#line 650 "parser.yy"
+#line 655 "parser.yy"
     {
     if (chdir(((yyvsp[(2) - (2)].stringptr))->c_str()) == -1) {
 	std::cout << "ERROR: Cannot change working directory" << std::endl;
@@ -2714,7 +2719,7 @@ yyreduce:
   case 134:
 
 /* Line 1455 of yacc.c  */
-#line 658 "parser.yy"
+#line 663 "parser.yy"
     {
     std::string name;
     if (!getWorkingDirectory(name)) {
@@ -2742,7 +2747,7 @@ yyreduce:
   case 135:
 
 /* Line 1455 of yacc.c  */
-#line 681 "parser.yy"
+#line 686 "parser.yy"
     {
     if(open_command_buffer((yyvsp[(2) - (2)].stringptr))) {
 	std::cout << "Running script file " << *(yyvsp[(2) - (2)].stringptr) << std::endl;
@@ -2757,7 +2762,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2761 "parser.cc"
+#line 2766 "parser.cc"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2969,7 +2974,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 692 "parser.yy"
+#line 697 "parser.yy"
 
 
 int zzerror (const char *s)
@@ -3522,8 +3527,18 @@ int main (int argc, char **argv)
 
 static bool getWorkingDirectory(std::string &name)
 {
-    char buf[PATH_MAX];
-    if (getcwd(buf, PATH_MAX)) {
+    char buf[FILENAME_MAX];
+#ifdef Win32
+    if (getCurrentDirectory(FILENAME_MAX, buf)) {
+	name = buf;
+	return true;
+    }
+    else {
+	name = "Error in getCurrentDirectory";
+	return false;
+    }
+#else
+    if (getcwd(buf, FILENAME_MAX)) {
 	name = buf;
 	return true;
     }
@@ -3544,6 +3559,7 @@ static bool getWorkingDirectory(std::string &name)
 	}
 	return false;
     }
+#endif
 }
 
 static void dumpSamplers(std::string const &file)

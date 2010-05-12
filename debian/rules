@@ -3,6 +3,11 @@
 override_dh_auto_configure:
 	dh_auto_configure -- --without-included-ltdl
 
+override_dh_auto_build:
+	make
+	make docs
+	ls -lR doc/manual
+
 %:
 	dh $@
 

@@ -1,15 +1,20 @@
 !define APP_NAME "JAGS"
 !define PUBLISHER "JAGS"
 
+;Name used for JAGS registry keys
+!define JAGS_KEYNAME "${APP_NAME}-${VERSION}"
+;Name visible to users, for shortcuts, installation directories, etc.
+!define JAGS_VISIBLE_NAME  "${APP_NAME} ${VERSION}"
+
 !define MULTIUSER_MUI
 !define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
 
 !define INSTDIR_REG_ROOT "SHELL_CONTEXT"
-!define INSTDIR_REG_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}-${VERSION}"
+!define INSTDIR_REG_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${JAGS_KEYNAME}"
 
-!define MULTIUSER_INSTALLMODE_INSTDIR "${PUBLISHER}\${APP_NAME}-${VERSION}"
-!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "SOFTWARE\${PUBLISHER}\${APP_NAME}-${VERSION}"
+!define MULTIUSER_INSTALLMODE_INSTDIR "${PUBLISHER}\${JAGS_KEYNAME}"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "SOFTWARE\${PUBLISHER}\${JAGS_KEYNAME}"
 !define MULTIUSER_INSTDIR_REGISTRY_VALUENAME "InstallDir"
 
 !addincludedir ${JAGSINC}
@@ -17,12 +22,12 @@
 !include MultiUser.nsh
 !include "MUI2.nsh"
 
-Name "${APP_NAME} ${VERSION}"
+Name "${JAGS_VISIBLE_NAME}"
 OutFile "${APP_NAME}-${VERSION}-win32.exe"
 
 Var SM_FOLDER
 
-!define APP_REG_KEY "Software\${PUBLISHER}\${APP_NAME}-${VERSION}"
+!define APP_REG_KEY "Software\${PUBLISHER}\${JAGS_KEYNAME}"
 !define PUB_REG_KEY "Software\${PUBLISHER}"
 
 ;Start Menu Folder Page Configuration
@@ -87,7 +92,7 @@ Section # Default section
    Call AdvReplaceInFile
 
    WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "InstallDir" "$INSTDIR"
-   WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayName" "JAGS ${VERSION}"
+   WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayName" "${JAGS_VISIBLE_NAME}"
    WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "UninstallString" "${UNINST_EXE}"
    WriteRegStr ${INSTDIR_REG_ROOT} "${APP_REG_KEY}"     "InstallDir" "$INSTDIR"
 
@@ -96,10 +101,10 @@ Section # Default section
       # The CreateShortCut function takes the current output path to be
       # the working directory for the shortcut
       SetOutPath "%USERPROFILE%"
-      CreateShortCut "$SMPROGRAMS\$SM_FOLDER\JAGS ${VERSION}.lnk" "$INSTDIR\bin\jags.bat"
+      CreateShortCut "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME}.lnk" "$INSTDIR\bin\jags.bat"
       SetOutPath ""
       ;create shortcut for uninstaller always use ${UNINST_EXE} instead of uninstall.exe
-      CreateShortCut "$SMPROGRAMS\$SM_FOLDER\Uninstall JAGS ${VERSION}.lnk" "${UNINST_EXE}"
+      CreateShortCut "$SMPROGRAMS\$SM_FOLDER\Uninstall ${JAGS_VISIBLE_NAME}.lnk" "${UNINST_EXE}"
    !insertmacro MUI_STARTMENU_WRITE_END
 
 SectionEnd #End of default section
@@ -128,8 +133,8 @@ Section "Uninstall"
   
    !insertmacro MUI_STARTMENU_GETFOLDER Application $SM_FOLDER
     
-   Delete "$SMPROGRAMS\$SM_FOLDER\JAGS ${VERSION}.lnk"
-   Delete "$SMPROGRAMS\$SM_FOLDER\Uninstall JAGS ${VERSION}.lnk"
+   Delete "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME}.lnk"
+   Delete "$SMPROGRAMS\$SM_FOLDER\Uninstall ${JAGS_VISIBLE_NAME}.lnk"
   
    ;Delete empty start menu parent diretories
    StrCpy $SM_FOLDER "$SMPROGRAMS\$SM_FOLDER"

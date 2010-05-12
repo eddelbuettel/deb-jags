@@ -71,7 +71,7 @@
      UNLOAD = 287,
      SAMPLER = 288,
      SAMPLERS = 289,
-     RNG = 290,
+     RNGTOK = 290,
      FACTORY = 291,
      FACTORIES = 292,
      LIST = 293,
@@ -124,7 +124,7 @@
 #define UNLOAD 287
 #define SAMPLER 288
 #define SAMPLERS 289
-#define RNG 290
+#define RNGTOK 290
 #define FACTORY 291
 #define FACTORIES 292
 #define LIST 293
@@ -151,7 +151,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 86 "parser.yy"
+#line 91 "parser.yy"
 
   int intval;
   double val;
