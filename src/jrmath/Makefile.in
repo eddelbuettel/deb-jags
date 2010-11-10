@@ -116,7 +116,8 @@ am_libjrmath_la_OBJECTS = libjrmath_la-callbacks.lo \
 	libjrmath_la-pnchisq.lo libjrmath_la-qnchisq.lo \
 	libjrmath_la-rcauchy.lo libjrmath_la-dcauchy.lo \
 	libjrmath_la-pcauchy.lo libjrmath_la-qcauchy.lo \
-	libjrmath_la-polygamma.lo
+	libjrmath_la-rf.lo libjrmath_la-df.lo libjrmath_la-pf.lo \
+	libjrmath_la-qf.lo libjrmath_la-polygamma.lo
 libjrmath_la_OBJECTS = $(am_libjrmath_la_OBJECTS)
 libjrmath_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -226,6 +227,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -279,7 +281,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 ltdl_LIBOBJS = @ltdl_LIBOBJS@
 ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
@@ -322,6 +323,7 @@ runif.c dunif.c punif.c qunif.c \
 rweibull.c dweibull.c pweibull.c qweibull.c \
 rnchisq.c dnchisq.c pnchisq.c qnchisq.c \
 rcauchy.c dcauchy.c pcauchy.c qcauchy.c \
+rf.c df.c pf.c qf.c \
 polygamma.c
 
 noinst_HEADERS = nmath.h dpq.h 
@@ -410,6 +412,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-dcauchy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-dchisq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-dexp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-df.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-dgamma.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-dhyper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-dlnorm.Plo@am__quote@
@@ -439,6 +442,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-pcauchy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-pchisq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-pexp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-pf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-pgamma.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-phyper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-plnorm.Plo@am__quote@
@@ -456,6 +460,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-qcauchy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-qchisq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-qexp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-qf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-qgamma.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-qhyper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-qlnorm.Plo@am__quote@
@@ -472,6 +477,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-rcauchy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-rchisq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-rexp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-rf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-rgamma.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-rhyper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-rlnorm.Plo@am__quote@
@@ -1087,6 +1093,34 @@ libjrmath_la-qcauchy.lo: qcauchy.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='qcauchy.c' object='libjrmath_la-qcauchy.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-qcauchy.lo `test -f 'qcauchy.c' || echo '$(srcdir)/'`qcauchy.c
+
+libjrmath_la-rf.lo: rf.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-rf.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-rf.Tpo -c -o libjrmath_la-rf.lo `test -f 'rf.c' || echo '$(srcdir)/'`rf.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libjrmath_la-rf.Tpo $(DEPDIR)/libjrmath_la-rf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='rf.c' object='libjrmath_la-rf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-rf.lo `test -f 'rf.c' || echo '$(srcdir)/'`rf.c
+
+libjrmath_la-df.lo: df.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-df.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-df.Tpo -c -o libjrmath_la-df.lo `test -f 'df.c' || echo '$(srcdir)/'`df.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libjrmath_la-df.Tpo $(DEPDIR)/libjrmath_la-df.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='df.c' object='libjrmath_la-df.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-df.lo `test -f 'df.c' || echo '$(srcdir)/'`df.c
+
+libjrmath_la-pf.lo: pf.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-pf.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-pf.Tpo -c -o libjrmath_la-pf.lo `test -f 'pf.c' || echo '$(srcdir)/'`pf.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libjrmath_la-pf.Tpo $(DEPDIR)/libjrmath_la-pf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='pf.c' object='libjrmath_la-pf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-pf.lo `test -f 'pf.c' || echo '$(srcdir)/'`pf.c
+
+libjrmath_la-qf.lo: qf.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-qf.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-qf.Tpo -c -o libjrmath_la-qf.lo `test -f 'qf.c' || echo '$(srcdir)/'`qf.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libjrmath_la-qf.Tpo $(DEPDIR)/libjrmath_la-qf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='qf.c' object='libjrmath_la-qf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-qf.lo `test -f 'qf.c' || echo '$(srcdir)/'`qf.c
 
 libjrmath_la-polygamma.lo: polygamma.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-polygamma.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-polygamma.Tpo -c -o libjrmath_la-polygamma.lo `test -f 'polygamma.c' || echo '$(srcdir)/'`polygamma.c

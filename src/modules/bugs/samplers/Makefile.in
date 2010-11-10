@@ -15,6 +15,8 @@
 
 @SET_MAKE@
 
+# SUBDIRS = cj
+
 
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -168,6 +170,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -221,7 +224,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 ltdl_LIBOBJS = @ltdl_LIBOBJS@
 ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
@@ -246,6 +248,8 @@ bugssampler_la_CPPFLAGS = -I$(top_srcdir)/src/include	\
 -I$(top_srcdir)/src/modules/bugs/matrix
 
 bugssampler_la_LDFLAGS = -no-undefined -module -avoid-version
+
+# bugssampler_la_LIBADD = cj/bugscj.la
 bugssampler_la_SOURCES = Censored.cc ConjugateGamma.cc		\
 ConjugateWishart.cc ConjugateBeta.cc ConjugateMNormal.cc	\
 ConjugateDirichlet.cc ConjugateNormal.cc DSumFactory.cc		\
