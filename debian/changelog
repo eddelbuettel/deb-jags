@@ -1,3 +1,10 @@
+jags (2.2.0-2) unstable; urgency=low
+
+  * debian/rules: Add short find and perl snippet to process .la files 
+    in order to empty dependency_libs 			(Closes: #621593)
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sun, 08 May 2011 17:16:41 -0500
+
 jags (2.2.0-1) unstable; urgency=low
 
   * New upstream release

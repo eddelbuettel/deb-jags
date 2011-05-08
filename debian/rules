@@ -7,6 +7,13 @@ override_dh_auto_build:
 	make
 	(cd doc/manual && make docs && ls)
 
+override_dh_auto_install:
+	dh_auto_install
+        # edd 08 May 2011
+        # empty dependency_lib in .la files (cf #621213)	
+	find debian/$(package) -name \*.la | \
+		xargs perl -p -i -e "s/dependency_libs='.*'/dependency_libs=''/" 
+
 %:
 	dh $@
 
