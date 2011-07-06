@@ -46,13 +46,13 @@ namespace glm {
 	void updateLM(RNG *rng, bool stochastic = true, bool chol=true);
 	void updateLMGibbs(RNG *rng);
 	bool isAdaptive() const;
-	bool adaptOff();
+	void adaptOff();
+	bool checkAdaptation() const;
 	void calCoef(double *&, cholmod_sparse *&);
 	virtual	double getMean(unsigned int i) const;
 	virtual std::string name() const = 0;
 	virtual double getPrecision(unsigned int i) const = 0;
 	virtual double getValue(unsigned int i) const = 0;
-	virtual void initAuxiliary(RNG *rng);
 	virtual void updateAuxiliary(cholmod_dense *b, cholmod_factor *N, RNG *rng);
 	static GLMFamily getFamily(StochasticNode const *snode);
     };

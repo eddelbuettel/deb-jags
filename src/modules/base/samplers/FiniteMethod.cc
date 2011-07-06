@@ -6,16 +6,15 @@
 #include <util/nainf.h>
 #include <graph/NodeError.h>
 #include <sampler/GraphView.h>
+#include <module/ModuleError.h>
 
 #include "FiniteMethod.h"
 
 #include <cmath>
 #include <string>
-#include <stdexcept>
 #include <vector>
 #include <algorithm>
 
-using std::logic_error;
 using std::string;
 using std::vector;
 using std::exp;
@@ -28,11 +27,10 @@ namespace base {
 	: _gv(gv), _chain(chain)
     {
 	if (gv->nodes().size() != 1)
-	    throw logic_error("Invalid FiniteMethod");
-
+	    throwLogicError("Invalid FiniteMethod");
 	StochasticNode const *snode = gv->nodes().front();
 	if (!canSample(snode)) {
-	    throw logic_error("Invalid FiniteMethod");
+	    throwLogicError("Invalid FiniteMethod");
 	}
 
 	double lower = 0, upper = 0;
@@ -64,8 +62,7 @@ namespace base {
 	}
 	
 	if (!jags_finite(liksum)) {
-	    throw NodeError(_gv->nodes()[0],
-			    "Cannot normalize density");
+	    throwNodeError(_gv->nodes()[0], "Cannot normalize density");
 	}
 
 	/* Sample */
@@ -87,7 +84,11 @@ namespace base {
 	return false;
     }
 
-    bool FiniteMethod::adaptOff()
+    void FiniteMethod::adaptOff()
+    {
+    }
+
+    bool FiniteMethod::checkAdaptation() const
     {
 	return true;
     }

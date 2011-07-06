@@ -13,6 +13,8 @@ using std::log;
 #define ALPHA(par) (*par[0])
 #define C(par) (*par[1])
 
+namespace bugs {
+
 DPar::DPar()
     : RScalarDist("dpar", 2, DIST_SPECIAL)
 {}
@@ -23,7 +25,8 @@ bool DPar::checkParameterValue (vector<double const *> const &par) const
 }
 
 double 
-DPar::d(double x, vector<double const *> const &par, bool give_log) const
+DPar::d(double x, PDFType type,
+vector<double const *> const &par, bool give_log) const
 {
   double alpha = ALPHA(par);
   double c = C(par);
@@ -83,7 +86,7 @@ DPar::q(double p, vector<double const *> const &par, bool lower,
 
 double DPar::r(vector<double const *> const &par, RNG *rng) const
 {
-    return exp(log(C(par)) - rng->exponential()/ALPHA(par));
+    return C(par) * exp(rng->exponential()/ALPHA(par));
 }
 
 double DPar::l(vector<double const*> const &par) const
@@ -99,4 +102,6 @@ double DPar::u(vector<double const*> const &par) const
 bool DPar::isSupportFixed(vector<bool> const &fixmask) const
 {
     return fixmask[1]; //Fixed if C is fixed
+}
+
 }

@@ -3,7 +3,13 @@
 
 #include <sampler/SampleMethod.h>
 
-class Sampler;
+/**
+ * Enumerates different states of the sampler, SLICER_OK means there has
+ * been no error, SLICER_POSINF means that the Slicer is stuck at a
+ * point of infinite density. SLICER_NEGINF means that current value of
+ * the slicer has zero density (or -Inf on the log scale).
+ */
+enum SlicerState {SLICER_OK, SLICER_POSINF, SLICER_NEGINF};
 
 /**
  * @short Slice Sampling method
@@ -18,6 +24,7 @@ class Slicer : public SampleMethod
     unsigned int _max;
     double _sumdiff;
     unsigned int _iter;
+    SlicerState _state;
     bool accept(double xold, double xnew, double z, double L, double R,
 		double lower, double upper);
 public:
@@ -34,14 +41,20 @@ public:
      * Update the current value using the "stepping" method. A Sampler
      * that uses the Slicer DensityMethod can implement Sampler#update
      * by calling this function.
+     *
+     * @return Success indicator. If the return value is false, then
+     * the slicer state is set to show the error that occurred.
      */
-    void updateStep(RNG *rng);
+    bool updateStep(RNG *rng);
     /**
      * Update the current value using the "doubling" method. A Sampler
      * that uses the Slicer DensityMethod can implement Sampler#update
      * by calling this function.
+     *
+     * @return Success indicator. If the return value is false, then
+     * the slicer state is set to show the error that occurred.
      */
-    void updateDouble(RNG *rng);
+    bool updateDouble(RNG *rng);
     /**
      * Returns the current value of the Slicer. 
      */
@@ -57,11 +70,14 @@ public:
      */
     virtual void getLimits(double *lower, double *upper) const = 0;
     /**
-     * Turns off adaptive mode.  The current adaptation test is very
-     * basic, and will return true if a minimum number of iterations
-     * (50) have taken place.
+     * Turns off adaptive mode.  
      */
-    bool adaptOff();
+    void adaptOff();
+    /**
+     * The current adaptation test is very basic, and will return true
+     * if a minimum number of iterations (50) have taken place.
+     */
+    bool checkAdaptation() const;
     /**
      * The slicer method is adaptive.  The step size adapts to the
      * mean distance between consecutive updates
@@ -72,6 +88,10 @@ public:
      * distribution.
      */
     virtual double logDensity() const = 0;
+    /**
+     * Returns the state of the sampler.
+     */
+    SlicerState state() const;
 };
 
 #endif /* SLICER_H_ */

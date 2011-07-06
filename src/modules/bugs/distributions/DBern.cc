@@ -14,6 +14,8 @@ using std::max;
 
 #define PROB(par) (*par[0])
 
+namespace bugs {
+
 DBern::DBern()
     : ScalarDist("dbern", 1, DIST_PROPORTION)
 {}
@@ -24,8 +26,9 @@ DBern::checkParameterValue (vector<double const *> const &parameters) const
     return  (PROB(parameters) >= 0.0 && PROB(parameters) <= 1.0);
 }
 
-double DBern::logLikelihood(double x, vector<double const *> const &parameters,
-			    double const *lbound, double const *ubound) const 
+double DBern::logDensity(double x, PDFType type,
+			 vector<double const *> const &parameters,
+			 double const *lbound, double const *ubound) const 
 {
     double d = 0;
     if (x == 1)
@@ -57,4 +60,27 @@ bool DBern::canBound() const
 bool DBern::isDiscreteValued(vector<bool> const &mask) const
 {
     return true;
+}
+
+double DBern::KL(vector<double const *> const &par1, 
+		 vector<double const *> const &par2) const
+{
+    double p1 = PROB(par1);
+    double p2 = PROB(par2);
+    
+    if (p2 == 0 && p1 != 0)
+	return JAGS_POSINF;
+    else if (p2 == 1 && p1 != 1)
+	return JAGS_POSINF;
+    else if (p1 == 0) {
+	return - log(1 - p2);
+    }
+    else if (p1 == 1) {
+	return - log(p2);
+    }
+    else {
+	return p1 * (log(p1) - log(p2)) +  (1 - p1) * (log(1-p1) - log(1-p2));
+    }
+}
+
 }

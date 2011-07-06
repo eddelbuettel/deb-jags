@@ -4,17 +4,16 @@
 #include <util/nainf.h>
 #include <util/dim.h>
 
-#include <stdexcept>
 #include <cmath>
 #include <algorithm>
 
 using std::string;
 using std::vector;
-using std::length_error;
-using std::logic_error;
 using std::log;
 using std::min;
 using std::max;
+
+namespace bugs {
 
 double RScalarDist::calPlower(double lower, 
 			      vector<double const*> const &parameters) const
@@ -65,9 +64,9 @@ RScalarDist::typicalValue(vector<double const *> const &parameters,
     double med = q(pmed, parameters, true, false);	
 
     //Calculate the log densities
-    double dllimit = d(llimit, parameters, true);
-    double dulimit = d(ulimit, parameters, true);
-    double dmed = d(med, parameters, true);
+    double dllimit = d(llimit, PDF_FULL, parameters, true);
+    double dulimit = d(ulimit, PDF_FULL, parameters, true);
+    double dmed = d(med, PDF_FULL, parameters, true);
 
     //Pick the median if it has the highest density, otherwise pick
     //a point near to (but not on) the boundary
@@ -83,19 +82,21 @@ RScalarDist::typicalValue(vector<double const *> const &parameters,
 }
 
 double 
-RScalarDist::logLikelihood(double x, vector<double const *> const &parameters,
-			   double const *lower, double const *upper) const
+RScalarDist::logDensity(double x, PDFType type,
+			vector<double const *> const &parameters,
+			double const *lower, double const *upper) const
 {
-    double loglik =  d(x, parameters, true);
+    if (lower && x < *lower)
+	return JAGS_NEGINF;
+    if (upper && x > *upper)
+	return JAGS_NEGINF;
+    if (upper && lower && *upper < *lower)
+	return JAGS_NEGINF;
+    
+    double loglik =  d(x, type, parameters, true);
 
-    if (lower || upper) {
-
-	if (lower && x < *lower)
-	    return JAGS_NEGINF;
-	if (upper && x > *upper)
-	    return JAGS_NEGINF;
-	if (upper && lower && *upper < *lower)
-	    return JAGS_NEGINF;
+    if (type != PDF_PRIOR && (lower || upper)) {
+	//Normalize truncated distributions
 
 	//Make adjustment for discrete-valued distributions
 	double ll = 0;
@@ -176,4 +177,11 @@ bool RScalarDist::discrete() const
 unsigned int RScalarDist::npar() const
 {
     return _npar;
+}
+
+    double xlog0(double x, bool give_log) {
+	if (x < 0) return JAGS_POSINF;
+	else if (x > 0) return give_log ? JAGS_NEGINF : 0;
+	else return give_log ? 0 : 1;
+    }
 }

@@ -37,12 +37,12 @@ host_triplet = @host@
 subdir = src/lib/function
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 \
-	$(top_srcdir)/m4/acx_lapack.m4 $(top_srcdir)/m4/acxx_blas.m4 \
-	$(top_srcdir)/m4/argz.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltdl.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 $(top_srcdir)/m4/argz.m4 \
+	$(top_srcdir)/m4/ax_lapack.m4 $(top_srcdir)/m4/axx_blas.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltdl.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -54,7 +54,8 @@ libfunc_la_LIBADD =
 am_libfunc_la_OBJECTS = libfunc_la-Function.lo \
 	libfunc_la-ScalarFunction.lo libfunc_la-LinkFunction.lo \
 	libfunc_la-VectorFunction.lo libfunc_la-ArrayFunction.lo \
-	libfunc_la-FunctionPtr.lo libfunc_la-FuncTab.lo
+	libfunc_la-FunctionPtr.lo libfunc_la-FuncTab.lo \
+	libfunc_la-FuncError.lo
 libfunc_la_OBJECTS = $(am_libfunc_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -115,6 +116,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JAGS_MAJOR = @JAGS_MAJOR@
+JAGS_MINOR = @JAGS_MINOR@
 LAPACK_LIBS = @LAPACK_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -226,7 +229,7 @@ top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libfunc.la
 libfunc_la_CPPFLAGS = -I$(top_srcdir)/src/include
 libfunc_la_SOURCES = Function.cc ScalarFunction.cc LinkFunction.cc	\
-VectorFunction.cc ArrayFunction.cc FunctionPtr.cc FuncTab.cc
+VectorFunction.cc ArrayFunction.cc FunctionPtr.cc FuncTab.cc FuncError.cc
 
 all: all-am
 
@@ -281,6 +284,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfunc_la-ArrayFunction.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfunc_la-FuncError.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfunc_la-FuncTab.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfunc_la-Function.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfunc_la-FunctionPtr.Plo@am__quote@
@@ -357,6 +361,13 @@ libfunc_la-FuncTab.lo: FuncTab.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FuncTab.cc' object='libfunc_la-FuncTab.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libfunc_la-FuncTab.lo `test -f 'FuncTab.cc' || echo '$(srcdir)/'`FuncTab.cc
+
+libfunc_la-FuncError.lo: FuncError.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libfunc_la-FuncError.lo -MD -MP -MF $(DEPDIR)/libfunc_la-FuncError.Tpo -c -o libfunc_la-FuncError.lo `test -f 'FuncError.cc' || echo '$(srcdir)/'`FuncError.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libfunc_la-FuncError.Tpo $(DEPDIR)/libfunc_la-FuncError.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FuncError.cc' object='libfunc_la-FuncError.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libfunc_la-FuncError.lo `test -f 'FuncError.cc' || echo '$(srcdir)/'`FuncError.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

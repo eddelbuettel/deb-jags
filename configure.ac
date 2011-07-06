@@ -2,7 +2,12 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.63)
 
-AC_INIT([JAGS],[2.2.0],[martyn_plummer@users.sourceforge.net],[JAGS])
+AC_INIT([JAGS],[3.0.0],[martyn_plummer@users.sourceforge.net],[JAGS])
+JAGS_MAJOR=3
+JAGS_MINOR=0
+AC_SUBST(JAGS_MAJOR)
+AC_SUBST(JAGS_MINOR)
+
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/lib/Console.cc])
 AC_CONFIG_MACRO_DIR([m4])
@@ -81,7 +86,7 @@ R_FUNC_LOG1P
 
 dnl End Rmath stuff
 
-jagsmoddir=${libdir}/JAGS/modules-${PACKAGE_VERSION}
+jagsmoddir=${libdir}/JAGS/modules-${JAGS_MAJOR}
 AC_SUBST(jagsmoddir)
 
 AC_CONFIG_FILES([
@@ -100,6 +105,7 @@ AC_CONFIG_FILES([
   src/lib/graph/Makefile
   src/lib/sampler/Makefile
   src/lib/model/Makefile
+  src/lib/module/Makefile
   src/lib/compiler/Makefile
   src/lib/rng/Makefile
   src/jrmath/Makefile	
@@ -111,6 +117,7 @@ AC_CONFIG_FILES([
   src/include/graph/Makefile
   src/include/sampler/Makefile
   src/include/model/Makefile
+  src/include/module/Makefile
   src/include/compiler/Makefile
   src/include/rng/Makefile
   src/modules/Makefile
@@ -150,7 +157,8 @@ AC_CONFIG_FILES([
   src/modules/glm/samplers/Makefile
   src/terminal/Makefile
   win/Makefile
-  win/runtime/Makefile
+  win/runtime32/Makefile
+  win/runtime64/Makefile
   doc/Makefile
   doc/manual/Makefile
 ])

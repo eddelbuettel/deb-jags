@@ -19,11 +19,13 @@
 
 !addincludedir ${JAGSINC}
 !include AdvUninstLog.nsh
-!include MultiUser.nsh
+!include MultiUser64.nsh
 !include "MUI2.nsh"
+!include "Sections.nsh"
+!include "x64.nsh"
 
 Name "${JAGS_VISIBLE_NAME}"
-OutFile "${APP_NAME}-${VERSION}-win32.exe"
+OutFile "${APP_NAME}-${VERSION}.exe"
 
 Var SM_FOLDER
 
@@ -44,6 +46,7 @@ Var SM_FOLDER
 !insertmacro MUI_PAGE_LICENSE ${LICENSE}
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $SM_FOLDER
+!insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
@@ -55,42 +58,7 @@ Var SM_FOLDER
 
 !insertmacro MUI_LANGUAGE "English"
 
-Section # Default section
-
-   SetOutPath "$INSTDIR"
-   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-   File /r inst\bin
-   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
-
-   SetOutPath "$INSTDIR\bin"
-   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-   File inst\libexec\jags-terminal.exe
-   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
-
-   SetOutPath "$INSTDIR\lib"
-   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-   File inst\lib\*.dll.a
-   File inst\lib\*.la
-   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
-
-   SetOutPath "$INSTDIR\include"
-   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-   File inst\include\JAGS\*.h
-   File /r inst\include\JAGS\*
-   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
-
-   SetOutPath "$INSTDIR\modules"
-   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-   File /r inst\lib\JAGS\modules-${VERSION}\*
-   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
-
-   Push @JAGS_HOME@               #text to be replaced
-   Push $INSTDIR                  #replace with
-   Push all                       #replace all occurrences
-   Push all                       #replace all occurrences
-   Push $INSTDIR\bin\jags.bat     #file to replace in
-   Call AdvReplaceInFile
-   AccessControl::GrantOnFile "$INSTDIR\bin\jags.bat" "BUILTIN\USERS" "GenericRead + GenericExecute"
+Section #Default section
 
    WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "InstallDir" "$INSTDIR"
    WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayName" "${JAGS_VISIBLE_NAME}"
@@ -99,20 +67,139 @@ Section # Default section
 
    !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
       CreateDirectory "$SMPROGRAMS\$SM_FOLDER"
+   !insertmacro MUI_STARTMENU_WRITE_END
+
+   ;create shortcut for uninstaller always use ${UNINST_EXE} instead of uninstall.exe
+   CreateShortCut "$SMPROGRAMS\$SM_FOLDER\Uninstall ${JAGS_VISIBLE_NAME}.lnk" "${UNINST_EXE}"
+
+SectionEnd
+
+Section "32-bit installation" Sec32
+
+   SetOutPath "$INSTDIR\i386"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File /r inst32\bin
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+   SetOutPath "$INSTDIR\i386\bin"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File inst32\libexec\jags-terminal.exe
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+#   SetOutPath "$INSTDIR\i386\lib"
+#   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+#   File inst32\lib\*.dll.a
+#   File inst32\lib\*.la
+#   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+   SetOutPath "$INSTDIR\i386\modules"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File /r inst32\lib\JAGS\modules-${MAJOR}\*
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+   Push @JAGS_HOME@               #text to be replaced
+   Push $INSTDIR\i386             #replace with
+   Push all                       #replace all occurrences
+   Push all                       #replace all occurrences
+   Push $INSTDIR\i386\bin\jags.bat     #file to replace in
+   Call AdvReplaceInFile
+
+   AccessControl::GrantOnFile "$INSTDIR\i386\bin\jags.bat" "BUILTIN\USERS" "GenericRead + GenericExecute"
+
+   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+      CreateDirectory "$SMPROGRAMS\$SM_FOLDER"
       # The CreateShortCut function takes the current output path to be
       # the working directory for the shortcut
       SetOutPath "%USERPROFILE%"
-      CreateShortCut "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME}.lnk" "$INSTDIR\bin\jags.bat"
+      ${If} ${RunningX64}
+         CreateShortCut "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME} (32-bit).lnk" "$INSTDIR\i386\bin\jags.bat"
+      ${Else}
+         CreateShortCut "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME}.lnk" "$INSTDIR\i386\bin\jags.bat"
+      ${Endif}
       SetOutPath ""
-      ;create shortcut for uninstaller always use ${UNINST_EXE} instead of uninstall.exe
-      CreateShortCut "$SMPROGRAMS\$SM_FOLDER\Uninstall ${JAGS_VISIBLE_NAME}.lnk" "${UNINST_EXE}"
    !insertmacro MUI_STARTMENU_WRITE_END
 
-SectionEnd #End of default section
+SectionEnd #32-bit installation
+
+Section "64-bit installation" Sec64
+
+   SetOutPath "$INSTDIR\x64"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File /r inst64\bin
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+   SetOutPath "$INSTDIR\x64\bin"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File inst64\libexec\jags-terminal.exe
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+#   SetOutPath "$INSTDIR\x64\lib"
+#   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+#   File inst64\lib\*.dll.a
+#   File inst64\lib\*.la
+#   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+   SetOutPath "$INSTDIR\x64\modules"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File /r inst64\lib\JAGS\modules-${MAJOR}\*
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+   Push @JAGS_HOME@               #text to be replaced
+   Push $INSTDIR\x64              #replace with
+   Push all                       #replace all occurrences
+   Push all                       #replace all occurrences
+   Push $INSTDIR\x64\bin\jags.bat     #file to replace in
+   Call AdvReplaceInFile
+
+   AccessControl::GrantOnFile "$INSTDIR\x64\bin\jags.bat" "BUILTIN\USERS" "GenericRead + GenericExecute"
+
+   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+   # The CreateShortCut function takes the current output path to be
+   # the working directory for the shortcut
+   SetOutPath "%USERPROFILE%"
+   CreateShortCut "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME} (64-bit).lnk" "$INSTDIR\x64\bin\jags.bat"
+   SetOutPath ""
+   !insertmacro MUI_STARTMENU_WRITE_END
+
+SectionEnd #64-bit installation
+
+Section "Header files" SecHeader
+
+   SetOutPath "$INSTDIR\include"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File inst32\include\JAGS\*.h
+   File /r inst32\include\JAGS\*
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+SectionEnd
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${Sec32} "Files for 32-bit Windows"
+  !insertmacro MUI_DESCRIPTION_TEXT ${Sec64} "Files for 64-bit Windows"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecHeader} "For developers who need to compile programs linked to JAGS"
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Function .onInit
    !insertmacro MULTIUSER_INIT
    !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
+   ${If} ${RunningX64}
+      ;Nothing to do
+   ${Else}
+      ; Deselect and hide 64-bit section
+      Push $0
+      SectionGetFlags ${Sec64} $0
+      IntOp $0 $0 & ${SECTION_OFF}
+      SectionSetFlags ${Sec64} $0
+      SectionSetText  ${Sec64} ""
+      Pop $0
+      ; Enforce 32-bit selection
+      Push $1
+      SectionGetFlags ${Sec32} $1
+#      IntOp $1 $1 & ${SF_SELECTED}
+      IntOp $1 $1 | ${SF_RO}
+      SectionSetFlags ${Sec32} $1
+      Pop $1
+   ${EndIf}
 FunctionEnd
 
 Function .onInstSuccess
@@ -122,19 +209,30 @@ FunctionEnd
 
 Section "Uninstall"
 
-   ;uninstall from path, must be repeated for every install logged path individual
+   ;uninstall from path, must be repeated for every install logged path individually
    !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR"
-   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\bin"
-   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\lib"
    !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\include"
    !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\modules"
+   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\i386\bin"
+   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\i386\lib"
+   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\i386\modules"
+   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\x64\bin"
+   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\x64\lib"
+   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR\x64\modules"
    !insertmacro UNINSTALL.LOG_END_UNINSTALL
 
+   RMDir "$INSTDIR\i386"
+   RMDir "$INSTDIR\x64"
    RMDir "$INSTDIR"
   
    !insertmacro MUI_STARTMENU_GETFOLDER Application $SM_FOLDER
-    
-   Delete "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME}.lnk"
+
+   ${If} ${RunningX64}
+      Delete "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME} (32-bit).lnk"
+      Delete "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME} (64-bit).lnk"
+   ${Else}
+      Delete "$SMPROGRAMS\$SM_FOLDER\${JAGS_VISIBLE_NAME}.lnk"
+   ${EndIf}
    Delete "$SMPROGRAMS\$SM_FOLDER\Uninstall ${JAGS_VISIBLE_NAME}.lnk"
   
    ;Delete empty start menu parent diretories

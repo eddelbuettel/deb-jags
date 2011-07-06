@@ -1,15 +1,15 @@
 #include <config.h>
 
 #include <string>
-#include <stdexcept>
 #include <cmath>
+
+#include <module/ModuleError.h>
 
 #include "lapack.h"
 #include "matrix.h"
 
 using std::log;
-using std::runtime_error;
-using std::logic_error;
+using std::fabs;
 
 double logdet(double const *a, int n)
 {
@@ -29,7 +29,7 @@ double logdet(double const *a, int n)
   if (info != 0) {
     delete [] acopy;
     delete [] w;
-    throw runtime_error("unable to calculate workspace size for dsyev");
+    throwRuntimeError("unable to calculate workspace size for dsyev");
   }
   lwork = static_cast<int>(worktest);
   double *work = new double[lwork];
@@ -38,11 +38,11 @@ double logdet(double const *a, int n)
   delete [] work;
   if (info != 0) {
     delete [] w;
-    throw runtime_error("unable to calculate eigenvalues in dsyev");
+    throwRuntimeError("unable to calculate eigenvalues in dsyev");
   }
 
   if (w[0] <= 0) {
-    throw runtime_error("Non positive definite matrix in call to logdet");
+      throwRuntimeError("Non positive definite matrix in call to logdet");
   }
 
   double logdet = 0;
@@ -106,7 +106,7 @@ double det(double const *a, int n)
 */
 
 
-void inverse_spd (double *X, double const *A, int n)
+bool inverse_spd (double *X, double const *A, int n)
 {
     /* invert n x n symmetric positive definite matrix A. Put result in X*/
 
@@ -119,11 +119,11 @@ void inverse_spd (double *X, double const *A, int n)
     int info = 0;
     F77_DPOTRF ("L", &n, Acopy, &n, &info);
     if (info < 0) {
-	throw logic_error("Illegal argument in inverse_spd");
+	throwLogicError("Illegal argument in inverse_spd");
     }
     else if (info > 0) {
 	delete [] Acopy;
-	throw runtime_error("Cannot invert matrix: not positivie definite");
+	throwRuntimeError("Cannot invert matrix: not positive definite");
     }
     F77_DPOTRI ("L", &n, Acopy, &n, &info); 
 
@@ -136,12 +136,13 @@ void inverse_spd (double *X, double const *A, int n)
     delete [] Acopy;
 
     if (info != 0) {
-	throw runtime_error("Unable to invert symmetric positive definite matrix");
+	throwRuntimeError("Unable to invert symmetric positive definite matrix");
     }
+    return true;
 }
 
 
-void inverse (double *X, double const *A, int n)
+bool inverse (double *X, double const *A, int n)
 {
     /* invert n x n matrix A. Put result in X */
 
@@ -163,6 +164,21 @@ void inverse (double *X, double const *A, int n)
     delete [] Acopy;
 
     if (info != 0) {
-	throw runtime_error("Unable to invert matrix");
+	return false;
     }
+    return true;
+}
+
+bool check_symmetry(double const *x, unsigned int n, double tol)
+{
+    for (unsigned int i = 1; i < n; ++i) {
+	double const *xp = x + i;
+	double const *yp = x + n*i;
+	for (unsigned int j = 0; j < i; ++j) {
+	    if (fabs(*xp - *yp) > tol) return false;
+	    xp += n;
+	    yp++;
+	}
+    }
+    return true;
 }

@@ -1,16 +1,14 @@
 #include <config.h>
 #include <graph/ScalarStochasticNode.h>
+#include <distribution/DistError.h>
 #include <distribution/ScalarDist.h>
 #include <util/nainf.h>
 
 #include <vector>
 #include <string>
-#include <stdexcept>
 
 using std::vector;
 using std::string;
-using std::runtime_error;
-using std::logic_error;
 
 ScalarStochasticNode::ScalarStochasticNode(ScalarDist const *dist, 
 					   vector<Node const *> const &params,
@@ -20,20 +18,18 @@ ScalarStochasticNode::ScalarStochasticNode(ScalarDist const *dist,
 {
     for (unsigned int i = 0; i < params.size(); ++i) {
 	if (params[i]->length() != 1) {
-	    string msg = string("Invalid non-scalar parameter in distribution ")
-		+ dist->name();
-	    throw runtime_error(msg);
+	    throw DistError(dist, "Invalid non-scalar parameter");
 	}
     }
 }
 
-double ScalarStochasticNode::logDensity(unsigned int chain) const
+double ScalarStochasticNode::logDensity(unsigned int chain, PDFType type) const
 {
     if(!_dist->checkParameterValue(_parameters[chain]))
 	return JAGS_NEGINF;
     
-    return _dist->logLikelihood(_data[chain], _parameters[chain],
-				lowerLimit(chain), upperLimit(chain));
+    return _dist->logDensity(_data[chain], type, _parameters[chain], 
+			     lowerLimit(chain), upperLimit(chain));
 }
 
 void ScalarStochasticNode::deterministicSample(unsigned int chain)

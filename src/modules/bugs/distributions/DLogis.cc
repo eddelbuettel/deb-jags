@@ -9,6 +9,8 @@ using std::vector;
 #define SCALE(par) (1 / *par[1])
 #define TAU(par) (*par[1])
 
+namespace bugs {
+
 DLogis::DLogis()
     : RScalarDist("dlogis", 2, DIST_UNBOUNDED)
 {}
@@ -19,7 +21,8 @@ bool DLogis::checkParameterValue (vector<double const *> const &par) const
 }
 
 double 
-DLogis::d(double x, vector<double const *> const &par, bool give_log) const
+DLogis::d(double x, PDFType type,
+vector<double const *> const &par, bool give_log) const
 {
     return dlogis(x, MU(par), SCALE(par), give_log);
 }
@@ -43,4 +46,6 @@ DLogis::r(vector<double const *> const &par, RNG *rng) const
 {
     double ans = rlogis(MU(par), SCALE(par), rng);
     return ans;
+}
+
 }

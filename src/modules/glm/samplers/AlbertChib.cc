@@ -9,13 +9,13 @@
 #include <rng/TruncatedNormal.h>
 #include <rng/RNG.h>
 #include <cmath>
-
-#include <stdexcept>
+#include <module/ModuleError.h>
 
 using std::vector;
 using std::string;
-using std::logic_error;
 using std::log;
+using std::exp;
+using std::fabs;
 
 //FIXME: maybe use R math library here
 
@@ -42,19 +42,22 @@ namespace glm {
     AlbertChib::AlbertChib(GraphView const *view,
 			   vector<GraphView const *> const &sub_views,
 			   unsigned int chain, bool gibbs)
-	: BinaryGLM(view, sub_views, chain), _gibbs(gibbs)
+	: BinaryGLM(view, sub_views, chain), _gibbs(gibbs), _aux_init(true)
     {
     }
 
     void AlbertChib::update(RNG *rng)
     {
+	if (_aux_init) {
+	    initAuxiliary(rng);
+	    _aux_init = false;
+	}
 
-	if (_gibbs) {
-	    updateLMGibbs(rng);
-	}
-	else {
-	    updateLM(rng);
-	}
+	/*
+	  Update the auxiliary variables *before* calling
+	  updateLM. This ordering is important for models with a
+	  variable design matrix (e.g.  measurement error models).
+	*/
 
 	unsigned int nrow = _view->stochasticChildren().size();
 	
@@ -72,7 +75,7 @@ namespace glm {
 		    _z[r] = rnormal(0, rng, getMean(r));
 		}
 		else {
-		    throw logic_error("Invalid child value in HolmesHeld");
+		    throwLogicError("Invalid child value in HolmesHeld");
 		}
 		break;
 	    case BGLM_LOGIT:
@@ -85,15 +88,19 @@ namespace glm {
 		    _z[r] = rlogit(0, rng, mu);
 		}
 		else {
-		    throw logic_error("Invalid child value in HolmesHeld");
+		    throwLogicError("Invalid child value in HolmesHeld");
 		}
 		_tau[r] = 1/sample_lambda(fabs(_z[r] - mu), rng);
 		break;
 	    }
 	}
 
-
-	
+	if (_gibbs) {
+	    updateLMGibbs(rng);
+	}
+	else {
+	    updateLM(rng);
+	}
     }
 	
     string AlbertChib::name() const

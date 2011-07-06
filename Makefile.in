@@ -40,12 +40,12 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	TODO config.guess config.sub depcomp install-sh ltmain.sh \
 	missing ylwrap
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 \
-	$(top_srcdir)/m4/acx_lapack.m4 $(top_srcdir)/m4/acxx_blas.m4 \
-	$(top_srcdir)/m4/argz.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltdl.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 $(top_srcdir)/m4/argz.m4 \
+	$(top_srcdir)/m4/ax_lapack.m4 $(top_srcdir)/m4/axx_blas.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltdl.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -148,6 +148,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JAGS_MAJOR = @JAGS_MAJOR@
+JAGS_MINOR = @JAGS_MINOR@
 LAPACK_LIBS = @LAPACK_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -754,20 +756,27 @@ uninstall-am:
 	ps ps-am tags tags-recursive uninstall uninstall-am
 
 
-win-install:
-	make prefix=`pwd`/win/inst
-	make install prefix=`pwd`/win/inst
-	(cd win; for f in `ls runtime/*.dll`; do \
-	    ${INSTALL} $${f} inst/bin; \
+win32-install:
+	make prefix=`pwd`/win/inst32
+	make install prefix=`pwd`/win/inst32
+	(cd win; for f in `ls runtime32/*.dll`; do \
+	    ${INSTALL} $${f} inst32/bin/; \
 	  done; \
-	  for f in `ls runtime/*.dll.a`; do \
-	    ${INSTALL} $${f} inst/lib; \
+	  for f in `ls runtime32/*.dll.a`; do \
+	    ${INSTALL} $${f} inst32/lib/; \
 	  done;) 
 
-win32-installer: win-install
-	(cd win && $(MAKE) $@)
+win64-install:
+	make prefix=`pwd`/win/inst64 
+	make install prefix=`pwd`/win/inst64
+	(cd win; for f in `ls runtime64/*.dll`; do \
+	    ${INSTALL} $${f} inst64/bin/; \
+	  done; \
+	  for f in `ls runtime64/*.dll.a`; do \
+	    ${INSTALL} $${f} inst64/lib/; \
+	  done;) 
 
-win64-installer: win-install
+installer:
 	(cd win && $(MAKE) $@)
 
 docs: FORCE

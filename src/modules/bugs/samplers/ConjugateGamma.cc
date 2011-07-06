@@ -9,9 +9,9 @@
 #include <sarray/SArray.h>
 #include <sampler/Linear.h>
 #include <sampler/GraphView.h>
+#include <module/ModuleError.h>
 
 #include <set>
-#include <stdexcept>
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -21,11 +21,11 @@
 using std::vector;
 using std::set;
 using std::sqrt;
-using std::invalid_argument;
-using std::logic_error;
 using std::max;
 using std::sort;
 using std::string;
+
+namespace bugs {
 
 static double 
 getScale(StochasticNode const *snode, ConjugateDist d, unsigned int chain)
@@ -39,10 +39,13 @@ getScale(StochasticNode const *snode, ConjugateDist d, unsigned int chain)
 	return *snode->parents()[0]->value(chain);
 	break;
     default:
-	throw NodeError(snode, 
-			"Can't get scale parameter: invalid distribution");
+	throwNodeError(snode, 
+		       "Can't get scale parameter: invalid distribution");
+	return 0; //-Wall
+	
     } 
 }
+
 
 static void calCoef(double *coef, GraphView const *gv,
 		    vector<ConjugateDist> const &child_dist, unsigned int chain)
@@ -62,6 +65,7 @@ static void calCoef(double *coef, GraphView const *gv,
     }
     gv->setValue(&xold, 1, chain);
 }
+
 
 ConjugateGamma::ConjugateGamma(GraphView const *gv)
     : ConjugateMethod(gv), _coef(0)
@@ -123,8 +127,7 @@ bool ConjugateGamma::canSample(StochasticNode *snode, Graph const &graph)
 }
 
 
-void 
-ConjugateGamma::update(unsigned int chain, RNG *rng) const
+void ConjugateGamma::update(unsigned int chain, RNG *rng) const
 {
     vector<StochasticNode const*> const &stoch_children = 
 	_gv->stochasticChildren();
@@ -149,7 +152,7 @@ ConjugateGamma::update(unsigned int chain, RNG *rng) const
 	mu = 1/2;
 	break;
     default:
-	throw logic_error("invalid distribution in ConjugateGamma method");
+	throwLogicError("invalid distribution in ConjugateGamma method");
     }
 
     // likelihood 
@@ -204,7 +207,7 @@ ConjugateGamma::update(unsigned int chain, RNG *rng) const
 		mu += coef_i * (log(Y) - m) * (log(Y) - m) / 2;
 		break;
 	    default:
-		throw logic_error("Invalid distribution in Conjugate Gamma method");
+		throwLogicError("Invalid distribution in Conjugate Gamma method"); 
 	    }
 	}
     }
@@ -236,4 +239,6 @@ ConjugateGamma::update(unsigned int chain, RNG *rng) const
 string ConjugateGamma::name() const
 {
     return "ConjugateGamma";
+}
+
 }

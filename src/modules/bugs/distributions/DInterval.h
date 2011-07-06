@@ -3,6 +3,8 @@
 
 #include <distribution/VectorDist.h>
 
+namespace bugs {
+
 /**
  * @short Interval censored distribution
  * <pre>
@@ -15,11 +17,10 @@ class DInterval : public VectorDist {
 public:
     DInterval();
   
-    double logLikelihood(double const *x, unsigned int length,
-			 std::vector<double const *> const &parameters,
-			 std::vector<unsigned int> const &lengths,
-			 double const *lower, double const *upper) const;
-
+    double logDensity(double const *x, unsigned int length, PDFType type,
+		      std::vector<double const *> const &parameters,
+		      std::vector<unsigned int> const &lengths,
+		      double const *lower, double const *upper) const;
     void randomSample(double *x, unsigned int length,
 		      std::vector<double const *> const &parameters,
 		      std::vector<unsigned int> const &lengths,
@@ -41,6 +42,11 @@ public:
     unsigned int df(std::vector<unsigned int> const &lengths) const;
     bool isDiscreteValued(std::vector<bool> const &mask) const;
     unsigned int length(std::vector<unsigned int> const &params) const;
+    double KL(std::vector<double const *> const &par1,
+	      std::vector<double const *> const &par2,
+	      std::vector<unsigned int> const &lengths) const;
 };
+
+}
 
 #endif /* DINTERVAL_H_ */

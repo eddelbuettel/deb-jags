@@ -5,6 +5,8 @@
 
 struct RNG;
 
+namespace bugs {
+
 /**
  * @short Dirichlet distribution
  *
@@ -22,11 +24,11 @@ struct RNG;
 class DDirch : public VectorDist {
 public:
     DDirch();
-
-    double logLikelihood(double const *x, unsigned int length,
-			 std::vector<double const *> const &parameters,
-			 std::vector<unsigned int> const &lengths,
-			 double const *lower, double const *upper) const;
+    std::string alias() const;
+    double logDensity(double const *x, unsigned int length, PDFType type,
+		      std::vector<double const *> const &parameters,
+		      std::vector<unsigned int> const &lengths,
+		      double const *lower, double const *upper) const;
     void randomSample(double *x, unsigned int length,
 		      std::vector<double const *> const &parameters,
 		      std::vector<unsigned int> const &lengths,
@@ -56,6 +58,11 @@ public:
 		 std::vector<unsigned int> const &lengths) const;
     bool isSupportFixed(std::vector<bool> const &fixmask) const;
     unsigned int df(std::vector<unsigned int> const &lengths) const;
+    double KL(std::vector<double const *> const &par1,
+	      std::vector<double const *> const &par2,
+	      std::vector<unsigned int> const &len) const;
 };
+
+}
 
 #endif /* DDIRCH_H_ */

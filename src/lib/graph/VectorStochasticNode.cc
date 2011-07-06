@@ -1,19 +1,17 @@
 #include <config.h>
 #include <graph/VectorStochasticNode.h>
 #include <graph/NodeError.h>
+#include <distribution/DistError.h>
 #include <distribution/VectorDist.h>
 #include <util/nainf.h>
 #include <util/dim.h>
 
 #include <vector>
 #include <string>
-#include <stdexcept>
 #include <algorithm>
 
 using std::vector;
 using std::string;
-using std::runtime_error;
-using std::logic_error;
 using std::max;
 using std::min;
 using std::copy;
@@ -26,13 +24,15 @@ static unsigned int mkLength(VectorDist const *dist,
        parents
     */
 
+    if (!dist->checkNPar(parents.size())) {
+	throw DistError(dist, "Incorrect number of parameters");
+    }
     vector<unsigned int> parameter_lengths(parents.size());
     for (unsigned long j = 0; j < parents.size(); ++j) {
 	parameter_lengths[j] = parents[j]->length();
     }
     if (!dist->checkParameterLength(parameter_lengths)) {
-	throw runtime_error(string("Non-conforming parameters for ") +
-			    "distribution " + dist->name());
+	throw DistError(dist, "Non-conforming parameters");
     }
     return dist->length(parameter_lengths);
 }
@@ -54,20 +54,18 @@ VectorStochasticNode::VectorStochasticNode(VectorDist const *dist,
       _dist(dist), _lengths(mkParameterLengths(params))
 {
     if (!dist->checkParameterLength(_lengths)) {
-	string msg = string("Invalid parameter lengths in distribution ") +
-	    dist->name();
-	throw runtime_error(msg);
+	throw DistError(dist, "Invalid parameter lengths");
     }
 }
 
-double VectorStochasticNode::logDensity(unsigned int chain) const
+double VectorStochasticNode::logDensity(unsigned int chain, PDFType type) const
 {
     if(!_dist->checkParameterValue(_parameters[chain], _lengths))
 	return JAGS_NEGINF;
     
-    return _dist->logLikelihood(_data + _length * chain, _length,
-				_parameters[chain], _lengths,
-				lowerLimit(chain), upperLimit(chain));
+    return _dist->logDensity(_data + _length * chain, _length, type,
+			     _parameters[chain], _lengths,
+			     lowerLimit(chain), upperLimit(chain));
 }
 
 void VectorStochasticNode::deterministicSample(unsigned int chain)

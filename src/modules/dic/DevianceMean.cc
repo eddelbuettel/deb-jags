@@ -2,11 +2,9 @@
 
 #include <graph/StochasticNode.h>
 
-#include <stdexcept>
 #include <algorithm>
 
 using std::vector;
-using std::logic_error;
 using std::string;
 using std::copy;
 
@@ -51,7 +49,7 @@ namespace dic {
 	    double loglik = 0;
 	    unsigned int nchain = _snodes[i]->nchain();
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
-		loglik += _snodes[i]->logDensity(ch) / nchain;
+		loglik += _snodes[i]->logDensity(ch, PDF_FULL) / nchain;
 	    }
 	    _values[i] += (-2*loglik - _values[i])/_n;
 	}

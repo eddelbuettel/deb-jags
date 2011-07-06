@@ -5,11 +5,9 @@
 
 #include <cfloat>
 #include <algorithm>
-#include <stdexcept>
 
 using std::min;
 using std::max;
-using std::logic_error;
 using std::vector;
 
 #define T(par) (*par[0])
@@ -25,6 +23,8 @@ static unsigned int value(vector<double const *> const &par, unsigned int ncut)
     }
     return ncut;
 }
+
+namespace bugs {
 
 DInterval::DInterval()
     : VectorDist("dinterval", 2)
@@ -53,10 +53,10 @@ bool DInterval::checkParameterValue(vector<double const *> const &par,
 }
 
 double 
-DInterval::logLikelihood(double const *y, unsigned int length, 
-			 vector<double const *> const &par,
-			 vector<unsigned int> const &lengths,
-			 double const *lower, double const *upper) const
+DInterval::logDensity(double const *y, unsigned int length, PDFType type,
+		      vector<double const *> const &par,
+		      vector<unsigned int> const &lengths,
+		      double const *lower, double const *upper) const
 {
     if (*y < 0)
 	return JAGS_NEGINF;
@@ -120,4 +120,20 @@ bool DInterval::isSupportFixed(vector<bool> const &fixmask) const
 unsigned int DInterval::length(vector<unsigned int> const &params) const
 {
     return 1;
+}
+
+double DInterval::KL(vector<double const *> const &par1,
+		     vector<double const *> const &par2,
+		     vector<unsigned int> const &lengths) const
+{
+    unsigned int y1 = value(par1, NCUT(lengths));
+    unsigned int y2 = value(par2, NCUT(lengths));
+    if (y1 == y2) {
+	return 0;
+    }
+    else {
+	return JAGS_POSINF;
+    }
+}
+
 }

@@ -5,17 +5,18 @@
 \usepackage{url}
 \usepackage{multirow}
 \usepackage{amsfonts}
-\newcommand{\release}{2.2.0}
+\newcommand{\release}{3.0.0}
 \newcommand{\JAGS}{\textsf{JAGS}}
 \newcommand{\rjags}{\textsf{rjags}}
 \newcommand{\BUGS}{\textsf{BUGS}}
-\newcommand{\WinBUGS}{\textsf{WinBUGS}}
+\newcommand{\OpenBUGS}{\textsf{OpenBUGS}}
 \newcommand{\R}{\textsf{R}}
 \newcommand{\CODA}{\textsf{coda}}
 \begin{document}
 
 \title{JAGS Version \release\ user manual}
 \author{Martyn Plummer}
+\date{5 July 2011}
 \maketitle
 
 \tableofcontents
@@ -25,7 +26,7 @@
 JAGS is Just Another Gibbs Sampler.  It is a program for the analysis
 of Bayesian models using Markov Chain Monte Carlo (MCMC) which is not
 wholly unlike
-\WinBUGS\ (\url{http://www.mrc-bsu.cam.ac.uk}). \JAGS\ was written
+\OpenBUGS\ (\url{http://www.openbugs.info}). \JAGS\ was written
 with three aims in mind: to have an engine for the \BUGS\ language
 that runs on Unix; to be extensible, allowing users to write their own
 functions, distributions, and samplers; and to be a platform for
@@ -35,74 +36,13 @@ experimentation with ideas in Bayesian modelling.
 environment for statistical computation and graphics
 (\url{http://www.r-project.org}).  You will find it useful to install
 the \CODA\ package for \R\ to analyze the output. You can also use the
-\rjags\ package to work directly with \JAGS\ from within R.
+\rjags\ package to work directly with \JAGS\ from within R (but note
+that the \rjags\ package is not described in this manual).
 
 \JAGS\ is licensed under the GNU General Public License
 version 2. You may freely modify and redistribute it under certain
 conditions (see the file \texttt{COPYING} for details).
 
-\chapter{What is new in JAGS \release}
-
-\section{New features of JAGS}
-
-Modules can now be unloaded. You can inspect the list of currently
-loaded modules using the \verb+LIST MODULES+ command. You can inspect
-the factory objects that are currently loaded using the
-\verb+LIST FACTORIES+ command and optionally turn on or off factory
-objects using \verb+SET FACTORY+.
-
-The CODA format has been extended to allow more general monitors
-to be written out to file in a rectangular format.  This replaces
-the former S-style dump format which is no longer available.
-
-\section{New modules}
-
-The \textsf{lecuyer} model provides random number generators with with
-multiple independent streams developed by Lecyer {\em et al}
-\cite{lecuyer02}.
-
-The \textsf{glm} module provides samplers to do block updating of the
-parameters in generalized linear models
-\cite{AlbertChib93,Gamerman97,HolmesHeld06,Fruhwirth-Schnatter09}.
-
-\section{New features in existing modules}
-
-\begin{itemize}
-\item The \texttt{dsum} distribution in the \textsf{bugs} module is now more
-flexible. It may take a variable number of arguments, and the
-arguments may be either discrete-valued or real-valued (but you cannot
-mix discrete-valued and real-valued arguments).
-\item The \textsf{bugs} modules now includes density, distribution, and
-quantile functions for many of the univariate distributions. See
-table \ref{table:bugs:dpq}, section \ref{section:functions:bugs}.
-\item The \textsf{mix} module contains an improved sampler for normal mixture
-models defined with the \verb+dnormmix+ distribution using tempered
-transtions \cite{Neal94,Celeux99} that provides much better label
-switching. It also now works when the mixture probabilities are given
-a Dirichlet distribution.
-\end{itemize}
-
-\section{Old features that no longer work}
-
-\begin{itemize}
-\item The model no longer automatically creates a \verb+deviance+
-  node. You can still monitor the model deviance in the same way as
-  before with the command
-\begin{verbatim}
-monitor deviance
-\end{verbatim}
-and you can write the monitored values out to file using the CODA
-command.  However, you must now load the \verb+dic+ module first.
-\item There are no longer any ``default'' monitors. When you set a monitor
-you must explicitly state the node name or other summary statistic
-from your model that you wish to monitor.
-\item The \verb+inverse+ function only works on symmetric positive-definite
-matrices. The previous version, which worked on general square matrices,
-used a QR decomposition, but for medium to large matrices this would create
-a slight asymmetry in the inverse, which caused errors when the inverted
-matrix was used as a precision matrix in a distribution.
-\end{itemize}
- 
 \chapter{Running a model in \JAGS}
 
 \JAGS\ is designed for inference on Bayesian models using Markov Chain
@@ -110,10 +50,10 @@ Monte Carlo (MCMC) simulation.  Running a model refers to generating
 samples from the posterior distribution of the model parameters.  This
 takes place in five steps:
 \begin{enumerate}
-\item Defining the model
-\item Compiling
-\item Initializing
-\item Adapting and burning-in
+\item Definition of the model
+\item Compilation
+\item Initialization
+\item Adaptation and burn-in
 \item Monitoring
 \end{enumerate}
 The next stages of analysis are done outside of \JAGS: convergence
@@ -251,8 +191,9 @@ for (i in 1:N) {
    }
 }
 \end{verbatim}
-$Y$ would be inferred to be an $N \times M$ matrix. Using this method,
-empty indices are not allowed on the left hand side of any relation.
+$Y$ would be inferred to be an $N \times M$ matrix. This method cannot 
+be used when there are empty indices ({\em e.g.} \verb+Y[i,]+) on the left
+hand side of the relation.
 \item {\bf Using the dimensions of the parents} If a whole node array
   appears on the left hand side of a relation, then its dimensions can
   be inferred from the dimensions of the nodes on the right hand side.
@@ -334,7 +275,7 @@ steps in the initialization of a model:
 \begin{enumerate}
 \item The initial values of the model parameters are set.
 \item A Random Number Generator (RNG) is chosen for each parallel chain,
-  and its initial value is set.
+  and its seed is set.
 \item The Samplers are chosen for each parameter in the model. 
 \end{enumerate}
 
@@ -458,22 +399,31 @@ model, unless a monitor has been defined for that node. The burn-in
 period of a \JAGS\ run is therefore the interval between model
 initialization and the creation of the first monitor.
 
-When a model is initialized, it is in {\em adaptive mode}, meaning
+When a model is initialized, it may be in {\em adaptive mode}, meaning
 that the Samplers used by the model may modify their behaviour for
 increased efficiency. Since this adaptation may depend on the entire
 sample history, the sequence generated by an adapting sampler is no
 longer a Markov chain, and is not guaranteed to converge to the target
 distribution. Therefore, adaptive mode must be turned off at some
 point during burn-in, and a sufficient number of iterations must take
-place {\em after} the adaptive phase to ensure convergence.
+place {\em after} the adaptive phase to ensure successful burnin.
 
 By default, adaptive mode is turned off half way through first update
-of a \JAGS\ model, although the user may also control the length of
-the adaptive phase directly.  All samplers have a built in test to
-determine whether they have converged to their optimal sampling
-behaviour.  If any sampler fails this validation test, a warning will
-be printed. To ensure optimal sampling behaviour, the model should be
-run again from scratch using a longer adaptation period.
+of a \JAGS\ model. All samplers have a built in test to determine
+whether they have converged to their optimal sampling behaviour.  If
+any sampler fails this validation test, a warning will be printed. To
+ensure optimal sampling behaviour, the model should be run again from
+scratch using a longer adaptation period.
+
+The \texttt{adapt} command (see section \ref{section:adapt}) can be
+used for more control over the adaptive phase.  The \texttt{adapt}
+command updates the model but keeps it in adaptive mode. At the end of
+each update, the convergence test is called. The message ``Adaptation
+successful'' will be printed if the convergence test is successful,
+otherwise the message will read ``Adapation incomplete''.  Successive
+calls to \texttt{adapt} are possible while keeping the model in
+adaptive mode. The next \texttt{update} command will immediately turn
+off adaptive mode.
 
 \section{Monitoring}
 \label{section:monitoring}
@@ -571,14 +521,12 @@ monitor sigma            # ... and sigma
 update 10000             # Update model for 10000 iterations
 coda *                   # All monitored values are written out to file
 \end{verbatim}
-More examples can be found in the file \verb+classic-bugs.tar.gz+ which is
-available from the \JAGS\ web page.
+More examples can be found in the file \verb+classic-bugs.tar.gz+
+which is available from Sourceforge
+(\url{http://sourceforge.net/projects/mcmc-jags/files}.
 
 Output from \JAGS\ is printed to the standard output, even when a
-script file is being used.  The \JAGS\ interface is designed to be
-forgiving. It will print a warning message if you make a mistake, but
-otherwise try to keep going.  This may create a cascade of error messages,
-of which only the first is informative.
+script file is being used.  
 
 \section{Scripting commands}
 \label{section:scripting}
@@ -656,10 +604,10 @@ one in the DATA IN statement.  The \texttt{chain} option may be
 omitted, in which case the parameter values in all chains are set to
 the same value.
 
-The PARAMETERS IN statement may be used before a model has been
-initialized.  You may only supply the values of unobserved stochastic
-nodes in the parameters file. Logical nodes and constant nodes are
-forbidden.
+The PARAMETERS IN statement must be used after the COMPILE statement
+and before the INITIALIZE statment.  You may only supply the values of
+unobserved stochastic nodes in the parameters file, not logical or
+constant nodes.
 
 See also: PARAMETERS TO (\ref{parameters:to})
 
@@ -678,27 +626,33 @@ values supplied for each chain.
 \end{verbatim}
 Updates the model by \texttt{n} iterations. 
 
-The first UPDATE statement turns off adaptive mode for all samplers in
-the model after \texttt{n/2} iterations. A warning is printed if
-adaptation is incomplete. Incomplete adaptation means that the mixing
-of the Markov chain is not optimal. It is still possible to continue
-with a model that has not completely adapted, but it may be preferable
-to run the model again with a longer adaptation phase, starting from
-the MODEL IN statement.
-
 A progress bar is printed on the standard output consisting of 50
 asterisks. If the \texttt{by} option is supplied, a new asterisk is
 printed every \texttt{m} iterations. If this entails more than 50
 asterisks, the progress bar will be wrapped over several lines.  If
 \texttt{m} is zero, the printing of the progress bar is suppressed.
 
+If the model is has an adaptive mode, the first UPDATE statement turns
+off adaptive mode for all samplers in the model after \texttt{n/2}
+iterations. A warning is printed if adaptation is
+incomplete. Incomplete adaptation means that the mixing of the Markov
+chain is not optimal. It is still possible to continue with a model
+that has not completely adapted, but it may be preferable to run the
+model again with a longer adaptation phase, starting from the MODEL IN
+statement. Alternatively, you may use an ADAPT statement (see below)
+immediately after initialization.
+
 \subsection{ADAPT}
+\label{section:adapt}
 
 \begin{verbatim}
 . adapt <n> [,by(<m>)]
 \end{verbatim}
-Updates the model by \texttt{n} iterations and then turns of
-adaptive mode.
+Updates the model by \texttt{n} iterations keeping the model in
+adaptive mode and prints a message to indicate whether adaptation is
+successful.  Successive calls to ADAPT may be made until the
+adaptation is successful. The next call to UPDATE then turns off
+adaptive mode immediately.
 
 Use this instead of the first UPDATE statement if you want explicit
 control over the length of the adaptive sampling phase.
@@ -972,7 +926,7 @@ value of the node at each iteration.
 \section{The bugs module}
 
 The \verb+bugs+ module defines some of the functions and distributions
-from \WinBUGS. These are described in more detail in sections
+from \OpenBUGS. These are described in more detail in sections
 \ref{section:functions} and \ref{section:distributions}.  The
 \verb+bugs+ module also defines conjugate samplers for efficient Gibbs
 sampling.
@@ -1093,8 +1047,9 @@ multi-state Markov transition models.
 The \verb+glm+ module implements samplers for efficient updating of
 generalized linear mixed models.  The fundamental idea is to do block
 updating of the parameters in the linear predictor.  The \verb+glm+
-module is built on top of the \textsf{Csparse} sparse matrix library
-\cite{Davis2006} which allows updating of both fixed and random
+module is built on top of the \textsf{Csparse} and \textsf{CHOLMOD}
+sparse matrix libraries
+\cite{Davis2006, Davis1999} which allows updating of both fixed and random
 effects in the same block. Currently, the methods only work on
 parameters that have a normal prior distribution.
 
@@ -1263,12 +1218,12 @@ tables \ref{table:bugs:distributions:real} and
 Usage  & Description & Value & Restrictions on arguments \\ 
 \hline
 \verb+abs(x)+       & Absolute value        & Real & \\
-\verb+acos(x)+      & Arc-cosine            & Real & $-1 < x < 1$\\
-\verb+acosh(x)+     & Hyperbolic arc-cosine & Real & $1 < x$ \\
-\verb+asin(x)+      & Arc-sine              & Real & $-1 < x < 1$\\
-\verb+asinh(x)+     & Hyperbolic arc-sine   & Real &\\
-\verb+atan(x)+      & Arc-tangent           & Real &\\
-\verb+atanh(x)+     & Hyperbolic arc-tangent & Real & $-1 < x < 1$\\
+\verb+arccos(x)+    & Arc-cosine            & Real & $-1 < x < 1$\\
+\verb+arccosh(x)+   & Hyperbolic arc-cosine & Real & $1 < x$ \\
+\verb+arcsin(x)+    & Arc-sine              & Real & $-1 < x < 1$\\
+\verb+arcsinh(x)+   & Hyperbolic arc-sine   & Real &\\
+\verb+arctan(x)+    & Arc-tangent           & Real &\\
+\verb+arctanh(x)+   & Hyperbolic arc-tangent & Real & $-1 < x < 1$\\
 \verb+cos(x)+       & Cosine              & Real & \\
 \verb+cosh(x)+      & Hyperbolic Cosine   & Real & \\
 \verb+cloglog(x)+    & Complementary log log & Real & $0 < x < 1$ \\
@@ -1314,10 +1269,12 @@ Double exponential & ddexp     & pdexp     & qdexp \\
 Exponential        & dexp      & pexp      & qexp \\
 F                  & df        & pf        & qf \\
 Gamma              & dgamma    & pgamma    & qgamma \\
-Generalized gamma  & dgengamma & pgengamma & qgengamma \\
-Hypergeometric     & dhyper    & phyper    & qhyper \\
+Generalized gamma  & dgen.gamma & pgen.gamma & qgen.gamma \\
+Noncentral hypergeometric     & dhyper    & phyper    & qhyper \\
+Logistic           & dlogis    & plogis    & qlogis \\
 Log-normal         & dlnorm    & plnorm    & qlnorm \\
 Negative binomial  & dnegbin   & pnegbin   & qnegbin \\
+Noncentral Chi-square & dnchisqr   & pnchisqr   & qnchisqr \\
 Normal             & dnorm     & pnorm     & qnorm \\
 Pareto             & dpar      & ppar      & qpar \\
 Poisson            & dpois     & ppois     & qpois \\
@@ -1325,8 +1282,9 @@ Student t          & dt        & pt        & qt \\
 Weibull            & dweib     & pweib     & qweib \\
 \hline
 \end{tabular}
-\caption{Wrappers for the d-p-q functions from the \texttt{Rmath} library
-  \label{table:bugs:dpq}}
+\caption{Functions to calculate the probability density, probability
+  function, and quantiles of some of the distributions provided by the
+  \texttt{bugs} module. \label{table:bugs:dpq}}
 \end{center}
 \end{table}
 
@@ -1346,7 +1304,7 @@ Link function         & Description & Range & Inverse \\
 \end{center}
 \end{table}
 
-\section{Scalar-valued functions with vector arguments}
+\subsection{Scalar-valued functions with vector arguments}
 
 Table \ref{table:bugs:scalar2} lists the scalar-valued functions in the
 \texttt{bugs} module that take general arguments. Unless otherwise
@@ -1356,7 +1314,7 @@ may be scalar, vector, or higher-dimensional arrays.
 The \verb+max()+ and \verb+min()+ functions work like the
 corresponding \R\ functions. They take a variable number of arguments
 and return the maximum/minimum element over all supplied
-arguments. This usage is  compatible with \WinBUGS, although more general.
+arguments. This usage is  compatible with \OpenBUGS, although more general.
 
 \begin{table}
 \begin{tabular}{lll}
@@ -1379,7 +1337,7 @@ Function & Description & Restrictions \\
   arguments in the \texttt{bugs} module \label{table:bugs:scalar2}}
 \end{table}
 
-\section{Vector- and array-valued functions}
+\subsection{Vector- and array-valued functions}
 
 Table \ref{table:bugs:vector} lists vector- or matrix-valued functions
 in the \texttt{bugs} module.
@@ -1387,7 +1345,7 @@ in the \texttt{bugs} module.
 The \texttt{sort} and \texttt{rank} functions behaves like their R
 namesakes: \texttt{sort} accepts a vector and returns the same values
 sorted in ascending order; \texttt{rank} returns a vector of ranks.
-This is distinct from \WinBUGS, which has two scalar-valued functions
+This is distinct from \OpenBUGS, which has two scalar-valued functions
 \verb+rank+ and \verb+ranked+.
 
 \begin{table}
@@ -1410,6 +1368,33 @@ Usage & Description & Restrictions \\
 \end{center}
 \end{table}
 
+\section{Function aliases}
+
+A function may optionally have an alias, which can be used in the
+model definition in place of the canonical name. Aliases are used to
+to avoid confusion with other software in which functions may have
+different names. Table \ref{table:bugs:functions:alias} shows the
+functions in the \texttt{bugs} module with an alias.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Function               & Canonical & Alias & Compatibile  \\
+                       & name      &       & with         \\
+\hline
+Arc-cosine             & arccos    & acos  & R \\
+Hyperbolic arc-cosine  & arccosh   & acosh & R \\
+Arc-sine               & arcsin    & asin  & R \\
+Hyperbolic arc-sine    & arcsinh   & asinh & R \\
+Arc-tangent            & arctan    & atan  & R \\
+\hline
+\end{tabular}
+\caption{Functions with aliases in \texttt{bugs} module
+  \label{table:bugs:functions:alias}}
+\end{center}
+\end{table}
+
 \chapter{Distributions}
 \label{section:distributions}
 
@@ -1426,7 +1411,6 @@ given invalid parameter values when evaluating the log-likelihood, it
 returns $-\infty$. When a model is initialized, all stochastic nodes
 are checked to ensure that the initial parameter values are valid for
 their distribution.
-
 
 \begin{table}
   \begin{center}
@@ -1458,20 +1442,37 @@ their distribution.
         \left(\frac{n}{m} \right)^{\frac{n}{2}} x^{\frac{n}{2} - 1} 
         \left\{1 + \frac{nx}{m} \right\}^{-\frac{(n + m)}{2}}$} & 0 & \\
       & $n > 0$, $m > 0$ \\
-      Gamma       & \verb+dgamma(r, mu)+ & 
+      Gamma       & \verb+dgamma(r, lambda)+ & 
       \multirow{2}{*}{
-        $\frac{\textstyle \mu^r x^{r - 1} \exp(-\mu x)}
+        $\frac{\textstyle \lambda^r x^{r - 1} \exp(-\lambda x)}
         {\textstyle \Gamma(r)}$} & 0 & \\
-      & $\mu > 0$, $r > 0$ \\
-      Generalized & \verb+dgen.gamma(r,mu,beta)+ &  
+      & $\lambda > 0$, $r > 0$ \\
+      Generalized & \verb+dgen.gamma(r,lambda,b)+ &  
       \multirow{2}{*}{
-        $\beta \mu^{\beta r} x^{\beta r - 1}  \exp\{-(\mu x)^{\beta}\}$
+        $\frac
+        {\textstyle b \lambda^{b r} x^{b r - 1}  \exp\{-(\lambda x)^{b}\}}
+        {\textstyle \Gamma(r)}$
       } & $0$ & \\
-      gamma       & $\mu >0$, $\beta > 0$, $r > 0$ \\
+      gamma       & $\lambda >0$, $b > 0$, $r > 0$ \\
+      Logistic    & \verb+dlogis(mu, tau)+ &
+      \multirow{2}{*}{
+        $\frac{\textstyle \tau \exp\{(x - \mu) \tau\}}
+        {\textstyle  \left[1 + \exp\{(x - \mu) \tau\}\right]^2}$
+      } &  & \\
+      ~ & $\tau > 0$ \\
       Log-normal  & \verb+dlnorm(mu,tau)+ & 
       \multirow{2}{*}{
         $\tau^{\frac{1}{2}} x^{-1} \exp \left\{-\tau (\log(x) - \mu)^2/2 \right\}$} & 0 \\
       ~ & $\tau > 0$ \\
+      Noncentral & \verb+dnchisqr(k, delta)+ & 
+      \multirow{2}{*}{
+        $\sum_{r=0}^{\infty} 
+        \frac{ \exp(-\frac{\delta}{2}) (\frac{\delta}{2})^r}{\textstyle r!} \,
+        \frac{ x^{(k/2 + r - 1)} \exp(-\frac{x}{2})}
+             { 2^{(k/2 + r)} \Gamma({ \frac{k}{2} + r})}
+        $
+      } & 0 & \\
+      Chi-squre & $k > 0, \delta \geq 0$ \\
       Normal   & \verb+dnorm(mu,tau)+ & 
       \multirow{2}{*}{
         $\left(\frac{\tau}{2\pi}\right)^{\frac{1}{2}} \exp\{-(x - \mu)^2 \tau\}$} & & \\
@@ -1502,27 +1503,34 @@ their distribution.
 
 \begin{table}
   \begin{center}
-    \begin{tabular}{llllll}
+    \begin{tabular}{llccc}
       \hline
       Name & Usage & Density & Lower & Upper \\
       \hline
+      Beta & \verb+dbetabin(a, b, n)+ &
+     \multirow{2}{*}{
+        $\textstyle {a+x-1 \choose x} {b+n-x-1 \choose n - x} 
+                    {a+b+n-1 \choose n}^{-1}$
+      } & $0$ & $n$ \\
+      binomial & $a > 0, b > 0, n \in \mathbb{N}^*$ \\
       Bernoulli & \verb+dbern(p)+ & 
       \multirow{2}{*}{$p^x (1 - p)^{1 -x}$} & 
       $0$ & $1$ \\
       ~ & $0 < p < 1$ \\
       Binomial  & \verb+dbin(p,n)+ & 
-      %\multirow{2}{*}{$\begin{array}{c} n \\ x \end{array} p^x (1-p)^{n-x}$}
       \multirow{2}{*}{${n \choose x}  p^x (1-p)^{n-x}$}
       ~  & $0$ & $n$ \\
       ~ & $0 < p < 1$, $n \in \mathbb{N}^*$ \\
-      Categorical & \verb+dcat(p)+ & \multirow{2}{*}{$\frac{\textstyle p_x}{\textstyle \sum_i p_i}$} & $1$ & $N$ \\
-      ~ & $p \in (\mathbb{R}^+)^N$  \\
-      Hypergeometric & \verb+dhyper(n1,n2,m1,psi)+ &
+      Categorical & \verb+dcat(pi)+ & \multirow{2}{*}{$\frac{\textstyle \pi_x}{\textstyle \sum_i \pi_i}$} & $1$ & $N$ \\
+      ~ & $\pi \in (\mathbb{R}^+)^N$  \\
+      Noncentral & \verb+dhyper(n1,n2,m1,psi)+ &
       \multirow{2}{*}{
-        $\textstyle {n_1 \choose x} {n_2 \choose m_1 - x} \psi^x$
+        $\frac{ {n_1 \choose x} {n_2 \choose m_1 - x} \psi^x}
+              { \sum_i {n_1 \choose i} {n_2 \choose m_1 - i} \psi^i}$
       } &
-      $\text{max}(0,n_+ - m_1)$ & $\text{min}(n_1,m_1)$ \\
-      ~ & $0 \leq n_i$, $0 < m_1 \leq n_+$  \\
+      $\scriptstyle \text{max}(0,n_+ - m_1)$ & 
+      $\scriptstyle \text{min}(n_1,m_1)$ \\
+      hypergeometric & $0 \leq n_i$, $0 < m_1 \leq n_+$  \\
       Negative & \verb+dnegbin(p, r)+ &
       \multirow{2}{*}{${x + r -1 \choose x} p^r (1-p)^x$} & 0 & \\
       binomial & $0 < p < 1$, $r \in \mathbb{N}^+$ \\
@@ -1557,17 +1565,17 @@ their distribution.
         $\frac{\textstyle |\Omega|^{(k-p-1)/2} |R|^{k/2} \exp\{-\text{Tr}(R\Omega/2)\}}
                {\textstyle 2^{pk/2} \Gamma_p (k/2)}$
       } \\
-      & $R$ pos. def. \\
+      & $R \; p \times p$ pos. def., $k \geq p$ \\
       Multivariate & \verb+x ~ dmt(mu,Omega,k)+ &
       \multirow{2}{*}{
         $\frac{\textstyle \Gamma \{(k+p)/2\}}{\textstyle \Gamma(k/2) (n\pi)^{p/2}}
         |\Omega|^{1/2}
         \left\{1 + \frac{1}{k} (x - \mu)^T \Omega (x - \mu) \right\}^{-\frac{(k+p)}{2}}$   } \\
       Student t &  $\Omega$ pos. def. & \\
-      Multinomial  & \verb+x ~ dmulti(p, n)+ & 
+      Multinomial  & \verb+x ~ dmulti(pi, n)+ & 
       \multirow{2}{*}{$n! \prod_j 
-        \frac{\textstyle p_j^{x_j}}{\textstyle x_j!}$} \\
-      ~ & $\sum_i x_i = n$ \\
+        \frac{\textstyle \pi_j^{x_j}}{\textstyle x_j!}$} \\
+      ~ & $\sum_j x_j = n$ \\
       & \\
     \hline
     \end{tabular}
@@ -1576,9 +1584,38 @@ their distribution.
   \end{center}
 \end{table}
 
-\chapter{Differences between \JAGS\ and \WinBUGS}
+\section{Distribution aliases}
+\label{subsection:distributions:aliases}
 
-Although \JAGS\ aims for the same functionality as \WinBUGS, there are
+A distribution may optionally have an alias, which can be used in the
+model definition in place of the canonical name. Aliases are used to
+to avoid confusion with other statistical software in which
+distributions may have different names. Table
+\ref{table:bugs:distributions:alias} shows the distributions in the
+\texttt{bugs} module with an alias.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Distribution & Canonical & Alias & Compatibile  \\
+             & name      &       & with         \\
+\hline
+Binomial           & dbin      & dbinom   & R   \\
+Chi-square         & dchisqr   & dchisq   & R   \\ 
+Negative binomial  & dnegbin   & dnbinom  & R   \\
+Weibull            & dweib     & dweibull & R   \\ 
+Dirichlet          & ddirch    & ddirich  & OpenBUGS \\
+\hline
+\end{tabular}
+\caption{Distributions with aliases in \texttt{bugs} module
+  \label{table:bugs:distributions:alias}}
+\end{center}
+\end{table}
+
+\chapter{Differences between \JAGS\ and \OpenBUGS}
+
+Although \JAGS\ aims for the same functionality as \OpenBUGS, there are
 a number of important differences.
 
 \subsection{Data format}
@@ -1588,7 +1625,7 @@ data between \R\ and \JAGS, since \JAGS\ stores the values of an array
 in ``column major'' order, like \R\ and FORTRAN ({\em i.e.} filling
 the left-hand index first).
 
-If you have an \textsf{S}-style data file for \WinBUGS\ and you wish
+If you have an \textsf{S}-style data file for \OpenBUGS\ and you wish
 to convert it for \JAGS, then use the command \texttt{bugs2jags},
 which is supplied with the \CODA\ package.
 
@@ -1750,7 +1787,7 @@ instances where directed cycles are used in \BUGS.
 \item Defining autoregressive priors
 \item Defining ordered priors
 \end{itemize}
-For the first case, the \texttt{GeoBUGS} extension to \WinBUGS\ provides
+For the first case, the \texttt{GeoBUGS} extension to \OpenBUGS\ provides
 some convenient ways of defining autoregressive priors. These should be
 available in a future version of \JAGS.
 
@@ -1763,7 +1800,7 @@ the \texttt{I(,)} construct in \BUGS.
 Censoring occurs when a variable $X$ is not observed directly,
 but is observed only to lie in the range $(L,U]$.  Censoring is
 an {\em a posteriori} restriction of the data, and is represented
-in WinBUGS by the \texttt{I(,)} construct, {\em e.g.}
+in OpenBUGS by the \texttt{I(,)} construct, {\em e.g.}
 \begin{verbatim}
 X ~ dnorm(theta, tau) I(L,U)
 \end{verbatim}
@@ -1782,7 +1819,7 @@ half-normal prior distribution.
 
 Prior ordering occurs when a vector of nodes is known {\em a priori}
 to be strictly increasing or decreasing. It can be represented in
-WinBUGS with symmetric $I(,)$ constructs,  {\em e.g.}
+OpenBUGS with symmetric $I(,)$ constructs,  {\em e.g.}
 \begin{verbatim}
 X[1] ~ dnorm(0, 1.0E-3) I(,X[2])
 X[2] ~ dnorm(0, 1.0E-3) I(X[1],)
@@ -1795,7 +1832,7 @@ Censoring is handled in \JAGS\ using the new distribution
 \texttt{dinterval} (section \ref{section:obfun}). This can be
 illustrated with a survival analysis example.  A right-censored
 survival time $t_i$ with a Weibull distribution is described in
-\WinBUGS\ as follows:
+\OpenBUGS\ as follows:
 \begin{verbatim}
 t[i] ~ dweib(r, mu[i]) I(c[i], )
 \end{verbatim}
@@ -1809,7 +1846,7 @@ value 1 if $t_i$ is censored and 0 otherwise. See the MICE and KIDNEY
 examples in the ``classic bugs'' set of examples.
 
 Truncation is represented in \JAGS\ using the \texttt{T(,)} construct,
-which has the same syntax as the \texttt{I(,)} construct in \WinBUGS,
+which has the same syntax as the \texttt{I(,)} construct in \OpenBUGS,
 but has a different interpretation. If
 \begin{verbatim}
 X ~ dfoo(theta) T(L,U)
@@ -1823,6 +1860,28 @@ if $L \leq X \leq U$ and zero otherwise, where $p(x \mid \theta)$ is
 the density of $X$ given $\theta$ according to the distribution
 \texttt{foo}. Note that calculation of the denominator may be
 computationally expensive.
+
+For compatibility with OpenBUGS, JAGS permits the use of \texttt{I(,)}
+for truncation when the the parameters of the truncated distribution
+are fixed.  For example, this is permitted:
+\begin{verbatim}
+mu ~ dnorm(0, 1.0E-3) I(0, )
+\end{verbatim}
+because the truncated distribution has fixed parameters (mean 0,
+precision 1.0E-3).  In this case, there is no difference between 
+censoring and truncation.  Conversely, this is not permitted:
+\begin{verbatim}
+for (i in 1:N) {
+   x[i] ~ dnorm(mu, tau) I(0, )
+}
+mu ~ dnorm(0, 1.0E-3)
+tau ~ dgamma(1, 1)
+}
+\end{verbatim}
+because the mean and precision of $x_1 \dots x_N$ are parameters to be
+estimated.  JAGS does not know if the aim is to model truncation or censoring
+and so the compiler will reject the model. Use either \texttt{T(,)} or the
+\texttt{dinterval} distribution to resolve the ambiguity.
 
 Prior ordering of top-level parameters in the model can be achieved
 using the \texttt{sort} function, which sorts a vector in ascending
@@ -1851,7 +1910,7 @@ I am particularly interested in the following problems:
 \item Crashes, including both segmentation faults and uncaught exceptions.
 \item Incomprehensible error messages
 \item Models that should compile, but don't 
-\item Output that cannot be validated against \WinBUGS
+\item Output that cannot be validated against \OpenBUGS
 \item Documentation erors
 \end{itemize}
 
@@ -1870,9 +1929,6 @@ Solaris using Sun development tools and libraries.  Bettina Gruen,
 Chris Jackson, Greg Ridgeway and Geoff Evans also provided useful
 feedback.  Special thanks to Jean-Baptiste Denis who has been very
 diligent in providing feedback on JAGS.
-
-Testing of \JAGS\ on IRIX 6.5 was carried out on Helix Systems at the
-National Institutes of Health, Bethesda, MD (\url{http://helix.nih.gov}).
 
 \bibliographystyle{plain}
 \bibliography{jags_user_manual}

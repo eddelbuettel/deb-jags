@@ -11,6 +11,8 @@ using std::vector;
 #define TAU(par) (*par[1])
 #define SDLOG(par) (1/sqrt(*par[1]))
 
+namespace bugs {
+
 DLnorm::DLnorm()
     : RScalarDist("dlnorm", 2, DIST_POSITIVE)
 {}
@@ -21,7 +23,8 @@ bool DLnorm::checkParameterValue (vector<double const *> const &par) const
 }
 
 double 
-DLnorm::d(double x, vector<double const *> const &par, bool give_log) const
+DLnorm::d(double x, PDFType type,
+	  vector<double const *> const &par, bool give_log) const
 {
     return dlnorm(x, MU(par), SDLOG(par), give_log);
 }
@@ -45,4 +48,19 @@ DLnorm::r(vector<double const *> const &par, RNG *rng) const
 
 {
     return rlnorm(MU(par), SDLOG(par), rng);
+}
+
+double
+DLnorm::KL(vector<double const *> const &par0,
+	   vector<double const *> const &par1) const
+{
+    //Same as the normal distribution
+
+    double mu0 = MU(par0), tau0 = TAU(par0);
+    double mu1 = MU(par1), tau1 = TAU(par1);
+
+    return ((mu0 - mu1) * (mu0 - mu1) * tau1 + tau1/tau0 - 1 + 
+	    log(tau0/tau1)) / 2;
+}
+
 }

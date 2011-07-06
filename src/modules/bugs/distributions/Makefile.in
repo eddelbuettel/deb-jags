@@ -39,12 +39,12 @@ subdir = src/modules/bugs/distributions
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 \
-	$(top_srcdir)/m4/acx_lapack.m4 $(top_srcdir)/m4/acxx_blas.m4 \
-	$(top_srcdir)/m4/argz.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltdl.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 $(top_srcdir)/m4/argz.m4 \
+	$(top_srcdir)/m4/ax_lapack.m4 $(top_srcdir)/m4/axx_blas.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltdl.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -64,7 +64,8 @@ am_bugsdist_la_OBJECTS = bugsdist_la-DBern.lo bugsdist_la-DCat.lo \
 	bugsdist_la-DGamma.lo bugsdist_la-DLnorm.lo \
 	bugsdist_la-DNorm.lo bugsdist_la-DPois.lo bugsdist_la-DUnif.lo \
 	bugsdist_la-DMT.lo bugsdist_la-DGenGamma.lo \
-	bugsdist_la-RScalarDist.lo bugsdist_la-DF.lo
+	bugsdist_la-RScalarDist.lo bugsdist_la-DF.lo \
+	bugsdist_la-DBetaBin.lo bugsdist_la-DNChisqr.lo
 bugsdist_la_OBJECTS = $(am_bugsdist_la_OBJECTS)
 bugsdist_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -129,6 +130,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JAGS_MAJOR = @JAGS_MAJOR@
+JAGS_MINOR = @JAGS_MINOR@
 LAPACK_LIBS = @LAPACK_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -246,12 +249,12 @@ bugsdist_la_SOURCES = DBern.cc DCat.cc DDirch.cc DHyper.cc DLogis.cc	\
 DMulti.cc DSum.cc DWeib.cc DBeta.cc DChisqr.cc DExp.cc DInterval.cc	\
 DMNorm.cc DNegBin.cc DPar.cc DT.cc DWish.cc DBin.cc DDexp.cc DGamma.cc	\
 DLnorm.cc DNorm.cc DPois.cc DUnif.cc DMT.cc DGenGamma.cc RScalarDist.cc \
-DF.cc
+DF.cc DBetaBin.cc DNChisqr.cc
 
 noinst_HEADERS = DBern.h DCat.h DDirch.h DHyper.h DLogis.h DMulti.h	\
 DSum.h DWeib.h DBeta.h DChisqr.h DExp.h DInterval.h DMNorm.h DNegBin.h	\
 DPar.h DT.h DWish.h DBin.h DDexp.h DGamma.h DLnorm.h DNorm.h	\
-DPois.h DUnif.h DMT.h DGenGamma.h RScalarDist.h DF.h
+DPois.h DUnif.h DMT.h DGenGamma.h RScalarDist.h DF.h DBetaBin.h DNChisqr.h
 
 all: all-am
 
@@ -307,6 +310,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DBern.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DBeta.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DBetaBin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DBin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DCat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DChisqr.Plo@am__quote@
@@ -323,6 +327,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DMNorm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DMT.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DMulti.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DNChisqr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DNegBin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DNorm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsdist_la-DPar.Plo@am__quote@
@@ -550,6 +555,20 @@ bugsdist_la-DF.lo: DF.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DF.cc' object='bugsdist_la-DF.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsdist_la-DF.lo `test -f 'DF.cc' || echo '$(srcdir)/'`DF.cc
+
+bugsdist_la-DBetaBin.lo: DBetaBin.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bugsdist_la-DBetaBin.lo -MD -MP -MF $(DEPDIR)/bugsdist_la-DBetaBin.Tpo -c -o bugsdist_la-DBetaBin.lo `test -f 'DBetaBin.cc' || echo '$(srcdir)/'`DBetaBin.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/bugsdist_la-DBetaBin.Tpo $(DEPDIR)/bugsdist_la-DBetaBin.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DBetaBin.cc' object='bugsdist_la-DBetaBin.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsdist_la-DBetaBin.lo `test -f 'DBetaBin.cc' || echo '$(srcdir)/'`DBetaBin.cc
+
+bugsdist_la-DNChisqr.lo: DNChisqr.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bugsdist_la-DNChisqr.lo -MD -MP -MF $(DEPDIR)/bugsdist_la-DNChisqr.Tpo -c -o bugsdist_la-DNChisqr.lo `test -f 'DNChisqr.cc' || echo '$(srcdir)/'`DNChisqr.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/bugsdist_la-DNChisqr.Tpo $(DEPDIR)/bugsdist_la-DNChisqr.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DNChisqr.cc' object='bugsdist_la-DNChisqr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsdist_la-DNChisqr.lo `test -f 'DNChisqr.cc' || echo '$(srcdir)/'`DNChisqr.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -3,6 +3,8 @@
 
 #include <distribution/ArrayDist.h>
 
+namespace bugs {
+
 /**
  * @short Multivariate t distribution
  * <pre>
@@ -13,10 +15,10 @@ class DMT: public ArrayDist {
 public:
   DMT();
 
-  double logLikelihood(double const *x, unsigned int length,
-		       std::vector<double const *> const &parameters,
-		       std::vector<std::vector<unsigned int> > const &dims,
-		       double const *lower, double const *upper)  const;
+  double logDensity(double const *x, unsigned int length, PDFType type,
+		    std::vector<double const *> const &parameters,
+		    std::vector<std::vector<unsigned int> > const &dims,
+		    double const *lower, double const *upper)  const;
   void randomSample(double *x, unsigned int length,
 		    std::vector<double const *> const &parameters,
 		    std::vector<std::vector<unsigned int> > const &dims,
@@ -45,5 +47,7 @@ public:
                std::vector<std::vector<unsigned int> > const &dims) const;
   bool isSupportFixed(std::vector<bool> const &fixmask) const;
 };
+
+}
 
 #endif /* DMT_H_ */

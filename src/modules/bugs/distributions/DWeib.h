@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * <pre>
  * x ~ dweib(a, b)
@@ -13,8 +15,9 @@
 class DWeib : public RScalarDist {
 public:
   DWeib();
-
-  double d(double x, std::vector<double const *> const &parameters, 
+  std::string alias() const;
+  double d(double x, PDFType type,
+	   std::vector<double const *> const &parameters, 
 	   bool give_log) const;
   double p(double q, std::vector<double const *> const &parameters, bool lower,
 	   bool give_log) const;
@@ -25,7 +28,8 @@ public:
    * Checks that a > 0, b > 0
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
-
 };
+
+}
 
 #endif /* DWEIB_H_ */

@@ -5,6 +5,8 @@
 
 struct RNG;
 
+namespace bugs {
+
 /**
  * @short Scalar Distribution using R math library infrastructure.
  *
@@ -38,9 +40,9 @@ public:
      */
     RScalarDist(std::string const &name, unsigned int npar, Support support,
 		bool discrete=false);
-    double logLikelihood(double x,
-			 std::vector<double const *> const &parameters,
-			 double const *lower, double const *upper) const;
+    double logDensity(double x, PDFType type,
+		      std::vector<double const *> const &parameters,
+		      double const *lower, double const *upper) const;
     double randomSample(std::vector<double const *> const &parameters,
 			double const *lower, double const *upper,
 			RNG *rng) const;
@@ -53,10 +55,12 @@ public:
     /**
      * Density function, ignoring bounds
      * @param x value at which to evaluate the density
+     * @param type Type of density calculation required.
      * @param parameters Array of parameters
      * @param give_log Indicates whether to return log density. 
      */
-    virtual double d(double x, std::vector<double const *> const &parameters, 
+    virtual double d(double x, PDFType type,
+		     std::vector<double const *> const &parameters, 
 		     bool give_log) const = 0;
     /**
      * Distribution function, ignoring bounds
@@ -102,4 +106,17 @@ public:
     unsigned int npar() const;
 };
 
+    /**
+     * Convenience function that calculates x * log(0) as the limit of
+     * x * log(p) as p tends to zero.  This is required for calculation
+     * of some density functions.
+     *
+     * @param x coefficient of log(0)
+     * @param give_log logical flag. If true then the limit of x*log(p)
+     * is returned, otherwise the limit of p^x.
+     */
+    double xlog0(double x, bool give_log);
+}
+
 #endif /* SCALAR_DIST_RMATH_H_ */
+

@@ -9,21 +9,21 @@
 
 #include <cmath>
 #include <vector>
-#include <stdexcept>
 
 #include <JRmath.h>
 
 using std::vector;
-using std::logic_error;
+
+namespace bugs {
 
 DMT::DMT()
   : ArrayDist("dmt", 3) 
 {}
 
-double DMT::logLikelihood(double const *x, unsigned int m,
-			  vector<double const *> const &parameters,
-			  vector<vector<unsigned int> > const &dims,
-			  double const *lower, double const *upper) const
+double DMT::logDensity(double const *x, unsigned int m, PDFType type,
+		       vector<double const *> const &parameters,
+		       vector<vector<unsigned int> > const &dims,
+		       double const *lower, double const *upper) const
 {
     double const * mu = parameters[0];
     double const * T = parameters[1];
@@ -43,8 +43,15 @@ double DMT::logLikelihood(double const *x, unsigned int m,
     delete [] delta;
 
     double d = m; // Avoid problems with integer division
-    return -((k + d)/2) * log(1 + ip/k) + logdet(T, m)/2 +
-	lgamma((k + d)/2) - lgamma(k/2) - (d/2) * log(k) - (d/2) * log(M_PI);
+    if (type == PDF_PRIOR) {
+	//No need to calculate normalizing constant
+	return -((k + d)/2) * log(1 + ip/k);
+    }
+    else {
+	return -((k + d)/2) * log(1 + ip/k) + logdet(T, m)/2 +
+	    lgammafn((k + d)/2) - lgammafn(k/2) - (d/2) * log(k) - 
+	    (d/2) * log(M_PI);
+    }
 }
 
 void DMT::randomSample(double *x, unsigned int length,
@@ -58,9 +65,9 @@ void DMT::randomSample(double *x, unsigned int length,
     double k = *parameters[2];
 
     DMNorm::randomsample(x, mu, T, true, length, rng);
-    double C = rchisq(k, rng);
+    double C = sqrt(rchisq(k, rng)/k);
     for (unsigned int i = 0; i < length; ++i) {
-	x[i] /= C;
+	x[i] = mu[i] + (x[i] - mu[i]) / C;
     }
 }
 
@@ -90,19 +97,13 @@ DMT::checkParameterValue(vector<double const *> const &parameters,
     double const *T = parameters[1];
     double k = *parameters[2];
 
-    if (k < 2)
+    if (k < 2) {
 	return false;
-
-    // Check symmetry
-    for (unsigned int i = 1; i < n; i++) {
-	for (unsigned int j = 0; j < i - 1; j++) {
-	    if (fabs(T[i + j*n] - T[j + i*n]) > DBL_EPSILON)
-		return false;
-	}
     }
-    // Don't bother checking positive definiteness
-
-    return true;
+    else {
+	//NB Not checking positive definiteness
+	return check_symmetry(T, n);
+    }
 }
 
 
@@ -129,4 +130,6 @@ void DMT::typicalValue(double *x, unsigned int length,
 bool DMT::isSupportFixed(vector<bool> const &fixmask) const
 {
     return true;
+}
+
 }

@@ -3,6 +3,8 @@
 
 #include <distribution/ArrayDist.h>
 
+namespace bugs {
+
 /**
  * <pre>
  * x[] ~ dwish(R[,], k)
@@ -13,7 +15,7 @@ class DWish : public ArrayDist {
 public:
   DWish();
 
-  double logLikelihood(double const *x, unsigned int length,
+  double logDensity(double const *x, unsigned int length, PDFType type,
 		       std::vector<double const *> const &parameters,
 		       std::vector<std::vector<unsigned int> > const &dims,
 		       double const *lower, double const *upper) const;
@@ -49,5 +51,7 @@ public:
   bool isSupportFixed(std::vector<bool> const &fixmask) const;
   unsigned int df(std::vector<std::vector<unsigned int> > const &dims) const;
 };
+
+}
 
 #endif /* DWISH_H_ */

@@ -1,18 +1,16 @@
 #include <config.h>
 #include <graph/ArrayStochasticNode.h>
+#include <distribution/DistError.h>
 #include <distribution/ArrayDist.h>
 #include <util/nainf.h>
 #include <util/dim.h>
 
 #include <vector>
 #include <string>
-#include <stdexcept>
 #include <algorithm>
 
 using std::vector;
 using std::string;
-using std::runtime_error;
-using std::logic_error;
 using std::copy;
 using std::min;
 using std::max;
@@ -25,13 +23,15 @@ static vector<unsigned int> mkDim(ArrayDist const *dist,
        parents
     */
 
+    if (!dist->checkNPar(parents.size())) {
+	throw DistError(dist, "Incorrect number of parameters");
+    }
     vector<vector<unsigned int> > parameter_dims(parents.size());
     for (unsigned long j = 0; j < parents.size(); ++j) {
 	parameter_dims[j] = parents[j]->dim();
     }
     if (!dist->checkParameterDim(parameter_dims)) {
-	throw runtime_error(string("Non-conforming parameters for ") +
-			    "distribution " + dist->name());
+	throw DistError(dist, "Non-conforming parameters");
     }
     return dist->dim(parameter_dims);
 }
@@ -52,20 +52,18 @@ ArrayStochasticNode::ArrayStochasticNode(ArrayDist const *dist,
       _dist(dist), _dims(mkParameterDims(params))
 {
     if (!dist->checkParameterDim(_dims)) {
-	string msg = string("Invalid parameter dimensions for distribution ")
-	    + dist->name();
-	throw runtime_error(msg);
+	throw DistError(dist, "Invalid parameter dimensions");
     }
 }
 
-double ArrayStochasticNode::logDensity(unsigned int chain) const
+double ArrayStochasticNode::logDensity(unsigned int chain, PDFType type) const
 {
     if(!_dist->checkParameterValue(_parameters[chain], _dims))
 	return JAGS_NEGINF;
     
-    return _dist->logLikelihood(_data + _length * chain, _length,
-				_parameters[chain], _dims,
-				lowerLimit(chain), upperLimit(chain));
+    return _dist->logDensity(_data + _length * chain, _length, type,
+			     _parameters[chain], _dims,
+			     lowerLimit(chain), upperLimit(chain));
 }
 
 void ArrayStochasticNode::deterministicSample(unsigned int chain)

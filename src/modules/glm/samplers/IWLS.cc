@@ -5,8 +5,8 @@
 //#include <function/LinkFunction.h>
 #include <distribution/Distribution.h>
 #include <rng/RNG.h>
+#include <module/ModuleError.h>
 
-#include <stdexcept>
 #include <cmath>
 
 extern "C" {
@@ -17,19 +17,19 @@ extern cholmod_common *glm_wk;
 
 using std::string;
 using std::vector;
-using std::logic_error;
 using std::exp;
 using std::fabs;
+using std::log;
 
 static unsigned int nchildren(GraphView const *view)
 {
     return view->stochasticChildren().size();
 }
 
-double logDet(cholmod_factor *F)
+static double logDet(cholmod_factor *F)
 {
     if (!F->is_ll && !F->is_monotonic) {
-	throw logic_error("Non-monotonic simplicial factor in logDet");
+	throwLogicError("Non-monotonic simplicial factor in logDet");
     }
 
     int *Fp = static_cast<int*>(F->p);
@@ -112,8 +112,9 @@ namespace glm {
 	    return 1;
 	    break;
 	case GLM_UNKNOWN:
-	    throw logic_error("Unknown GLM family in IWLS");
+	    throwLogicError("Unknown GLM family in IWLS");
 	}
+
 	return 0; //-Wall
     }
 
@@ -133,7 +134,7 @@ namespace glm {
 	
 	int ok = cholmod_factorize(A, _factor, glm_wk);
 	if (!ok) {
-	    throw logic_error("Cholesky decomposition failure in IWLS");
+	    throwRuntimeError("Cholesky decomposition failure in IWLS");
 	}
 
 	//Posterior mean
@@ -190,7 +191,7 @@ namespace glm {
 
 	logp -= logPTransition(xold, xnew, b1, A1);
 	logp += logPTransition(xnew, xold, b2, A2);
-	
+
 	cholmod_free_sparse(&A1, glm_wk);
 	cholmod_free_sparse(&A2, glm_wk);
 	delete [] b1; delete [] b2;

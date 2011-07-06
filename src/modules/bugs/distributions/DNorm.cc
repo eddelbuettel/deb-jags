@@ -13,6 +13,8 @@ using std::vector;
 #define SIGMA(par) (1/sqrt(*par[1]))
 #define TAU(par) (*par[1])
 
+namespace bugs {
+
 DNorm::DNorm()
     : RScalarDist("dnorm", 2, DIST_UNBOUNDED)
 {}
@@ -23,7 +25,8 @@ bool DNorm::checkParameterValue (vector<double const *> const &par) const
 }
 
 double
-DNorm::d(double x, vector<double const *> const &par, bool give_log) const
+DNorm::d(double x, PDFType type,
+         vector<double const *> const &par, bool give_log) const
 {
     return dnorm(x, MU(par), SIGMA(par), give_log);
 }
@@ -71,4 +74,17 @@ double DNorm::randomSample(vector<double const *> const &par,
     else {
 	return rnorm(mu, sigma, rng);
     }
+}
+
+
+double DNorm::KL(vector<double const *> const &par0,
+		 vector<double const *> const &par1) const
+{
+    double mu0 = MU(par0), tau0 = TAU(par0);
+    double mu1 = MU(par1), tau1 = TAU(par1);
+
+    return ((mu0 - mu1) * (mu0 - mu1) * tau1 + tau1/tau0 - 1 + 
+	    log(tau0/tau1)) / 2;
+}
+
 }

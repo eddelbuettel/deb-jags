@@ -4,18 +4,17 @@
 #include <graph/Graph.h>
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
+#include <module/ModuleError.h>
 
 #include "RWDSum.h"
 #include <cmath>
 #include <set>
-#include <stdexcept>
 
 using std::vector;
 using std::log;
 using std::exp;
 using std::fabs;
 using std::set;
-using std::logic_error;
 
 //Target acceptance probability for Metropolis-Hastings algorithm
 #define PROB  0.5
@@ -49,14 +48,14 @@ static vector<double> nodeValues(GraphView const *gv, unsigned int chain)
 
     StochasticNode const *dchild = getDSumNode(gv);
     if (!dchild) {
-	throw logic_error("DSum Child not found in RWDSum method");
+	throwLogicError("DSum Child not found in RWDSum method");
     }
 
     //Check discreteness
     bool discrete = dchild->isDiscreteValued();
     for (unsigned int i = 0; i < gv->nodes().size(); ++i) {
 	if (gv->nodes()[i]->isDiscreteValued() != discrete) {
-	    throw logic_error("Discrete value inconsistency in RWDSum method");
+	    throwLogicError("Discrete value inconsistency in RWDSum method");
 	}
     }
 
@@ -72,7 +71,7 @@ static vector<double> nodeValues(GraphView const *gv, unsigned int chain)
     unsigned int ncol = gv->nodes().size();
 
     if (ans.size() != nrow * ncol) {
-	throw logic_error("Inconsistent lengths in RWDSum method");
+	throwLogicError("Inconsistent lengths in RWDSum method");
     }
     
     for (unsigned int r = 0; r < nrow; ++r) {
@@ -86,7 +85,7 @@ static vector<double> nodeValues(GraphView const *gv, unsigned int chain)
 	    if (discrete) {
 		int idelta = static_cast<int>(delta);
 		if (delta != idelta) {
-		    throw logic_error("Unable to satisfy dsum constraint");
+		    throwLogicError("Unable to satisfy dsum constraint");
 		}
 		int eps = idelta / ncol;
 		int resid = idelta % ncol;
@@ -109,12 +108,14 @@ static vector<double> nodeValues(GraphView const *gv, unsigned int chain)
     return(ans);
 }
 
+namespace bugs {
+
 RWDSum::RWDSum(GraphView const *gv, unsigned int chain, double step)
     : Metropolis(nodeValues(gv, chain)), _gv(gv), _chain(chain), 
     _step_adapter(step, PROB), _pmean(0), _niter(2), _dsnode(getDSumNode(gv))
 {
     if (!_dsnode) {
-	throw logic_error("No DSum node found in RWDSum method");
+	throwLogicError("No DSum node found in RWDSum method");
     }
 }
 
@@ -181,7 +182,7 @@ bool RWDSum::canSample(vector<StochasticNode *> const &nodes,
 	    return false;
     }
 
-    GraphView gv(nodes, graph);
+    GraphView gv(nodes, graph, true);
 
     set<Node const *> nodeset;
     for (unsigned int i = 0; i < nodes.size(); ++i) {
@@ -229,4 +230,6 @@ void RWDSum::setValue(vector<double> const &value)
 void RWDSum::getValue(vector<double> &value) const
 {
     _gv->getValue(value, _chain);
+}
+
 }

@@ -9,6 +9,8 @@
 using std::max;
 using std::vector;
 
+namespace bugs {
+
 DExp::DExp()
     : RScalarDist("dexp", 1, DIST_POSITIVE)
 {}
@@ -25,8 +27,8 @@ bool DExp::checkParameterValue (vector<double const *> const &par) const
 }
 
 double
-DExp::d(double x, vector<double const *> const &par, bool give_log) 
-    const
+DExp::d(double x, PDFType type,
+	vector<double const *> const &par, bool give_log)  const
 {
     return dexp(x, SCALE(par), give_log);
 }
@@ -50,3 +52,12 @@ double DExp::r(vector<double const *> const &par, RNG *rng) const
     return rexp(SCALE(par), rng);
 }
 
+
+double DExp::KL(vector<double const *> const &par1,
+		vector<double const *> const &par2) const
+{
+    double r = (*par2[0]) / (*par1[0]);
+    return (r - 1)  - log(r);
+}
+
+}

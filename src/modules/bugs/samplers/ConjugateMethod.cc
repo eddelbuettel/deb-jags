@@ -3,15 +3,16 @@
 #include <sampler/GraphView.h>
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
+#include <module/ModuleError.h>
 
 #include <map>
 #include <string>
-#include <stdexcept>
 
 using std::vector;
 using std::map;
 using std::string;
-using std::logic_error;
+
+namespace bugs {
 
 ConjugateDist getDist(StochasticNode const *snode)
 {
@@ -66,8 +67,10 @@ ConjugateMethod::ConjugateMethod(GraphView const *gv)
       _gv(gv)
 {
     if (gv->nodes().size() > 1)
-	throw logic_error("Multiple sample nodes in ConjugateMethod");
+	throwLogicError("Multiple sample nodes in ConjugateMethod");
 }
 
 ConjugateMethod::~ConjugateMethod()
 {}
+
+}

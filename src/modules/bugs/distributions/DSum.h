@@ -3,6 +3,8 @@
 
 #include <distribution/ArrayDist.h>
 
+namespace bugs {
+
 /**
  * @short Sum of 2 or more random variables
  */
@@ -10,10 +12,10 @@ class DSum : public ArrayDist {
 public:
     DSum();
 
-    double logLikelihood(double const *x, unsigned int length,
-			 std::vector<double const *> const &parameters,
-			 std::vector<std::vector<unsigned int> > const &dims,
-			 double const *lower, double const *upper) const;
+    double logDensity(double const *x, unsigned int length, PDFType type,
+		      std::vector<double const *> const &parameters,
+		      std::vector<std::vector<unsigned int> > const &dims,
+		      double const *lower, double const *upper) const;
     void randomSample(double *x, unsigned int length,
 		      std::vector<double const *> const &parameters,
 		      std::vector<std::vector<unsigned int> > const &dims,
@@ -37,5 +39,7 @@ public:
     std::vector<unsigned int> 
 	dim(std::vector <std::vector<unsigned int> > const &dims) const;
 };
+
+}
 
 #endif /* DSUM_H_ */
