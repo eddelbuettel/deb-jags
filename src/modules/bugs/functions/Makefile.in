@@ -73,7 +73,7 @@ am_bugsfunc_la_OBJECTS = bugsfunc_la-Max.lo bugsfunc_la-Probit.lo \
 	bugsfunc_la-Transpose.lo bugsfunc_la-DSumFunc.lo \
 	bugsfunc_la-DIntervalFunc.lo bugsfunc_la-DPQFunction.lo \
 	bugsfunc_la-DFunction.lo bugsfunc_la-PFunction.lo \
-	bugsfunc_la-QFunction.lo
+	bugsfunc_la-QFunction.lo bugsfunc_la-DRoundFunc.lo
 bugsfunc_la_OBJECTS = $(am_bugsfunc_la_OBJECTS)
 bugsfunc_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -261,7 +261,7 @@ Sort.cc Rank.cc Abs.cc Cos.cc Sin.cc Tan.cc Cosh.cc Sinh.cc Tanh.cc	\
 ArcCos.cc ArcSin.cc ArcTan.cc ArcCosh.cc ArcSinh.cc ArcTanh.cc		\
 InterpLin.cc Round.cc Trunc.cc Pow.cc Equals.cc Prod.cc MatMult.cc	\
 Transpose.cc DSumFunc.cc DIntervalFunc.cc DPQFunction.cc DFunction.cc	\
-PFunction.cc QFunction.cc
+PFunction.cc QFunction.cc DRoundFunc.cc
 
 noinst_HEADERS = LogGam.h Phi.h Sum.h Log.h Logit.h Probit.h CLogLog.h	\
 InProd.h Max.h SD.h ICLogLog.h Mean.h Sqrt.h ILogit.h Min.h Step.h	\
@@ -269,7 +269,7 @@ Exp.h LogFact.h Inverse.h LogDet.h Sort.h Rank.h Abs.h Cos.h Sin.h	\
 Tan.h Cosh.h Sinh.h Tanh.h ArcCos.h ArcSin.h ArcTan.h ArcCosh.h		\
 ArcSinh.h ArcTanh.h InterpLin.h Round.h Trunc.h Pow.h Equals.h Prod.h	\
 MatMult.h Transpose.h DSumFunc.h DIntervalFunc.h \
-DPQFunction.h DFunction.h PFunction.h QFunction.h
+DPQFunction.h DFunction.h PFunction.h QFunction.h DRoundFunc.h
 
 all: all-am
 
@@ -336,6 +336,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-DFunction.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-DIntervalFunc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-DPQFunction.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-DRoundFunc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-DSumFunc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Equals.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Exp.Plo@am__quote@
@@ -736,6 +737,13 @@ bugsfunc_la-QFunction.lo: QFunction.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='QFunction.cc' object='bugsfunc_la-QFunction.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsfunc_la-QFunction.lo `test -f 'QFunction.cc' || echo '$(srcdir)/'`QFunction.cc
+
+bugsfunc_la-DRoundFunc.lo: DRoundFunc.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bugsfunc_la-DRoundFunc.lo -MD -MP -MF $(DEPDIR)/bugsfunc_la-DRoundFunc.Tpo -c -o bugsfunc_la-DRoundFunc.lo `test -f 'DRoundFunc.cc' || echo '$(srcdir)/'`DRoundFunc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/bugsfunc_la-DRoundFunc.Tpo $(DEPDIR)/bugsfunc_la-DRoundFunc.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DRoundFunc.cc' object='bugsfunc_la-DRoundFunc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsfunc_la-DRoundFunc.lo `test -f 'DRoundFunc.cc' || echo '$(srcdir)/'`DRoundFunc.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -1143,6 +1143,7 @@ operators   & \verb+x >= y+ & Greater than or equal to  \\
             & \verb+x < y+ & Less than \\
             & \verb+x <= y+ & Less than or equal to \\
             & \verb+x == y+ & Equal \\
+            & \verb+x != y+ & Not equal \\
 \hline
 Arithmetic  & \verb-x + y- & Addition \\
 operators   & \verb+x - y+ & Subtraction\\
@@ -1363,7 +1364,7 @@ This is distinct from \OpenBUGS, which has two scalar-valued functions
 Usage & Description & Restrictions \\
 \hline
 \verb+inverse(a)+ & Matrix inverse & $a$ is a symmetric positive definite matrix  \\
-\verb+mexp(a)+ & Matrix exponential & $a$ is a square matrix \\
+%\verb+mexp(a)+ & Matrix exponential & $a$ is a square matrix \\
 \verb+rank(v)+ & Ranks of elements of $v$ & $v$ is a vector   \\
 \verb+sort(v)+ & Elements of $v$ in order & $v$ is a vector  \\
 \verb+t(a)+    & Transpose                & $a$ is a matrix \\
@@ -1664,31 +1665,52 @@ supply data values for a logical node.
 
 This restriction can occasionally be inconvenient, as there are
 important cases where the data are a deterministic function of
-unobserved variables.  Two important examples are
+unobserved variables.  Three important examples are
 \begin{enumerate}
 \item Censored data, which commonly occurs in survival analysis. In
 the most general case, we know that unobserved failure time $T$
 lies in the interval $(L,U]$.
+\item Rounded data, when there is a discrete underlying distribution
+but the measurements are rounded to a fixed number of decimal places.
 \item Aggregate data when we observe the sum of two or more
 unobserved variables.
 \end{enumerate}
-\JAGS\ contains two novel distributions to handle these situations.  
-\begin{enumerate}
-\item The \texttt{dinterval} distribution represents interval-censored
+\JAGS\ contains novel distributions to handle these situations.  
+
+\subsubsection{Interval censored data: \texttt{dinterval}}
+
+\begin{verbatim}
+t <- c(1.2, 4.7, NA, NA, 3.2)
+is.censored <- c(0, 0, 1, 1, 0)
+cutpoint <- 5
+\end{verbatim}
+
+The \texttt{dinterval} distribution represents interval-censored
 data. It has two parameters: $t$ the original continuous variable, and
-$c[]$, a vector of cut points of length $M$, say. If \texttt{X $\sim$
-dinterval(t, c)} then 
+$c[]$, a vector of cut points of length $M$, say. If \texttt{Y $\sim$
+  dinterval(t, c)} then
 
 \begin{tabular}{lll}
-$X=0$   & if & $t \leq c[1]$\\
-$X=m$   & if & $c[m] < t \leq c[m+1]$ for $1 \leq m < M$\\
-$X = M$ & if & $c[M] < t$.
+$Y=0$   & if & $t \leq c[1]$\\
+$Y=m$   & if & $c[m] < t \leq c[m+1]$ for $1 \leq m < M$\\
+$Y = M$ & if & $c[M] < t$.
 \end{tabular}
 
-\item The \texttt{dsum} distribution represents the sum of two or more
+\subsubsection{Rounded data: \texttt{dround}}
+
+The \texttt{dround} distribution represents rounded data. It has two
+parameters: $t$ the original continuous variable and $d$, the number
+of decimal places to which the measurements are rounded. Thus if
+$t=1.2345$ and $d=2$ then the rounded value is $1.23$. Note that $d$
+can be negative: if $d=-2$ then the data are rounded to the nearest
+$100$.
+
+\subsubsection{Summed data: \texttt{dsum}}
+
+The \texttt{dsum} distribution represents the sum of two or more
 variables.  It takes a variable number of parameters. If \texttt{Y $\sim$
 dsum(x1,x2,x3)} then $Y=x1+x2+x3$.
-\end{enumerate}
+
 These distributions exist to give a likelihood to data that is, in fact,
 a deterministic function of the parameters.  The relation
 \begin{verbatim}
