@@ -5,7 +5,7 @@
 \usepackage{url}
 \usepackage{multirow}
 \usepackage{amsfonts}
-\newcommand{\release}{3.1.0}
+\newcommand{\release}{3.3.0}
 \newcommand{\JAGS}{\textsf{JAGS}}
 \newcommand{\rjags}{\textsf{rjags}}
 \newcommand{\BUGS}{\textsf{BUGS}}
@@ -16,7 +16,7 @@
 
 \title{JAGS Version \release\ user manual}
 \author{Martyn Plummer}
-\date{6 August 2011}
+\date{1 October 2012}
 \maketitle
 
 \tableofcontents
@@ -123,40 +123,43 @@ does not have a name.  This ability to hide deterministic nodes by
 embedding them in other expressions underscores an important fact:
 only the stochastic nodes in a model are really
 important. Deterministic nodes are merely a syntactically convenient
-way of describing the relations between, or transformations of, the
-stochastic nodes.
+way of describing the relations between stochastic nodes, or
+transformations of them.
 
 \subsection{Data}
 \label{section:data}
 
 The data are defined in a separate file from the model definition, in
-the format created by the \texttt{dump()} function in \R.  The
-simplest way to prepare your data is to read them into \R\ and then
-dump them.  Only numeric vectors, matrices and arrays are
-allowed. More complex data structures such as factors, lists and data
-frames cannot be parsed by \JAGS\, nor can non-numeric vectors.  Any
-\R\ attributes of the data (such as names and dimnames) are stripped
-when they are read into \JAGS.
-
-The data may contain missing values, but you cannot supply partially
-missing values for a multivariate node. In \JAGS\ a node is either
-completely observed, or completely unobserved.  The unobserved nodes
-are referred to as the {\em parameters} of the model. The data file
-therefore defines the parameters of the model by omission.
+the format created by the \texttt{dump()} function in \R (See appendix
+\cite{appendix:data}).  Data values may be supplied for stochastic
+nodes and constants (including constant values used inside for
+loops). It is an error to supply a data value for a deterministic
+node. (See, however, section \ref{section:obfun} on observable
+functions).
 
 Here are the data for the \verb+LINE+ example:
 \begin{verbatim}
-`x` <-
-c(1, 2, 3, 4, 5)
+`x` <- c(1, 2, 3, 4, 5)
 #R-style comments, like this one, can be embedded in the data file
-`Y` <-
-c(1, 3, 3, 3, 5)
-`N` <-
-5
+`Y` <- c(1, 3, 3, 3, 5)
+`N` <- 5
 \end{verbatim}
 
-It is an error to supply a data value for a deterministic node. (See, however,
-section \ref{section:obfun} on observable functions).
+The unobserved stochastic nodes are referred to as the {\em
+  parameters} of the model. The data file therefore defines the
+parameters of the model by omission. In the \verb+LINE+ example, the
+parameters are \texttt{alpha}, \texttt{beta} and \texttt{tau}.
+
+If a node array contains both observed and unobserved nodes, then the
+data should contain missing values (\texttt{NA}) for the unobserved
+elements. In the \verb+LINE+ example, if \verb+Y[2]+ and \verb+Y[5]+
+were unobserved, then the data would be
+\begin{verbatim}
+`Y` <- c(1, NA, 3, 3, NA)
+\end{verbatim}
+Multivariate nodes cannot be partially observed, so if a node takes up
+two or more elements of a node array, then the corresponding data
+values must be all present or all missing.
 
 \subsection{Node Array dimensions}
 
@@ -281,10 +284,37 @@ steps in the initialization of a model:
 
 \subsection{Parameter values}
 
-The user may supply an initial value file containing values for the
-model parameters. The file may not contain values for logical or
-constant nodes. The format is the same as the data file (see section
-\ref{section:data}).
+The user may supply initial value files -- one for each chain --
+containing initial values for the model parameters. The files may not
+contain values for logical or constant nodes. The format is the same
+as the data file (see (See appendix \cite{appendix:data}).
+Section \label{parameters:in} describes how to read the initial value
+files into the model.
+
+As with the data file, you may supply missing values in the initial
+values file.  This need typically arises with contrast parameters.
+Suppose $X$ is a categorical covariate taking values from 1 to
+4. There is one parameter for each level of x ($\beta_1 \ldots
+\beta_4$) , but the first parameter $\beta_1$ is set to zero for
+identifiability. The remaining parameters $\beta_2 \ldots \beta_4$
+represent contrasts with respect to the first level of $X$.
+\begin{verbatim}
+for (i in 1:N) {
+   Y[i] ~ alpha + beta[x[i]]
+}
+# Prior distribution
+alpha ~ dnorm(0, 1.0E-3)
+beta[1] <- 0
+for(i in 2:4) {
+   beta[i] ~ dnorm(0, 1.0E-3)
+}
+\end{verbatim}
+A suitable initial value for \verb+beta+ would be
+\begin{verbatim}
+`beta` <- c(NA, 1.03, -2.03, 0.52)
+\end{verbatim}
+This allows parameter values to be supplied for the stochastic
+elements of \verb+beta+ but not the constant first element.
 
 If initial values are not supplied by the user, then each parameter
 chooses its own initial value based on the values of its parents.  The
@@ -420,7 +450,7 @@ used for more control over the adaptive phase.  The \texttt{adapt}
 command updates the model but keeps it in adaptive mode. At the end of
 each update, the convergence test is called. The message ``Adaptation
 successful'' will be printed if the convergence test is successful,
-otherwise the message will read ``Adapation incomplete''.  Successive
+otherwise the message will read ``Adaptation incomplete''.  Successive
 calls to \texttt{adapt} are possible while keeping the model in
 adaptive mode. The next \texttt{update} command will immediately turn
 off adaptive mode.
@@ -502,7 +532,7 @@ to a table file with two columns:
 \chapter{Running \JAGS}
 
 \JAGS\ has a command line interface. To invoke jags interactively,
-simply type \texttt{jags} at the shell prompt on Unix, or the Windows
+simply type \texttt{jags} at the shell prompt on Unix, a Terminal window on MacOS, or the Windows
 command prompt on Windows. To invoke JAGS with a script file, type
 \begin{verbatim}
 jags <script file>
@@ -512,7 +542,8 @@ A typical script file has the following commands:
 model in "line.bug"      # Read model file
 data in "line-data.R"    # Read data in from file
 compile, nchains(2)      # Compile a model with two parallel chains
-parameters in "line-inits.R"  # Read initial values from file
+parameters in "line-inits1.R", chain(1) # Read initial values from file for chain 1
+parameters in "line-inits2.R", chain(2) # Read initial values from file for chain 2
 initialize               # Initialize the model
 update 1000              # Adaptation (if necessary) and burnin for 1000 iterations
 monitor alpha            # Set trace monitor for node alpha ...
@@ -605,7 +636,7 @@ omitted, in which case the parameter values in all chains are set to
 the same value.
 
 The PARAMETERS IN statement must be used after the COMPILE statement
-and before the INITIALIZE statment.  You may only supply the values of
+and before the INITIALIZE statement.  You may only supply the values of
 unobserved stochastic nodes in the parameters file, not logical or
 constant nodes.
 
@@ -750,6 +781,10 @@ gives the order in which Samplers are updated at each iteration.
 \end{itemize}
 If a Sampler updates multiple nodes then it is represented by multiple rows
 with the same index number.
+
+Note that the list includes only those nodes that are updated by a
+Sampler.  Stochastic nodes that are updated by forward sampling from
+the prior are not listed.
 
 \subsection{LOAD}
 \label{load}
@@ -1118,6 +1153,8 @@ for (i in 1:D[1])
    }
 }
 \end{verbatim}
+Inverse link functions are an exception to this rule ({\em i.e.} exp,
+icloglog, ilogit, phi) and cannot be vectorized. 
 
 \section{Base functions}
 \label{section:functions:base}
@@ -1240,6 +1277,7 @@ Usage  & Description & Value & Restrictions on arguments \\
 \verb+exp(x)+       & Exponential         & Real & \\
 \verb+icloglog(x)+  & Inverse complementary & Real & \\
                     & log log function    & \\
+\verb+ifelse(x,a,b)+ & If $x$ then $a$ else $b$ & Real & \\
 \verb+ilogit(x)+    & Inverse logit       & Real & \\
 \verb+log(x)+       & Log function        & Real & $x > 0$ \\
 \verb+logfact(x)+   & Log factorial       & Real & $x > -1$ \\
@@ -1330,16 +1368,16 @@ arguments. This usage is  compatible with \OpenBUGS, although more general.
 \hline
 Function & Description & Restrictions \\
 \hline
-\verb+inprod(x1,x2)+ & Inner product & Dimensions of $a$, $b$ conform \\
+\verb+inprod(x1,x2)+ & Inner product & Dimensions of $x1$, $x2$ conform \\
 \verb+interp.lin(e,v1,v2)+ & Linear Interpolation & $e$ scalar, \\
                           &                     & $v1,v2$ conforming vectors \\
-\verb+logdet(a)+ & Log determinant & $a$ is a square matrix \\
+\verb+logdet(m)+ & Log determinant & $m$ is a symmetric positive definite matrix \\
 \verb+max(x1,x2,...)+ & Maximum element among all arguments & \\
-\verb+mean(x)+  & Mean of elements of $a$ & \\
+\verb+mean(x)+  & Mean of elements of $x$ & \\
 \verb+min(x1,x2,...)+ & Minimum element among all arguments & \\
-\verb+prod(x)+  & Product of elements of $a$ & \\
-\verb+sum(a)+   & Sum of elements of $a$& \\
-\verb+sd(a)+    & Standard deviation of elements of $a$ & \\
+\verb+prod(x)+  & Product of elements of $x$ & \\
+\verb+sum(x)+   & Sum of elements of $x$& \\
+\verb+sd(x)+    & Standard deviation of elements of $x$ & \\
 \hline
 \end{tabular}
 \caption{Scalar-valued functions with general
@@ -1389,7 +1427,7 @@ functions in the \texttt{bugs} module with an alias.
 \begin{center}
 \begin{tabular}{llll}
 \hline
-Function               & Canonical & Alias & Compatibile  \\
+Function               & Canonical & Alias & Compatible  \\
                        & name      &       & with         \\
 \hline
 Arc-cosine             & arccos    & acos  & R \\
@@ -1471,7 +1509,7 @@ their distribution.
       ~ & $\tau > 0$ \\
       Log-normal  & \verb+dlnorm(mu,tau)+ & 
       \multirow{2}{*}{
-        $\tau^{\frac{1}{2}} x^{-1} \exp \left\{-\tau (\log(x) - \mu)^2/2 \right\}$} & 0 \\
+        $\left(\frac{\tau}{2\pi}\right)^{\frac{1}{2}} x^{-1} \exp \left\{-\tau (\log(x) - \mu)^2 / 2 \right\}$} & 0 \\
       ~ & $\tau > 0$ \\
       Noncentral & \verb+dnchisqr(k, delta)+ & 
       \multirow{2}{*}{
@@ -1484,7 +1522,7 @@ their distribution.
       Chi-squre & $k > 0, \delta \geq 0$ \\
       Normal   & \verb+dnorm(mu,tau)+ & 
       \multirow{2}{*}{
-        $\left(\frac{\tau}{2\pi}\right)^{\frac{1}{2}} \exp\{-(x - \mu)^2 \tau\}$} & & \\
+        $\left(\frac{\tau}{2\pi}\right)^{\frac{1}{2}} \exp\{- \tau (x - \mu)^2 / 2\}$} & & \\
       ~ & $\tau > 0$ \\
       Pareto      & \verb+dpar(alpha, c)+ & 
       \multirow{2}{*}{
@@ -1654,6 +1692,40 @@ normalized internally so that
 \[
 p_i \rightarrow \frac{p_i}{\sum_j p_j}
 \]
+
+The non-central hypergeometric distribution (\verb+dhyper+) uses the
+same parameterization as R, which is different from the
+parameterization used in OpenBUGS 3.2.2. OpenBUGS is parameterized as
+\begin{verbatim}
+X ~ dhyper(n, m, N, psi)     #OpenBUGS
+\end{verbatim}
+where $n, m, N$ are the following table margins:
+\begin{center}
+\begin{tabular}{|cc|c|}
+\hline
+x & - & n \\
+-  & - & -  \\
+\hline
+m & - & N \\
+\hline
+\end{tabular}
+\end{center}
+This parameterization is symmetric in $n$, $m$. In JAGS, \verb+dhyper+
+is parameterized as
+\begin{verbatim}
+X ~ dhyper(n1, n2, m1, psi) #JAGS 
+\end{verbatim}
+where $n1, n2, m1$ are
+\begin{center}
+\begin{tabular}{|cc|c|}
+\hline
+x & - & m1 \\
+-  & - & -   \\
+\hline
+n1 & n2 & - \\
+\hline
+\end{tabular}
+\end{center}
 
 \subsection{Observable Functions}
 \label{section:obfun}
@@ -1959,6 +2031,74 @@ Solaris using Sun development tools and libraries.  Bettina Gruen,
 Chris Jackson, Greg Ridgeway and Geoff Evans also provided useful
 feedback.  Special thanks to Jean-Baptiste Denis who has been very
 diligent in providing feedback on JAGS.
+
+\appendix
+\chapter{Data format}
+\label{appendix:data}
+
+The file format used by JAGS for representing data and initial values
+is the \verb+dump()+ format used by R.  This format is valid R code,
+so a JAGS data file can be read into R using the \verb+source()+ function.
+Since R is a functional language, the code consists of a sequence
+of assignments and function calls.
+\begin{description}
+\item[Assignments] are represented by a left arrow (\verb+<-+) with
+  the variable name on the left hand side and a numeric value or
+  function call on the right hand side. The variable name may
+  optionally be enclosed in single quotes, double quotes, or back-ticks.
+\item[Function calls] are represented by the function name, followed
+  by a list of comma-separated arguments inside round brackets.
+  Optional arguments need to be tagged (i.e. given in the form
+  tag=value).
+\end{description}
+The \JAGS\ parser ignores all white space.  Long expressions can
+therefore be split over several lines.
+
+Scalar values are represented by a simple assignment statement 
+\begin{verbatim}
+theta <- 0.1243
+\end{verbatim}
+All numeric values are read in to JAGS as doubles, even if they are
+represented as integers (i.e. `12' and `12.0' are
+equivalent). Engineering notation may be used to represent large or
+small values (e.g 1.5e-3 is equivalent to 0.0015).
+
+Vectors are denoted by the \R\ collection function ``c'', which takes
+a number of arguments equal to the length of the vector.  The
+following code denotes a vector of length 4:
+\begin{verbatim}
+x <- c(2, 3.5, 1.3e-2, 88)
+\end{verbatim}
+There is no distinction between row and column-vectors. 
+
+Matrices and higher-dimensional arrays in R are created by adding a
+dimension attribute (\verb+.Dim+) to a vector. In the R dump format
+this is done using the ``structure'' function.  The first argument to
+the structure function is a vector of numeric values of the matrix,
+given in column major order (i.e. filling the left index first). The
+second argument, which must be given the tag \verb+.Dim+, is the
+number of dimensions of the array, represented by a vector of integer
+values. For example, if the matrix ``A'' takes values
+\[
+\left(
+\begin{array}{cc}
+  1 & 4 \\
+  2 & 5 \\
+  3 & 6 
+\end{array}
+\right)
+\]
+it is represented as
+\begin{verbatim}
+`A` <- structure(c(1, 2, 3, 4, 5, 6), .Dim=c(3,2))
+\end{verbatim}
+
+The simplest way to prepare your data is to read them into \R\ and
+then dump them.  Only numeric vectors, matrices and arrays are
+allowed. More complex data structures such as factors, lists and data
+frames cannot be parsed by \JAGS\, nor can non-numeric vectors.  Any
+\R\ attributes of the data (such as names and dimnames) are ignored
+when they are read into \JAGS. 
 
 \bibliographystyle{plain}
 \bibliography{jags_user_manual}
