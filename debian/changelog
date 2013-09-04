@@ -1,3 +1,9 @@
+jags (3.4.0-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Wed, 04 Sep 2013 09:13:25 -0500
+
 jags (3.3.0-1) unstable; urgency=low
 
   * New upstream release

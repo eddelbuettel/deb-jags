@@ -2,7 +2,7 @@ Source: jags
 Section: math
 Priority: optional
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
-Build-Depends: debhelper (>= 7.0.50~), gfortran, liblapack-dev, libltdl-dev (>= 2.2.6b), texlive-base, texlive-latex-base, texlive-generic-recommended, texlive-fonts-recommended, texlive-extra-utils, texlive-latex-recommended, texlive-latex-extra, texinfo
+Build-Depends: debhelper (>= 7.0.50~), gfortran, liblapack-dev, libltdl-dev (>= 2.2.6b), texlive-base, texlive-latex-base, texlive-generic-recommended, texlive-fonts-recommended, texlive-extra-utils, texlive-latex-recommended, texlive-latex-extra, texinfo, autotools-dev
 Standards-Version: 3.9.4
 Homepage: http://www-fis.iarc.fr/~martyn/software/jags/
 

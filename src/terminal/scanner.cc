@@ -27,7 +27,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 35
+#define YY_FLEX_SUBMINOR_VERSION 36
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -72,7 +72,6 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
-#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -102,6 +101,8 @@ typedef unsigned int flex_uint32_t;
 #ifndef UINT32_MAX
 #define UINT32_MAX             (4294967295U)
 #endif
+
+#endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
@@ -171,7 +172,12 @@ typedef unsigned int flex_uint32_t;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 #endif
 
-extern int zzleng;
+#ifndef YY_TYPEDEF_YY_SIZE_T
+#define YY_TYPEDEF_YY_SIZE_T
+typedef size_t yy_size_t;
+#endif
+
+extern yy_size_t zzleng;
 
 extern FILE *zzin, *zzout;
 
@@ -197,11 +203,6 @@ extern FILE *zzin, *zzout;
 
 #define unput(c) yyunput( c, (yytext_ptr)  )
 
-#ifndef YY_TYPEDEF_YY_SIZE_T
-#define YY_TYPEDEF_YY_SIZE_T
-typedef size_t yy_size_t;
-#endif
-
 #ifndef YY_STRUCT_YY_BUFFER_STATE
 #define YY_STRUCT_YY_BUFFER_STATE
 struct yy_buffer_state
@@ -219,7 +220,7 @@ struct yy_buffer_state
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	int yy_n_chars;
+	yy_size_t yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -289,8 +290,8 @@ static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 
 /* yy_hold_char holds the character lost when zztext is formed. */
 static char yy_hold_char;
-static int yy_n_chars;		/* number of characters read into yy_ch_buf */
-int zzleng;
+static yy_size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
+yy_size_t zzleng;
 
 /* Points to current character in buffer. */
 static char *yy_c_buf_p = (char *) 0;
@@ -318,7 +319,7 @@ static void zz_init_buffer (YY_BUFFER_STATE b,FILE *file  );
 
 YY_BUFFER_STATE zz_scan_buffer (char *base,yy_size_t size  );
 YY_BUFFER_STATE zz_scan_string (yyconst char *yy_str  );
-YY_BUFFER_STATE zz_scan_bytes (yyconst char *bytes,int len  );
+YY_BUFFER_STATE zz_scan_bytes (yyconst char *bytes,yy_size_t len  );
 
 void *zzalloc (yy_size_t  );
 void *zzrealloc (void *,yy_size_t  );
@@ -809,9 +810,9 @@ int zz_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *zztext;
-#line 1 "scanner.ll"
+#line 1 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 /* -*-C++-*- */
-#line 3 "scanner.ll"
+#line 3 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -827,7 +828,7 @@ char *zztext;
 
 
 
-#line 831 "scanner.cc"
+#line 832 "scanner.cc"
 
 #define INITIAL 0
 #define RDATA 1
@@ -869,7 +870,7 @@ FILE *zzget_out (void );
 
 void zzset_out  (FILE * out_str  );
 
-int zzget_leng (void );
+yy_size_t zzget_leng (void );
 
 char *zzget_text (void );
 
@@ -930,7 +931,7 @@ static int input (void );
 	if ( YY_CURRENT_BUFFER_LVALUE->yy_is_interactive ) \
 		{ \
 		int c = '*'; \
-		unsigned n; \
+		size_t n; \
 		for ( n = 0; n < max_size && \
 			     (c = getc( zzin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
@@ -1012,10 +1013,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 26 "scanner.ll"
+#line 26 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 
 
-#line 1019 "scanner.cc"
+#line 1020 "scanner.cc"
 
 	if ( !(yy_init) )
 		{
@@ -1100,282 +1101,282 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 28 "scanner.ll"
+#line 28 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=MODEL; return MODEL;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 29 "scanner.ll"
+#line 29 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=DATA; return DATA;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 30 "scanner.ll"
+#line 30 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=IN; return IN;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 31 "scanner.ll"
+#line 31 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=TO; return TO;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 32 "scanner.ll"
+#line 32 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=INITS; return INITS;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 33 "scanner.ll"
+#line 33 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=PARAMETERS; return PARAMETERS;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 35 "scanner.ll"
+#line 35 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=COMPILE; return COMPILE;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 36 "scanner.ll"
+#line 36 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=NCHAINS; return NCHAINS;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 37 "scanner.ll"
+#line 37 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=INITIALIZE; return INITIALIZE;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 38 "scanner.ll"
+#line 38 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CHAIN; return CHAIN;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 40 "scanner.ll"
+#line 40 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=UPDATE; return UPDATE;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 41 "scanner.ll"
+#line 41 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=ADAPT; return ADAPT;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 42 "scanner.ll"
+#line 42 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=BY; return BY;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 44 "scanner.ll"
+#line 44 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=MONITOR; return MONITOR;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 45 "scanner.ll"
+#line 45 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=MONITORS; return MONITORS;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 46 "scanner.ll"
+#line 46 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=TYPE; return TYPE;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 47 "scanner.ll"
+#line 47 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=SET; return SET;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 48 "scanner.ll"
+#line 48 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CLEAR; return CLEAR;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 49 "scanner.ll"
+#line 49 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=THIN; return THIN;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 50 "scanner.ll"
+#line 50 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=SAMPLER; return SAMPLER;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 51 "scanner.ll"
+#line 51 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=SAMPLERS; return SAMPLERS;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 52 "scanner.ll"
+#line 52 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=RNGTOK; return RNGTOK;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 53 "scanner.ll"
+#line 53 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=FACTORY; return FACTORY;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 54 "scanner.ll"
+#line 54 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=FACTORIES; return FACTORIES;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 56 "scanner.ll"
+#line 56 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CODA; return CODA;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 57 "scanner.ll"
+#line 57 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=STEM; return STEM;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 59 "scanner.ll"
+#line 59 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=LOAD; return LOAD;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 60 "scanner.ll"
+#line 60 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=UNLOAD; return UNLOAD;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 61 "scanner.ll"
+#line 61 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=EXIT; return EXIT;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 63 "scanner.ll"
+#line 63 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=DIRECTORY; return DIRECTORY;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 64 "scanner.ll"
+#line 64 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CD; return CD;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 65 "scanner.ll"
+#line 65 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=PWD; return PWD;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 66 "scanner.ll"
+#line 66 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=RUN; return RUN;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 68 "scanner.ll"
+#line 68 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 zzlval.intval=LIST; return LIST;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 70 "scanner.ll"
+#line 70 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ',';
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 71 "scanner.ll"
+#line 71 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return '[';
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 72 "scanner.ll"
+#line 72 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ']';
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 73 "scanner.ll"
+#line 73 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return '(';
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 74 "scanner.ll"
+#line 74 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ')';
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 75 "scanner.ll"
+#line 75 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return '=';
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 76 "scanner.ll"
+#line 76 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ARROW;
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 77 "scanner.ll"
+#line 77 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return '*';
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 78 "scanner.ll"
+#line 78 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ':';
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 79 "scanner.ll"
+#line 79 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ';';
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 80 "scanner.ll"
+#line 80 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return '`';
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 82 "scanner.ll"
+#line 82 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 BEGIN(COMMENT);
 	YY_BREAK
 case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
-#line 83 "scanner.ll"
+#line 83 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 /* Eat up anything that's not a '*'   */
 	YY_BREAK
 case 48:
 /* rule 48 can match eol */
 YY_RULE_SETUP
-#line 84 "scanner.ll"
+#line 84 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 /* Eat up '*'s not followed by a '/'  */
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 85 "scanner.ll"
+#line 85 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 BEGIN(INITIAL);
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 87 "scanner.ll"
+#line 87 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 /* Eat whitespace */
 	YY_BREAK
 case 51:
 /* rule 51 can match eol */
 YY_RULE_SETUP
-#line 88 "scanner.ll"
+#line 88 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 /* Eat comments */
 	YY_BREAK
 case 52:
 /* rule 52 can match eol */
 YY_RULE_SETUP
-#line 89 "scanner.ll"
+#line 89 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 /* Eat newlines */
 	YY_BREAK
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
-#line 90 "scanner.ll"
+#line 90 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ENDCMD;
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 92 "scanner.ll"
+#line 92 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 BEGIN(SYSTEM);
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 93 "scanner.ll"
+#line 93 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.stringptr = new std::string(zztext);
   return SYSCMD;
@@ -1384,80 +1385,80 @@ YY_RULE_SETUP
 case 56:
 /* rule 56 can match eol */
 YY_RULE_SETUP
-#line 97 "scanner.ll"
+#line 97 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
     BEGIN(INITIAL); return ENDCMD;
  }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 101 "scanner.ll"
+#line 101 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 104 "scanner.ll"
+#line 104 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 107 "scanner.ll"
+#line 107 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 110 "scanner.ll"
+#line 110 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 113 "scanner.ll"
+#line 113 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 116 "scanner.ll"
+#line 116 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 119 "scanner.ll"
+#line 119 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 122 "scanner.ll"
+#line 122 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.intval = atoi(zztext); return INT;
 }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 126 "scanner.ll"
+#line 126 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return DIM;
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 127 "scanner.ll"
+#line 127 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return NA;
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 128 "scanner.ll"
+#line 128 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return R_NULL;
 	YY_BREAK
 case 68:
@@ -1465,7 +1466,7 @@ case 68:
 (yy_c_buf_p) = yy_cp = yy_bp + 9;
 YY_DO_BEFORE_ACTION; /* set up zztext again */
 YY_RULE_SETUP
-#line 129 "scanner.ll"
+#line 129 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return STRUCTURE;
 	YY_BREAK
 case 69:
@@ -1473,7 +1474,7 @@ case 69:
 (yy_c_buf_p) = yy_cp = yy_bp + 4;
 YY_DO_BEFORE_ACTION; /* set up zztext again */
 YY_RULE_SETUP
-#line 130 "scanner.ll"
+#line 130 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return LIST;
 	YY_BREAK
 case 70:
@@ -1481,7 +1482,7 @@ case 70:
 (yy_c_buf_p) = yy_cp = yy_bp + 1;
 YY_DO_BEFORE_ACTION; /* set up zztext again */
 YY_RULE_SETUP
-#line 131 "scanner.ll"
+#line 131 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return 'c';
 	YY_BREAK
 case 71:
@@ -1489,12 +1490,12 @@ case 71:
 (yy_c_buf_p) = yy_cp = yy_bp + 10;
 YY_DO_BEFORE_ACTION; /* set up zztext again */
 YY_RULE_SETUP
-#line 132 "scanner.ll"
+#line 132 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 return ASINTEGER;
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 134 "scanner.ll"
+#line 134 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 { 
   zzlval.stringptr = new std::string(zztext);
   return NAME;
@@ -1502,7 +1503,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 139 "scanner.ll"
+#line 139 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   // More general than NAME which is limited to syntactically valid BUGS names
   zzlval.stringptr = new std::string(zztext);
@@ -1512,7 +1513,7 @@ YY_RULE_SETUP
 case 74:
 /* rule 74 can match eol */
 YY_RULE_SETUP
-#line 145 "scanner.ll"
+#line 145 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
   zzlval.stringptr = new std::string(zztext);
   // Remove enclosing quotes
@@ -1524,7 +1525,7 @@ YY_RULE_SETUP
 case 75:
 /* rule 75 can match eol */
 YY_RULE_SETUP
-#line 153 "scanner.ll"
+#line 153 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
     zzlval.stringptr = new std::string(zztext);
     zzlval.stringptr->erase(zzlval.stringptr->size() - 1, 1);
@@ -1533,7 +1534,7 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 160 "scanner.ll"
+#line 160 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
     if (command_buffer_count) {
 	close_buffer();
@@ -1546,7 +1547,7 @@ case YY_STATE_EOF(INITIAL):
 }
 	YY_BREAK
 case YY_STATE_EOF(RDATA):
-#line 170 "scanner.ll"
+#line 170 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 {
     close_buffer();
     BEGIN(INITIAL);
@@ -1555,10 +1556,10 @@ case YY_STATE_EOF(RDATA):
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 175 "scanner.ll"
+#line 175 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 ECHO;
 	YY_BREAK
-#line 1562 "scanner.cc"
+#line 1563 "scanner.cc"
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(SYSTEM):
 	yyterminate();
@@ -1745,21 +1746,21 @@ static int yy_get_next_buffer (void)
 
 	else
 		{
-			int num_to_read =
+			yy_size_t num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
 			{ /* Not enough room in the buffer - grow it. */
 
 			/* just a shorter name for the current buffer */
-			YY_BUFFER_STATE b = YY_CURRENT_BUFFER;
+			YY_BUFFER_STATE b = YY_CURRENT_BUFFER_LVALUE;
 
 			int yy_c_buf_p_offset =
 				(int) ((yy_c_buf_p) - b->yy_ch_buf);
 
 			if ( b->yy_is_our_buffer )
 				{
-				int new_size = b->yy_buf_size * 2;
+				yy_size_t new_size = b->yy_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->yy_buf_size += b->yy_buf_size / 8;
@@ -1790,7 +1791,7 @@ static int yy_get_next_buffer (void)
 
 		/* Read in more data. */
 		YY_INPUT( (&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move]),
-			(yy_n_chars), (size_t) num_to_read );
+			(yy_n_chars), num_to_read );
 
 		YY_CURRENT_BUFFER_LVALUE->yy_n_chars = (yy_n_chars);
 		}
@@ -1885,7 +1886,7 @@ static int yy_get_next_buffer (void)
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 	yy_is_jam = (yy_current_state == 260);
 
-	return yy_is_jam ? 0 : yy_current_state;
+		return yy_is_jam ? 0 : yy_current_state;
 }
 
     static void yyunput (int c, register char * yy_bp )
@@ -1900,7 +1901,7 @@ static int yy_get_next_buffer (void)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		register int number_to_move = (yy_n_chars) + 2;
+		register yy_size_t number_to_move = (yy_n_chars) + 2;
 		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
 		register char *source =
@@ -1949,7 +1950,7 @@ static int yy_get_next_buffer (void)
 
 		else
 			{ /* need more input */
-			int offset = (yy_c_buf_p) - (yytext_ptr);
+			yy_size_t offset = (yy_c_buf_p) - (yytext_ptr);
 			++(yy_c_buf_p);
 
 			switch ( yy_get_next_buffer(  ) )
@@ -2109,10 +2110,6 @@ static void zz_load_buffer_state  (void)
 	zzfree((void *) b  );
 }
 
-#ifndef __cplusplus
-extern int isatty (int );
-#endif /* __cplusplus */
-    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a zzrestart() or at EOF.
@@ -2225,7 +2222,7 @@ void zzpop_buffer_state (void)
  */
 static void zzensure_buffer_stack (void)
 {
-	int num_to_alloc;
+	yy_size_t num_to_alloc;
     
 	if (!(yy_buffer_stack)) {
 
@@ -2317,12 +2314,12 @@ YY_BUFFER_STATE zz_scan_string (yyconst char * yystr )
 
 /** Setup the input buffer state to scan the given bytes. The next call to zzlex() will
  * scan from a @e copy of @a bytes.
- * @param bytes the byte buffer to scan
- * @param len the number of bytes in the buffer pointed to by @a bytes.
+ * @param yybytes the byte buffer to scan
+ * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
  * 
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE zz_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
+YY_BUFFER_STATE zz_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len )
 {
 	YY_BUFFER_STATE b;
 	char *buf;
@@ -2409,7 +2406,7 @@ FILE *zzget_out  (void)
 /** Get the length of the current token.
  * 
  */
-int zzget_leng  (void)
+yy_size_t zzget_leng  (void)
 {
         return zzleng;
 }
@@ -2557,7 +2554,7 @@ void zzfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 175 "scanner.ll"
+#line 175 "../../../../../jags-3_patched/src/terminal/scanner.ll"
 
 
 

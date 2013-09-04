@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.6.1.  */
 
 /* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,15 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifndef ZZ_PARSER_H
+# define ZZ_PARSER_H
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int zzdebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -143,13 +152,11 @@
 
 
 
-
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-
-/* Line 2068 of yacc.c  */
-#line 91 "parser.yy"
+/* Line 2049 of yacc.c  */
+#line 91 "../../../../../jags-3_patched/src/terminal/parser.yy"
 
   int intval;
   double val;
@@ -160,9 +167,8 @@ typedef union YYSTYPE
   std::vector<long> *ivec;
 
 
-
-/* Line 2068 of yacc.c  */
-#line 166 "parser.h"
+/* Line 2049 of yacc.c  */
+#line 172 "parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -171,4 +177,18 @@ typedef union YYSTYPE
 
 extern YYSTYPE zzlval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int zzparse (void *YYPARSE_PARAM);
+#else
+int zzparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int zzparse (void);
+#else
+int zzparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
+#endif /* !ZZ_PARSER_H  */
