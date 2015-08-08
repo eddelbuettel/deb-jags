@@ -1,3 +1,19 @@
+jags (3.4.0-3) unstable; urgency=low
+
+  * debian/control: Build-Depends on 'g++ (>= 4:5.2)'; ditto for gfortran
+						(Closes: #791081)
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sat, 08 Aug 2015 12:21:27 -0500
+
+jags (3.4.0-2) unstable; urgency=low
+
+  * debian/rules: Use faketime along with the changelog timestamp to
+    enforce reproducible builds
+
+  * debian/control: Add faketime to Build-Depends
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sun, 10 May 2015 13:28:49 -0500
+
 jags (3.4.0-1) unstable; urgency=low
 
   * New upstream release

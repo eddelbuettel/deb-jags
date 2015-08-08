@@ -1,14 +1,23 @@
 #!/usr/bin/make -f
 
+## cf https://wiki.debian.org/ReproducibleBuilds/TimestampsInPDFGeneratedByLaTeX
+DEB_DATE_RFC_2822 := $(shell dpkg-parsechangelog -S date)                     
+DEB_DATE_RFC_3339 := $(shell date -u "--rfc-3339=seconds" -d "$(DEB_DATE_RFC_2822)")         
+
 override_dh_auto_configure:
 	dh_auto_configure -- --without-included-ltdl
 
 override_dh_auto_build:
 	make
-	(cd doc/manual && make docs && ls)
+        ## cf https://wiki.debian.org/ReproducibleBuilds/TimestampsInPDFGeneratedByLaTeX
+        ## and override current time with time in changelog for indentical pdf docs
+        ## also see #https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=778462 for the chmod
+        #(cd doc/manual && faketime -f "$(DEB_DATE_RFC_3339)" make docs && ls)
+	(cd doc/manual && make docs)
 
 override_dh_auto_install:
 	dh_auto_install
+        #
         # edd 08 May 2011
         # empty dependency_lib in .la files (cf #621213)	
 	find debian/$(package) -name \*.la | \

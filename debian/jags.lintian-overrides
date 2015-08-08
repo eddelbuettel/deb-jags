@@ -1,3 +1,13 @@
-jags: non-dev-pkg-with-shlib-symlink usr/lib/libjags.so.3.0.3 usr/lib/libjags.so
 jags: non-dev-pkg-with-shlib-symlink usr/lib/libjrmath.so.0.0.0 usr/lib/libjrmath.so
 jags: package-name-doesnt-match-sonames libjags3 libjrmath0
+jags: hardening-no-relro usr/lib/JAGS/modules-3/basemod.so
+jags: hardening-no-relro usr/lib/JAGS/modules-3/bugs.so
+jags: hardening-no-relro usr/lib/JAGS/modules-3/dic.so
+jags: hardening-no-relro usr/lib/JAGS/modules-3/glm.so
+jags: hardening-no-relro usr/lib/JAGS/modules-3/lecuyer.so
+jags: hardening-no-relro usr/lib/JAGS/modules-3/mix.so
+jags: hardening-no-relro usr/lib/JAGS/modules-3/msm.so
+jags: hardening-no-relro usr/lib/jags/jags-terminal
+jags: hardening-no-relro usr/lib/libjags.so.3.0.4
+jags: hardening-no-relro usr/lib/libjrmath.so.0.0.0
+jags: non-dev-pkg-with-shlib-symlink usr/lib/libjags.so.3.0.4 usr/lib/libjags.so

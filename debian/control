@@ -2,20 +2,23 @@ Source: jags
 Section: math
 Priority: optional
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
-Build-Depends: debhelper (>= 7.0.50~), gfortran, liblapack-dev, libltdl-dev (>= 2.2.6b), texlive-base, texlive-latex-base, texlive-generic-recommended, texlive-fonts-recommended, texlive-extra-utils, texlive-latex-recommended, texlive-latex-extra, texinfo, autotools-dev
-Standards-Version: 3.9.4
+Build-Depends: debhelper (>= 7.0.50~), gfortran (>= 4:5.2), liblapack-dev, libltdl-dev (>= 2.2.6b), texlive-base, texlive-latex-base, texlive-generic-recommended, texlive-fonts-recommended, texlive-extra-utils, texlive-latex-recommended, texlive-latex-extra, texinfo, autotools-dev, faketime, g++ (>= 4:5.2)
+Standards-Version: 3.9.6
 Homepage: http://www-fis.iarc.fr/~martyn/software/jags/
 
 Package: jags
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Just Another Gibbs Sampler for Bayesian MCMC simulation
+Description: Just Another Gibbs Sampler for Bayesian MCMC - binary
  JAGS is Just Another Gibbs Sampler.  It is a program for analysis of 
  Bayesian hierarchical models using Markov Chain Monte Carlo (MCMC) 
- simulation  not wholly unlike BUGS.  
+ simulation not wholly unlike BUGS.  
  .
  JAGS was written with three aims in mind: 
   * To have an engine for the BUGS language that runs on Unix
   * To be extensible, allowing users to write their own functions, 
     distributions and samplers.
   * To be a plaftorm for experimentation with ideas in Bayesian modelling
+ .
+ This package contains the 'jags' binary as well as the associated
+ shared library modules loaded by the binary.
