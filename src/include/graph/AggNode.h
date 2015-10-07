@@ -2,6 +2,9 @@
 #define AGGREGATE_NODE_H_
 
 #include <graph/DeterministicNode.h>
+#include <util/logical.h>
+
+namespace jags {
 
 /**
  * @short Aggregate Node combining values from other nodes
@@ -22,11 +25,13 @@ public:
     /**
      * The value vector of an AggNode satisfies the equality.
      * <pre>
-     * value(chain)[i] == parents[i]->value(chain)[parents[i]]
+     * value(chain)[i] == parents[i]->value(chain)[offsets[i]]
      * </pre>
      *
      * @param dim Dimension of the Node.
      *
+     * @param nchain Number of chains
+     * 
      * @param parents Vector of parent Nodes. This vector should have
      * the same size as the value array of the AggNode to be
      * constructed (or a length_error exception is thrown). Each
@@ -44,6 +49,7 @@ public:
      * @exception length_error out_of_range
      */
     AggNode(std::vector<unsigned int> const &dim,
+	    unsigned int nchain,
 	    std::vector<Node const *> const &parents, 
 	    std::vector<unsigned int> const &offsets);
     ~AggNode();
@@ -73,8 +79,9 @@ public:
      * Returns the vector of offsets
      */
     std::vector<unsigned int> const &offsets() const;
-    DeterministicNode *clone(std::vector<Node const *> const &parents) const;
+    //DeterministicNode *clone(std::vector<Node const *> const &parents) const;
 };
 
+} /* namespace jags */
 
 #endif /* AGGREGATE_NODE_H */

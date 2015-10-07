@@ -23,6 +23,7 @@ static inline double RATE(vector<double const *> const &par)
     return *par[1];
 }
 
+namespace jags {
 namespace bugs {
 
 DDexp::DDexp()
@@ -78,7 +79,7 @@ DDexp::q(double p, vector<double const *> const &par, bool lower,
 	p = 1 - p;
 
     if (p < 0.5) {
-	return MU(par) - qexp(2 * (0.5 - p), SCALE(par), false, false);
+	return MU(par) - qexp(2 * p, SCALE(par), false, false);
     }
     else {
 	return MU(par) + qexp(2 * (p - 0.5), SCALE(par), true, false);
@@ -96,15 +97,13 @@ double DDexp::r(vector<double const *> const &par, RNG *rng) const
 }
 
 
-double DDexp::KL(vector<double const *> const &par1,
-		 vector<double const *> const &par2) const
-{
-    //FIXME Shouldn't fabs be in namespace std??
+    double DDexp::KL(vector<double const *> const &par0,
+		     vector<double const *> const &par1) const
+    {
+	double r = RATE(par1) / RATE(par0); 
+	double delta = RATE(par0) * std::abs(MU(par1) - MU(par0));
+	
+	return r * (delta + exp(-delta)) - 1 - log(r);
+    }
 
-    double r = RATE(par2) / RATE(par2); 
-    double delta = RATE(par1) * fabs(MU(par2) - MU(par1));
-    
-    return r * (delta + exp(-delta)) - 1 - log(r);
-}
-
-}
+}}

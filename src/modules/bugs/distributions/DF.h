@@ -1,8 +1,9 @@
 #ifndef DF_H_
 #define DF_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -32,6 +33,6 @@ class DF : public RScalarDist {
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
 };
 
-}
+}}
 
 #endif /* DF_H_ */

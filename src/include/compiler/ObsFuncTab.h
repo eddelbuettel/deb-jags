@@ -7,6 +7,8 @@
 #include <function/FunctionPtr.h>
 #include <distribution/DistPtr.h>
 
+namespace jags {
+
 /**
  * @short Look-up table for observable functions 
  *
@@ -25,6 +27,10 @@ class ObsFuncTab
     std::list<std::pair<DistPtr,FunctionPtr> >  _flist;
     FunctionPtr const _nullfun;
 public:
+    /**
+     * Constructs a new empty table
+     */
+    ObsFuncTab();
     /**
      * Inserts an observable function into the table. The distribution
      * and function must have the same name in the BUGS language.  A
@@ -52,5 +58,7 @@ public:
      */
     void erase(DistPtr const &dist, FunctionPtr const &func);
 };
+
+} /* namespace jags */
 
 #endif /* OBS_FUNC_TAB_H_ */

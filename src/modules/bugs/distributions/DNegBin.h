@@ -1,8 +1,9 @@
 #ifndef DNEGBIN_H_
 #define DNEGBIN_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -28,10 +29,10 @@ class DNegBin : public RScalarDist {
    * Checks that p lies in the interval (0,1) and r > 0
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
-  double KL(std::vector<double const *> const &par1,
-	    std::vector<double const *> const &par2) const;
+  double KL(std::vector<double const *> const &par0,
+	    std::vector<double const *> const &par1) const;
 };
 
-}
+}}
 
 #endif /* DNEGBIN_H_ */

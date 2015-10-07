@@ -8,22 +8,21 @@
 using std::vector;
 using std::string;
 
+namespace jags {
 namespace base {
 
-    TraceMonitor::TraceMonitor(Node const *node)
-	: Monitor("trace", node), _values(node->nchain())
+    TraceMonitor::TraceMonitor(NodeArraySubset const &subset)
+	: Monitor("trace", subset.nodes()), _subset(subset),
+	  _values(subset.nchain())
     {
     }
     
     void TraceMonitor::update()
     {
-	Node const *snode = nodes()[0];
-	unsigned int nchain = snode->nchain();
-	unsigned int length = snode->length();
-	for (unsigned int ch = 0; ch < nchain; ++ch) {
-	    double const *node_value = snode->value(ch);
-	    for (unsigned int i = 0; i < length; ++i) {
-		_values[ch].push_back(node_value[i]);
+	for (unsigned int ch = 0; ch < _values.size(); ++ch) {
+	    vector<double> v = _subset.value(ch);
+	    for (vector<double>::iterator p = v.begin(); p != v.end(); ++p) {
+		_values[ch].push_back(*p);
 	    }
 	}
     }
@@ -35,15 +34,7 @@ namespace base {
 
     vector<unsigned int> TraceMonitor::dim() const
     {
-	return nodes()[0]->dim();
-    }
-
-    void TraceMonitor::reserve(unsigned int niter)
-    {
-	unsigned int N = niter * nodes()[0]->length();
-	for (unsigned int ch = 0; ch < _values.size(); ++ch) {
-	    _values[ch].reserve(_values[ch].size() + N);
-	}
+	return _subset.dim();
     }
 
     bool TraceMonitor::poolChains() const
@@ -55,4 +46,5 @@ namespace base {
     {
 	return false;
     }
-}
+
+}}

@@ -1,8 +1,9 @@
 #ifndef DNCHISQ_H_
 #define DNCHISQ_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
     /** 
@@ -29,6 +30,6 @@ namespace bugs {
 	std::string alias() const;
     };
 
-}
+}}
 
 #endif /* DNCHISQ_H_ */

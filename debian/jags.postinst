@@ -1,0 +1,6 @@
+
+#DEBHELPER#
+
+if [ "$1" = "configure" ]; then
+        ldconfig
+fi

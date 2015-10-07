@@ -1,8 +1,9 @@
 #ifndef DLNORM_H_
 #define DLNORM_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /** 
@@ -32,6 +33,6 @@ class DLnorm : public RScalarDist {
 	    std::vector<double const *> const &par1) const;
 };
 
-}
+}}
 
 #endif /* DLNORM_H_ */

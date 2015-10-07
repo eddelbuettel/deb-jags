@@ -11,6 +11,7 @@ using std::set;
 using std::string;
 using std::vector;
 
+namespace jags {
 namespace dic {
 
     Monitor *DevianceMonitorFactory::getMonitor(string const &name, 
@@ -32,12 +33,14 @@ namespace dic {
 	vector<StochasticNode *> const &snodes = model->stochasticNodes();
 	vector<StochasticNode const *> observed_snodes;
 	for (unsigned int i = 0; i < snodes.size(); ++i) {
-	    if (snodes[i]->isObserved()) {
+	    if (snodes[i]->isFixed()) {
 		observed_snodes.push_back(snodes[i]);
 	    }
 	}
-	if (observed_snodes.empty())
+	if (observed_snodes.empty()) {
+	    msg = "There are no observed stochastic nodes";
 	    return 0;
+	}
 
 	Monitor *m = 0;
 	if (type == "mean") {
@@ -61,4 +64,5 @@ namespace dic {
     {
 	return "dic::Deviance";
     }
-}
+
+}}

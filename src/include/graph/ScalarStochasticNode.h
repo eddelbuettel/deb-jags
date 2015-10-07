@@ -3,6 +3,8 @@
 
 #include <graph/StochasticNode.h>
 
+namespace jags {
+
 class ScalarDist;
 
 /**
@@ -14,13 +16,9 @@ class ScalarStochasticNode : public StochasticNode {
 	    unsigned int chain) const;
 public:
     /**
-     * Constructs a new StochasticNode given a distribution, a vector
-     * of parent nodes, considered as parameters to the distribution,
-     * and, optionally, upper and lower bounds. If bounds are given
-     * then the distribution of the constructed StochasticNode is
-     * truncated at the value of the bounds. 
+     * Constructs a new ScalarStochasticNode 
      */
-    ScalarStochasticNode(ScalarDist const *dist,
+    ScalarStochasticNode(ScalarDist const *dist, unsigned int nchain,
 			 std::vector<Node const *> const &parameters,
 			 Node const *lower, Node const *upper);
     double logDensity(unsigned int chain, PDFType type) const;
@@ -29,10 +27,14 @@ public:
 			 double const *lower, double const *upper);
     void deterministicSample(unsigned int chain);
     bool checkParentValues(unsigned int chain) const;
-    StochasticNode *clone(std::vector<Node const *> const &parents,
-			  Node const *lower, Node const *upper) const;
+    //StochasticNode *clone(std::vector<Node const *> const &parents,
+    //Node const *lower, Node const *upper) const;
     unsigned int df() const;
+    double KL(unsigned int ch1, unsigned int ch2, RNG *rng,
+	      unsigned int nrep) const;
 };
+
+} /* namespace jags */
 
 #endif /* SCALAR_STOCHASTIC_NODE_H_ */
 

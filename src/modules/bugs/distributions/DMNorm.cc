@@ -8,11 +8,13 @@
 
 #include <cmath>
 #include <vector>
+#include <cfloat>
 
 #include <JRmath.h>
 
 using std::vector;
 
+namespace jags {
 namespace bugs {
 
 DMNorm::DMNorm()
@@ -37,12 +39,18 @@ double DMNorm::logDensity(double const *x, unsigned int m, PDFType type,
 	}
     }
 
-    if (type == PDF_PRIOR) {
-	return loglik; //No need to calculate normalizing constant
+    switch(type) {
+    case PDF_PRIOR:
+	break;
+    case PDF_LIKELIHOOD:
+	loglik += logdet(T, m)/2;
+	break;
+    case PDF_FULL:
+	loglik += logdet(T, m)/2 - m * M_LN_SQRT_2PI;
+	break;
     }
-    else {
-	return loglik + logdet(T, m)/2;
-    }
+    
+    return loglik;
 }
 
 void DMNorm::randomSample(double *x, unsigned int m,
@@ -108,14 +116,15 @@ void DMNorm::randomsample(double *x, double const *mu, double const *T,
 
 bool DMNorm::checkParameterDim(vector<vector<unsigned int> > const &dims) const
 {
-  if (!isVector(dims[0]))
-    return false;
-  if (!isSquareMatrix(dims[1]))
-    return false;
-  if (dims[0][0] != dims[1][0])
-    return false;
- 
-  return true;
+    //Allow scalar mean and precision. 
+    if (isScalar(dims[0]) && isScalar(dims[1])) return true;
+
+    //Vector mean and matrix precision
+    if (!isVector(dims[0])) return false;
+    if (!isSquareMatrix(dims[1])) return false;
+    if (dims[0][0] != dims[1][0]) return false;
+    
+    return true;
 }
 
 vector<unsigned int> DMNorm::dim(vector<vector<unsigned int> > const &dims) const
@@ -127,7 +136,10 @@ bool
 DMNorm::checkParameterValue(vector<double const *> const &parameters,
 			    vector<vector<unsigned int> > const &dims) const
 {
-    return check_symmetry(parameters[1], dims[0][0]);
+    double const *precision = parameters[1];
+    unsigned int n = dims[0][0];
+
+    return check_symmetry(precision, n) && check_symmetric_ispd(precision, n);
 }
 
 
@@ -156,4 +168,4 @@ bool DMNorm::isSupportFixed(vector<bool> const &fixmask) const
     return true;
 }
 
-}
+}}

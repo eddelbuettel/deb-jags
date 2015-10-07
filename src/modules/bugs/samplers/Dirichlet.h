@@ -2,7 +2,10 @@
 #define DIRICHLET_METROPOLIS_H_
 
 #include <sampler/RWMetropolis.h>
-#include <sampler/GraphView.h>
+
+namespace jags {
+
+class GraphView;
 
 namespace bugs {
 
@@ -18,9 +21,8 @@ public:
     void step(std::vector<double> &x, double size, RNG *rng) const;
     double logJacobian(std::vector<double> const &x) const;
     double logDensity() const;
-    std::string name() const;
 };
 
-}
+}}
 
 #endif /* DIRICHLET_METROPOLIS_H_ */

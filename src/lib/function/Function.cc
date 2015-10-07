@@ -4,6 +4,8 @@
 using std::vector;
 using std::string;
 
+namespace jags {
+
 Function::Function (string const &name, unsigned int npar)
   : _name (name), _npar (npar)
 {
@@ -24,10 +26,11 @@ string Function::alias() const
     return "";
 }
 
-bool Function::checkNPar (unsigned int npar) const
-{
-  return _npar == 0 ||  npar == _npar;
-}
+    unsigned int Function::npar() const
+    {
+	return _npar;
+    }
+
 
 bool Function::isDiscreteValued(vector<bool> const &mask) const
 {
@@ -46,6 +49,12 @@ bool Function::isLinear(vector<bool> const &mask,
     return isScale(mask, isfixed);
 }
 
+bool Function::isAdditive(vector<bool> const &mask,
+			  vector<bool> const &isfixed) const
+{
+    return false;
+}
+    
 bool 
 Function::isPower(vector<bool> const &mask, vector<bool> const &isfixed) const
 {
@@ -66,3 +75,15 @@ string Function::deparse(vector<string> const &par) const
 
     return name;
 }
+
+    bool Function::checkParameterDiscrete(vector<bool> const &mask) const
+    {
+	return true;
+    }
+
+    bool Function::checkParameterFixed(std::vector<bool> const &mask) const
+    {
+	return true;
+    }
+
+} //namespace jags

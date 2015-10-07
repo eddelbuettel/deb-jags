@@ -6,7 +6,7 @@
 #include <lapack.h>
 
 #include <graph/StochasticNode.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <rng/RNG.h>
 
 #include <cmath>
@@ -21,10 +21,14 @@ using std::sqrt;
 using std::min;
 using std::string;
 
-static vector<double> initValue(GraphView const *gv, unsigned int chain)
+namespace jags {
+namespace bugs {
+
+static vector<double> initValue(SingletonGraphView const *gv, 
+				unsigned int chain)
 {
-    double const *x = gv->nodes()[0]->value(chain);
-    unsigned int N = gv->nodes()[0]->length();
+    double const *x = gv->node()->value(chain);
+    unsigned int N = gv->node()->length();
     vector<double> ivalue(N);
     for (unsigned int i = 0; i < N; ++i) {
 	ivalue[i] = x[i];
@@ -32,15 +36,16 @@ static vector<double> initValue(GraphView const *gv, unsigned int chain)
     return ivalue;
 }
 
-namespace bugs {
-
-MNormMetropolis::MNormMetropolis(GraphView const *gv, unsigned int chain)
+MNormMetropolis::MNormMetropolis(SingletonGraphView const *gv, 
+				 unsigned int chain)
     : Metropolis(initValue(gv, chain)),
       _gv(gv), _chain(chain), 
       _mean(0), _var(0), _prec(0), 
       _n(0), _n_isotonic(0), _sump(0), _meanp(0), _lstep(0), _nstep(10), 
       _p_over_target(true)
 {
+    gv->checkFinite(chain); //Check validity of initial values
+    
     unsigned int N = gv->length();
 
     _mean = new double[N];
@@ -68,7 +73,7 @@ void MNormMetropolis::update(RNG *rng)
     double logdensity = -_gv->logFullConditional(_chain);
     double step = exp(_lstep);
 
-    double const *xold = _gv->nodes()[0]->value(_chain);
+    double const *xold = _gv->node()->value(_chain);
     unsigned int N = _gv->length();
 
     double *eps = new double[N];
@@ -141,7 +146,7 @@ void MNormMetropolis::rescale(double p)
 	*/
 
 	unsigned int N = _gv->length();
-	double const *x = _gv->nodes()[0]->value(_chain);
+	double const *x = _gv->node()->value(_chain);
 	for (unsigned int i = 0; i < N; ++i) {
 	    _mean[i] += 2 * (x[i] - _mean[i]) / (_n - _n_isotonic + 1);
 	}
@@ -160,14 +165,9 @@ bool MNormMetropolis::checkAdaptation() const
     return (_n_isotonic > 0) && (_meanp >= 0.15) && (_meanp <= 0.35);
 }
 
-string MNormMetropolis::name() const
-{
-    return "MNormMetropolis";
-}
-
 void MNormMetropolis::getValue(vector<double> &value) const
 {
-    double const *v = _gv->nodes()[0]->value(_chain);
+    double const *v = _gv->node()->value(_chain);
     copy(v, v + _gv->length(), value.begin());
 }
 
@@ -176,4 +176,4 @@ void MNormMetropolis::setValue(vector<double> const &value)
     _gv->setValue(value, _chain);
 }
 
-}
+}}

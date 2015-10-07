@@ -1,7 +1,9 @@
 #include <config.h>
 #include <util/logical.h>
 #include <util/nainf.h>
+#include <util/dim.h>
 #include <module/ModuleError.h>
+
 #include "DSum.h"
 
 #include <cfloat>
@@ -11,6 +13,7 @@ using std::vector;
 using std::fabs;
 using std::sqrt;
 
+namespace jags {
 namespace bugs {
 
 DSum::DSum()
@@ -86,6 +89,8 @@ bool DSum::checkParameterValue(vector<double const *> const &params,
 
 bool DSum::checkParameterDim (vector<vector<unsigned int> > const &dims) const
 {
+    if (dims.empty()) return false;
+    if (isFlat(dims[0])) return false;
     for (unsigned int i = 1; i < dims.size(); ++i) {
 	if (dims[i] != dims[0])
 	    return false;
@@ -120,4 +125,4 @@ vector<unsigned int> DSum::dim(vector<vector<unsigned int> > const &dims) const
     return dims[0];
 }
 
-}
+}}

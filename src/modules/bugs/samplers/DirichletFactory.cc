@@ -4,8 +4,8 @@
 #include "DirichletFactory.h"
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
-#include <sampler/ParallelSampler.h>
-#include <sampler/GraphView.h>
+#include <sampler/MutableSampler.h>
+#include <sampler/SingletonGraphView.h>
 
 #include <string>
 #include <vector>
@@ -13,6 +13,7 @@
 using std::vector;
 using std::string;
 
+namespace jags {
 namespace bugs {
 
 bool 
@@ -25,13 +26,13 @@ Sampler *
 DirichletFactory::makeSampler(StochasticNode *snode, Graph const &graph) const
 {
     unsigned int nchain = snode->nchain();
-    vector<SampleMethod*> methods(nchain, 0);
+    vector<MutableSampleMethod*> methods(nchain, 0);
     vector<StochasticNode*> nodes(1, snode);
-    GraphView *gv = new GraphView(snode, graph);
+    SingletonGraphView *gv = new SingletonGraphView(snode, graph);
     for (unsigned int ch = 0; ch < nchain; ++ch) {
         methods[ch] = new DirchMetropolis(gv, ch);
     }
-    return new ParallelSampler(gv, methods);
+    return new MutableSampler(gv, methods, "bugs::DirichletMetropolis");
 }
 
 string DirichletFactory::name() const
@@ -39,4 +40,4 @@ string DirichletFactory::name() const
     return "bugs::Dirichlet";
 }
 
-}
+}}

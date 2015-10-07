@@ -1,11 +1,10 @@
 #include <config.h>
 #include <distribution/Distribution.h>
 #include <graph/StochasticNode.h>
-#include <sampler/ParallelSampler.h>
 #include <rng/RNG.h>
 #include <util/nainf.h>
 #include <graph/NodeError.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <module/ModuleError.h>
 
 #include "FiniteMethod.h"
@@ -19,28 +18,36 @@ using std::string;
 using std::vector;
 using std::exp;
 using std::string;
-using std::max;
+using std::binary_search;
+using std::upper_bound;
+
+namespace jags {
+
+    static int mkLower(SingletonGraphView const *gv)
+    {
+	double lower=0, upper=0;
+	gv->node()->support(&lower, &upper, 1, 0);
+	return static_cast<int>(lower);
+    }
+    
+    static int mkUpper(SingletonGraphView const *gv)
+    {
+	double lower=0, upper=0;
+	gv->node()->support(&lower, &upper, 1, 0);
+	return static_cast<int>(upper);
+    }
 
 namespace base {
 
-    FiniteMethod::FiniteMethod(GraphView const *gv, unsigned int chain)
-	: _gv(gv), _chain(chain)
+    FiniteMethod::FiniteMethod(SingletonGraphView const *gv)
+	: _gv(gv), _lower(mkLower(gv)), _upper(mkUpper(gv))
     {
-	if (gv->nodes().size() != 1)
-	    throwLogicError("Invalid FiniteMethod");
-	StochasticNode const *snode = gv->nodes().front();
-	if (!canSample(snode)) {
+	if (!canSample(gv->node())) {
 	    throwLogicError("Invalid FiniteMethod");
 	}
-
-	double lower = 0, upper = 0;
-	snode->support(&lower, &upper, 1, 0);
-
-	_lower = static_cast<int>(lower);
-	_upper = static_cast<int>(upper);
     }
     
-    void FiniteMethod::update(RNG *rng)
+    void FiniteMethod::update(unsigned int chain, RNG *rng) const
     {
 	int size = _upper - _lower + 1;
 	vector<double> lik(size);
@@ -49,50 +56,30 @@ namespace base {
 	double lik_max = JAGS_NEGINF;
 	for (int i = 0; i < size; i++) {
 	    double ivalue = _lower + i;
-	    _gv->setValue(&ivalue, 1, _chain);
-	    lik[i] = _gv->logFullConditional(_chain);
-	    lik_max = max(lik_max, lik[i]);
+	    _gv->setValue(&ivalue, 1, chain);
+	    lik[i] = _gv->logFullConditional(chain);
+	    if (lik[i] > lik_max) lik_max = lik[i];
 	}
-
+	
 	//Transform log-likelihood to likelihood, avoiding overflow
+	//and calculate partial sums
 	double liksum = 0;
 	for (int i = 0; i < size; ++i) {
-	    lik[i] = exp(lik[i] - lik_max);
-	    liksum += lik[i];
+	    liksum += exp(lik[i] - lik_max);
+	    lik[i] = liksum;
 	}
 	
 	if (!jags_finite(liksum)) {
-	    throwNodeError(_gv->nodes()[0], "Cannot normalize density");
+	    throwNodeError(_gv->node(), "Cannot normalize density");
 	}
 
-	/* Sample */
+	// Sample
 	double urand = rng->uniform() * liksum;
-	int i;
-	liksum = 0.0;
-	for (i = 0; i < size - 1; i++) {
-	    liksum += lik[i];
-	    if (liksum > urand) {
-		break;
-	    }
-	}
+	int i = upper_bound(lik.begin(), lik.end(), urand) - lik.begin();
 	double ivalue = _lower + i;
-	_gv->setValue(&ivalue, 1, _chain);
+	_gv->setValue(&ivalue, 1, chain);
     }
 
-    bool FiniteMethod::isAdaptive() const
-    {
-	return false;
-    }
-
-    void FiniteMethod::adaptOff()
-    {
-    }
-
-    bool FiniteMethod::checkAdaptation() const
-    {
-	return true;
-    }
-    
     bool FiniteMethod::canSample(StochasticNode const * node)
     {
 	//Node must be scalar with discrete-valued distribution of full rank
@@ -110,24 +97,13 @@ namespace base {
 	    return false;
 	}
 	
-	//FIXME: If support is fixed it is the same for all chains
-	for (unsigned int ch = 0; ch < node->nchain(); ++ch) {
-	    //Distribution cannot be unbounded
-	    double ulimit = JAGS_NEGINF, llimit = JAGS_POSINF;
-	    node->support(&llimit, &ulimit, 1, ch);
-	    if (!jags_finite(ulimit) || !jags_finite(llimit))
-		return false;
+	//Distribution cannot be unbounded
+	double ulimit = JAGS_NEGINF, llimit = JAGS_POSINF;
+	node->support(&llimit, &ulimit, 1, 0);
+	if (!jags_finite(ulimit) || !jags_finite(llimit))
+	    return false;
 
-	    //We don't want too many possibilities
-	    double n = ulimit - llimit + 1;
-	    if (n <= 1 || n > 20) //fixme: totally arbitrary
-		return false;
-	}
 	return true;
     }
 
-    string FiniteMethod::name() const
-    {
-	return "FiniteMethod";
-    }
-}
+}}

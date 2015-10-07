@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+namespace jags {
+
 struct RNG;
 
 /**
@@ -73,10 +75,9 @@ public:
      */
     virtual bool isSupportFixed(std::vector<bool> const &fixmask) const = 0;
     /**
-     * Checks that a vector of parameters of length npar is consistent
-     * with the distribution.
+     * Returns the number of parameters of the distribution
      */
-    bool checkNPar(unsigned int npar) const;
+    unsigned int npar() const;
     /**
      * Some distributions require some of the parameters to be discrete
      * valued. As most distributions do not require discrete valued paremeters,
@@ -139,5 +140,15 @@ public:
      */
     virtual bool canBound() const;
 };
+
+/**
+ * Checks that the distribution accepts npar parameters
+ */
+inline bool checkNPar(Distribution const *dist, unsigned int npar)
+{
+    return (dist->npar() == 0 && npar > 0) ||  dist->npar() == npar;
+}
+
+} /* namespace jags */
 
 #endif /* DISTRIBUTION_H_ */

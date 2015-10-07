@@ -6,6 +6,7 @@
 using std::vector;
 using std::log;
 
+namespace jags {
 namespace bugs {
 
     Log::Log ()
@@ -18,9 +19,9 @@ namespace bugs {
 	return log(*args[0]);
     }
 
-    bool Log::checkScalarValue(vector<double const *> const &args) const
+    bool Log::checkParameterValue(vector<double const *> const &args) const
     {
 	return *args[0] >= 0;
     }
 
-}
+}}

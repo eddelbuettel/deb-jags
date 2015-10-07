@@ -15,6 +15,7 @@ using std::string;
 #define PROB(par) (*par[0])
 #define SIZE(par) (*par[1])
 
+namespace jags {
 namespace bugs {
 
 DNegBin::DNegBin()
@@ -85,16 +86,22 @@ double DNegBin::r(vector<double const *> const &par, RNG *rng) const
     }
 }
 
-double DNegBin::KL(vector<double const *> const &par1,
-		   vector<double const *> const &par2) const
+double DNegBin::KL(vector<double const *> const &par0,
+		   vector<double const *> const &par1) const
 {
+    double p0 = PROB(par0);
+    double r0 = SIZE(par0);
     double p1 = PROB(par1);
     double r1 = SIZE(par1);
-    double p2 = PROB(par2);
-    double r2 = SIZE(par2);
 
-    return r1 * log(p1) - r2 * log(p2) + 
-	(1 - p1) * r1 * (log(1 - p1) - log(1 - p2)) / p1;
+    if (fabs(r0 - r1) > 1e-16) {
+	//We can't calculat Kullback-Leibler divergence in closed form when
+	//r0 and r1 are different
+	return JAGS_NA;
+    }
+    
+    return r0 * (log(p0) - log(p1))  + 
+	(1 - p0) * r0 * (log(1 - p0) - log(1 - p1)) / p0;
 }
 
-}
+}}

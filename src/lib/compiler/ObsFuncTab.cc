@@ -9,6 +9,8 @@
 using std::binary_function;
 using std::find_if;
 
+namespace jags {
+
 typedef std::pair<DistPtr, FunctionPtr> ObsFunc;
 typedef std::list<ObsFunc> OFList;
 
@@ -21,6 +23,13 @@ struct isDist: public binary_function<ObsFunc, DistPtr, bool>
     }
 };
 
+  ObsFuncTab::ObsFuncTab()
+    : _flist(), _nullfun()
+  {
+    //Required by Solaris Studio, which won't create a default constructor
+    //with -std=c++11
+  }
+    
 void ObsFuncTab::insert (DistPtr const &dist, FunctionPtr const &func)
 {
     ObsFunc f(dist, func);
@@ -41,3 +50,5 @@ void ObsFuncTab::erase(DistPtr const &dist, FunctionPtr const &func)
 {
     _flist.remove(ObsFunc(dist, func));
 }
+
+} //namespace jags

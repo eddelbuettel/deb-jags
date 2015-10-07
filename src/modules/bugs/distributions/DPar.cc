@@ -13,6 +13,7 @@ using std::log;
 #define ALPHA(par) (*par[0])
 #define C(par) (*par[1])
 
+namespace jags {
 namespace bugs {
 
 DPar::DPar()
@@ -68,7 +69,7 @@ DPar::q(double p, vector<double const *> const &par, bool lower,
     
     double logp;
 
-    if (lower) {
+    if (!lower) {
 	if (log_p)
 	    logp = p;
 	else
@@ -104,4 +105,4 @@ bool DPar::isSupportFixed(vector<bool> const &fixmask) const
     return fixmask[1]; //Fixed if C is fixed
 }
 
-}
+}}

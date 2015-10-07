@@ -4,7 +4,9 @@
 #include <graph/Node.h>
 #include <distribution/Distribution.h>
 
-class RNG;
+namespace jags {
+
+struct RNG;
 
 /**
  * @short Node defined by the BUGS-language operator ~
@@ -21,9 +23,11 @@ class RNG;
  * last two parameters, defined by the T(,) construct, are optional. If
  * they are supplied, then the distribution of the node is truncated
  * to lie in the range (L, U). Not all distributions can be truncated.
+ * Distributions that are only bounded on one side may be specified by
+ * T(L,) or T(,U).
  *
- * JAGS allows you to define stochastic nodes that are, in fact,
- * not random at all, but are deterministic functions of their parameters.
+ * JAGS allows you to define stochastic nodes that are, in fact, not
+ * random at all, but are deterministic functions of their parameters.
  * A common example is the dinterval distribution
  *
  * <pre>group[i] ~ dinterval(true[i], cutpoints[1:N])</pre>
@@ -40,23 +44,29 @@ class RNG;
  */
 class StochasticNode : public Node {
     Distribution const * const _dist;
-    Node const *_lower;
-    Node const *_upper;
+    Node const * const _lower;
+    Node const * const _upper;
     bool _observed;
-    bool _discrete;
+    const bool _discrete;
     virtual void sp(double *lower, double *upper, unsigned int length,
 		    unsigned int chain) const = 0;
 protected:
     std::vector<std::vector<double const*> > _parameters;
 public:
     /**
-     * Constructs a new StochasticNode given a distribution, a vector
-     * of parent nodes, considered as parameteres to the distribution,
-     * and, optionally, upper and lower bounds. If bounds are given
-     * then the distribution of the constructed StochasticNode is
-     * truncated at the value of the bounds. 
+     * Constructs a new StochasticNode 
+     * 
+     * @param dim Dimensions of the node
+     * @param nchain Number of chains
+     * @param dist Pointer to the distribution
+     * @param parameters Vector of parameters 
+     * @param lower Pointer to node defining the lower bound. A NULL
+     * pointer denotes no lower bound.
+     * @param upper Pointer to node defining the lower bound. A NULL
+     * pointer denotes no upper bound.
      */
     StochasticNode(std::vector<unsigned int> const &dim,
+		   unsigned int nchain,
 		   Distribution const *dist,
                    std::vector<Node const *> const &parameters,
 		   Node const *lower, Node const *upper);
@@ -133,26 +143,46 @@ public:
     double const *upperLimit(unsigned int chain) const;
     std::string deparse(std::vector<std::string> const &parameters) const;
     bool isDiscreteValued() const;
-    bool isObserved() const;
-    void setObserved();
+    /**
+     * A stochastic node is fixed if the setData member function
+     * has been called.
+     */
+    bool isFixed() const;
+    /**
+     * Sets the value of the node to be the same in all chains.
+     * After setData is called, the stochastic node is considered
+     * observed.
+     *
+     * @param data Pointer to an array of data values.  
+     *
+     * @param length Length of the array containing the data values.
+     *
+     * @see Node#setValue
+     */
+    void setData(double const *value, unsigned int length);
+    /**
+     * A stochastic node is always a random variable, and is observed
+     * if its value has been set with setData.
+     */
+    RVStatus randomVariableStatus() const;
     Node const *lowerBound() const;
     Node const *upperBound() const;
-    /**
+    /*
      * Creates a copy of the stochastic node.  Supplying the parents
      * of this node as the argument creates an identical copy.
      *
      * @param parents Parents of the cloned node. 
-     */
+
     StochasticNode * clone(std::vector<Node const *> const &parents) const;
     virtual StochasticNode * 
 	clone(std::vector<Node const *> const &parameters,
 	      Node const *lower, Node const *upper) const = 0;
+    */
     virtual unsigned int df() const = 0;
-    //Required for KL in dic
-    std::vector<double const*> const &parameters(unsigned int chain) const;
+    virtual double KL(unsigned int chain1, unsigned int chain2, RNG *rng,
+		      unsigned int nrep) const = 0;
+    void unlinkParents();
 };
-
-
 
 /**
  * Returns true if the upper and lower limits of the support of
@@ -167,6 +197,12 @@ bool isSupportFixed(StochasticNode const *snode);
  */
 bool isBounded(StochasticNode const *node);
 
+/**
+ * For stochastic nodes, this is a synonym of isFixed
+ */
+inline bool isObserved(StochasticNode const *s) { return s->isFixed(); }
+
+} /* namespace jags */
 
 #endif /* STOCHASTIC_NODE_H_ */
 

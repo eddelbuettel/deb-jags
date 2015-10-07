@@ -15,6 +15,8 @@ using std::copy;
 using std::min;
 using std::max;
 
+namespace jags {
+
 static vector<unsigned int> mkDim(ArrayDist const *dist, 
 				  vector<Node const *> const &parents)
 {
@@ -23,7 +25,7 @@ static vector<unsigned int> mkDim(ArrayDist const *dist,
        parents
     */
 
-    if (!dist->checkNPar(parents.size())) {
+    if (!checkNPar(dist, parents.size())) {
 	throw DistError(dist, "Incorrect number of parameters");
     }
     vector<vector<unsigned int> > parameter_dims(parents.size());
@@ -45,10 +47,13 @@ mkParameterDims(vector<Node const *> const &parameters) {
     return getUnique(dims);
 }
 
-ArrayStochasticNode::ArrayStochasticNode(ArrayDist const *dist, 
+ArrayStochasticNode::ArrayStochasticNode(ArrayDist const *dist,
+					 unsigned int nchain,
 					 vector<Node const *> const &params,
-					 Node const *lower, Node const *upper)
-    : StochasticNode(mkDim(dist, params), dist, params, lower, upper),
+					 Node const *lower, Node const *upper,
+					 double const *data,
+					 unsigned int length)
+    : StochasticNode(mkDim(dist, params), nchain, dist, params, lower, upper),
       _dist(dist), _dims(mkParameterDims(params))
 {
     if (!dist->checkParameterDim(_dims)) {
@@ -136,13 +141,15 @@ bool ArrayStochasticNode::checkParentValues(unsigned int chain) const
     return _dist->checkParameterValue(_parameters[chain], _dims);
 }
 
+    /*
 StochasticNode * 
 ArrayStochasticNode::clone(vector<Node const *> const &parameters,
 			   Node const *lower, Node const *upper) const
 {
     return new ArrayStochasticNode(_dist, parameters, lower, upper);
 }
-
+    */
+    
 unsigned int ArrayStochasticNode::df() const
 {
     return _dist->df(_dims);
@@ -153,3 +160,19 @@ void ArrayStochasticNode::sp(double *lower, double *upper, unsigned int length,
 {
     _dist->support(lower, upper, length, _parameters[chain], _dims);
 }
+
+    double ArrayStochasticNode::KL(unsigned int ch1, unsigned int ch2,
+				   RNG *rng, unsigned int nrep) const
+    {
+	if (lowerBound() && !lowerBound()->isFixed()) {
+	    return JAGS_POSINF;
+	}
+	if (upperBound() && !upperBound()->isFixed()) {
+	    return JAGS_POSINF;
+	}
+	return _dist->KL(_parameters[ch1], _parameters[ch2], _dims,
+			 lowerLimit(ch1), upperLimit(ch1),
+			 rng, nrep);
+    }
+    
+} //namespace jags

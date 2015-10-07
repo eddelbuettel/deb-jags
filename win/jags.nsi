@@ -98,11 +98,11 @@ Section "32-bit installation" Sec32
    File inst32\libexec\jags-terminal.exe
    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
-#   SetOutPath "$INSTDIR\i386\lib"
-#   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-#   File inst32\lib\*.dll.a
-#   File inst32\lib\*.la
-#   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+   SetOutPath "$INSTDIR\i386\lib"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File inst32\lib\*.dll.a
+   File inst32\lib\*.la
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
    SetOutPath "$INSTDIR\i386\modules"
    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
@@ -145,11 +145,11 @@ Section "64-bit installation" Sec64
    File inst64\libexec\jags-terminal.exe
    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
-#   SetOutPath "$INSTDIR\x64\lib"
-#   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-#   File inst64\lib\*.dll.a
-#   File inst64\lib\*.la
-#   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+   SetOutPath "$INSTDIR\x64\lib"
+   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+   File inst64\lib\*.dll.a
+   File inst64\lib\*.la
+   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
    SetOutPath "$INSTDIR\x64\modules"
    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
@@ -207,7 +207,6 @@ Function .onInit
       ; Enforce 32-bit selection
       Push $1
       SectionGetFlags ${Sec32} $1
-#      IntOp $1 $1 & ${SF_SELECTED}
       IntOp $1 $1 | ${SF_RO}
       SectionSetFlags ${Sec32} $1
       Pop $1

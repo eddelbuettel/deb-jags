@@ -3,7 +3,7 @@
 #include "ShiftedCount.h"
 
 #include <graph/StochasticNode.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <module/ModuleError.h>
 
 #include <JRmath.h>
@@ -11,9 +11,10 @@
 using std::vector;
 using std::string;
 
+namespace jags {
 namespace bugs {
 
-    ShiftedCount::ShiftedCount(GraphView const *gv)
+    ShiftedCount::ShiftedCount(SingletonGraphView const *gv)
 	: ConjugateMethod(gv)
     {
     }
@@ -29,14 +30,14 @@ namespace bugs {
 	if (isBounded(snode))
 	    return false;
 
-	GraphView gv(vector<StochasticNode*>(1,snode), graph);
+	SingletonGraphView gv(snode, graph);
 
 	// There should be no deterministic children
 	if (!gv.deterministicChildren().empty())
 	    return false;
 
 	// Check stochastic children: Must have single child node ...
-	vector<StochasticNode const*> const &child_nodes = 
+	vector<StochasticNode *> const &child_nodes = 
 	    gv.stochasticChildren();
 	if (child_nodes.size() != 1) 
 	    return false;
@@ -59,8 +60,8 @@ namespace bugs {
 
     void ShiftedCount::update(unsigned int chain, RNG *rng) const
     {
-	StochasticNode const* snode = _gv->nodes()[0];
-	StochasticNode const* cnode = _gv->stochasticChildren().front();
+	StochasticNode const* snode = _gv->node();
+	StochasticNode * cnode = _gv->stochasticChildren().front();
 
 	double y = *cnode->value(chain); //Child value
 	// Prior rate (Poisson) or probability (Binomial)
@@ -91,9 +92,4 @@ namespace bugs {
 	_gv->setValue(&xnew, 1, chain);
     }
 
-    string ShiftedCount::name() const
-    {
-	return "ShiftedCount";
-    }
-
-}
+}}

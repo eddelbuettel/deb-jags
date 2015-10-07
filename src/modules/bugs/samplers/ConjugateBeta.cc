@@ -1,13 +1,12 @@
 #include <config.h>
 
 #include "ConjugateBeta.h"
-#include "ConjugateSampler.h"
 
 #include <rng/RNG.h>
 #include <graph/LogicalNode.h>
 #include <graph/StochasticNode.h>
 #include <graph/MixtureNode.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <sampler/Linear.h>
 #include <module/ModuleError.h>
 
@@ -25,6 +24,7 @@ using std::max;
 using std::min;
 using std::string;
 
+namespace jags {
 namespace bugs {
 
 bool ConjugateBeta::canSample(StochasticNode *snode, Graph const &graph)
@@ -36,17 +36,17 @@ bool ConjugateBeta::canSample(StochasticNode *snode, Graph const &graph)
 	// dunif(0,1) is equivalent to dbeta(1,1) 
 	if(!(*snode->parents()[0]->value(0) == 0 &&
 	     *snode->parents()[1]->value(0) == 1 &&
-	     snode->parents()[0]->isObserved() &&
-	     snode->parents()[1]->isObserved()))
+	     snode->parents()[0]->isFixed() &&
+	     snode->parents()[1]->isFixed()))
 	    return false;
 	break;
     default:
 	return false;
     }
 
-    GraphView gv(snode, graph);
+    SingletonGraphView gv(snode, graph);
     vector<DeterministicNode*> const &dchild = gv.deterministicChildren();
-    vector<StochasticNode const*> const &schild = gv.stochasticChildren();
+    vector<StochasticNode *> const &schild = gv.stochasticChildren();
 
     // Check deterministic descendants
     // Only Mixture nodes are allowed
@@ -81,18 +81,18 @@ bool ConjugateBeta::canSample(StochasticNode *snode, Graph const &graph)
 }
 
 
-ConjugateBeta::ConjugateBeta(GraphView const *gv)
+ConjugateBeta::ConjugateBeta(SingletonGraphView const *gv)
     : ConjugateMethod(gv)
 {
 }
 
 void ConjugateBeta::update(unsigned int chain, RNG *rng) const
 {
-    vector<StochasticNode const*> const &stoch_children = 
+    vector<StochasticNode *> const &stoch_children = 
 	_gv->stochasticChildren();
-    StochasticNode const *snode = _gv->nodes()[0];
+    StochasticNode const *snode = _gv->node();
 
-    double a, b;
+    double a=0, b=0; //-Wall
     switch (_target_dist) {
     case BETA:
 	a = *snode->parents()[0]->value(chain);
@@ -131,27 +131,25 @@ void ConjugateBeta::update(unsigned int chain, RNG *rng) const
     for (unsigned int i = 0; i < stoch_children.size(); ++i) {
 	if (!(is_mix && C[i] == 0)) {
 	    double y = *stoch_children[i]->value(chain);
-	    double n, aplus, bplus;
+	    double n;
 	    switch(_child_dist[i]) {
 	    case BIN:
 		n = *stoch_children[i]->parents()[1]->value(chain);
-		aplus = y;
-		bplus = n - y;
+		a += y;
+		b += n - y;
 		break;
 	    case NEGBIN:
 		n = *stoch_children[i]->parents()[1]->value(chain);
-		aplus = n;
-		bplus = y;
+		a += n;
+		b += y;
 		break;
 	    case BERN:
-		aplus = y;
-		bplus = 1 - y;
+		a += y;
+		b += 1 - y;
 		break;
 	    default:
 		throwLogicError("Invalid distribution in Conjugate Beta sampler");
 	    }
-	    a += aplus;
-	    b += bplus;
 	}
     }
 
@@ -190,9 +188,4 @@ void ConjugateBeta::update(unsigned int chain, RNG *rng) const
     }
 }
 
-string ConjugateBeta::name() const
-{
-    return "ConjugateBeta";
-}
-
-}
+}}

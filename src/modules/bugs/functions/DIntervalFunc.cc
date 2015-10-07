@@ -7,33 +7,29 @@ using std::vector;
 #define T(args) (*args[0])
 #define CUTPOINTS(args) (args[1])
 
-static unsigned int value(vector<double const *> const &args, unsigned int ncut)
-{
-    double t = T(args);
-    for (unsigned int i = 0; i < ncut; ++i) {
-	if (t <= CUTPOINTS(args)[i])
-	    return i;
-    }
-    return ncut;
-}
-
+namespace jags {
 namespace bugs {
 
-    DIntervalFunc::DIntervalFunc () : VectorFunction ("dinterval", 2)
+    DIntervalFunc::DIntervalFunc () : ScalarVectorFunction ("dinterval", 2)
     {
     }
 
-    void 
-    DIntervalFunc::evaluate(double *x, vector<double const *> const &args,
-			    vector<unsigned int> const &lengths) const
+    double DIntervalFunc::scalarEval(vector<double const *> const &args,
+				     vector<unsigned int> const &lengths) const
     {
-	*x = value(args, lengths[1]);
+	unsigned int ncut = lengths[1];
+	double t = T(args);
+	for (unsigned int i = 0; i < ncut; ++i) {
+	    if (t <= CUTPOINTS(args)[i])
+		return i;
+	}
+	return ncut;
     }
     
     bool DIntervalFunc::checkParameterLength (vector<unsigned int> const &args)
 	const
     {
-	return args[0] == 1;
+	return args[0] == 1 && args[1] >= 1;
     }
     
     bool DIntervalFunc::isDiscreteValued(vector<bool> const &mask) const
@@ -41,4 +37,4 @@ namespace bugs {
 	return true;
     }
     
-}
+}}

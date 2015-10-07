@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 2000--2008 The R Development Core Team
+ *  Copyright (C) 2000--2008 The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 #include "nmath.h"
 
-double rlogis(double location, double scale, RNG *rng)
+double rlogis(double location, double scale, JRNG *rng)
 {
     if (ISNAN(location) || !R_FINITE(scale))
 	ML_ERR_return_NAN;

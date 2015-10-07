@@ -7,6 +7,9 @@
 #include <cfloat>
 
 #include <function/FunctionPtr.h>
+#include <compiler/NodeFactory.h>
+
+namespace jags {
 
 class Function;
 class Node;
@@ -20,7 +23,7 @@ class LogicalNode;
 typedef std::pair<FunctionPtr,std::vector<Node const *> > LogicalPair;
 
 /**
- * @short "Less than" operator for LogicalPair objects. 
+ * @short "Less than" function for LogicalPair objects. 
  *
  * Two LogicalPairs A and B are considered to be equivalent
  * (i.e. lt(A,B) and lt(B,A) are both false) if they have the same
@@ -35,17 +38,6 @@ typedef std::pair<FunctionPtr,std::vector<Node const *> > LogicalPair;
 bool lt(LogicalPair const &arg1, LogicalPair const &arg2);
 
 /**
- * @short STL function object for the map class using LogicalPair as a key
- */
-struct ltlogical
-{
-  bool operator()(LogicalPair const &arg1, LogicalPair const &arg2) const
-  {
-    return lt(arg1, arg2);
-  }
-};
-
-/**
  * @short Factory object for logical nodes 
  *
  * The value of a logical node is determined uniquely by its function
@@ -56,7 +48,7 @@ struct ltlogical
  */
 class LogicalFactory 
 { 
-    std::map<LogicalPair, Node*, ltlogical> _logicalmap;
+    std::map<LogicalPair, Node*, fuzzy_less<LogicalPair> > _logicalmap;
 	
 public:
     /**
@@ -65,14 +57,17 @@ public:
      * node will be returned. If a newly allocated node is returned,
      * it is also added to the given Model.
      */
-    Node *getNode(FunctionPtr const &func, 
+    Node *getNode(FunctionPtr const &func,
 		  std::vector<Node const*> const &param,
 		  Model &model);
     /**
      * Returns a newly allocated LogicalNode.
      */
     static LogicalNode* newNode(FunctionPtr const &func, 
-				std::vector<Node const *> const &parents);
+				std::vector<Node const *> const &parents,
+				unsigned int nchain);
 };
+
+} /* namespace jags */
 
 #endif /* LOGICAL_FACTORY_H_ */

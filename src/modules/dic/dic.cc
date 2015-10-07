@@ -1,4 +1,4 @@
-#include <Module.h>
+#include <module/Module.h>
 
 #include "DevianceMonitorFactory.h"
 #include "PDMonitorFactory.h"
@@ -6,6 +6,7 @@
 
 using std::vector;
 
+namespace jags {
 namespace dic {
 
     class DICModule: public Module {
@@ -30,7 +31,8 @@ namespace dic {
 	    delete mvec[i];
 	}
     }
-}
 
-dic::DICModule _dic_module;
+}}
+
+jags::dic::DICModule _dic_module;
 

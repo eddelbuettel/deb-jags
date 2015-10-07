@@ -9,6 +9,8 @@ using std::string;
 using std::binary_function;
 using std::find_if;
 
+namespace jags {
+
 typedef std::list<FunctionPtr> FuncList;
 
 // Adaptable binary predicate for find_if algorithm 
@@ -57,6 +59,13 @@ struct isLinkName: public binary_function<FunctionPtr, string, bool>
     }
 };
 
+  FuncTab::FuncTab()
+    : _flist(), _nullfun()
+  {
+    //Required by Solaris Studio, which won't create a default constructor
+    //with -std=c++11
+  }
+
 void FuncTab::insert (FunctionPtr const &func)
 {
     FuncList::const_iterator p = std::find(_flist.begin(), _flist.end(), func);
@@ -90,3 +99,4 @@ void FuncTab::erase(FunctionPtr const &func)
 
 }
 
+} //namespace jags

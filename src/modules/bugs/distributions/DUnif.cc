@@ -11,6 +11,7 @@ using std::log;
 #define LOWER(par) (*par[0])
 #define UPPER(par) (*par[1])
 
+namespace jags {
 namespace bugs {
 
 DUnif::DUnif()
@@ -63,15 +64,15 @@ bool DUnif::isSupportFixed(vector<bool> const &fixmask) const
     return fixmask[0] && fixmask[1]; //Lower and upper bounds fixed
 }
 
-double DUnif::KL(vector<double const *> const &par1,
-		 vector<double const *> const &par2) const
+double DUnif::KL(vector<double const *> const &par0,
+		 vector<double const *> const &par1) const
 {
-    if (LOWER(par2) < LOWER(par1))
+    if (LOWER(par0) < LOWER(par1))
 	return JAGS_POSINF;
-    if (UPPER(par2) > UPPER(par1))
+    if (UPPER(par0) > UPPER(par1))
 	return JAGS_POSINF;
 
-    return log(UPPER(par2) - LOWER(par2)) - log(UPPER(par1) - LOWER(par1));
+    return log(UPPER(par1) - LOWER(par1)) - log(UPPER(par0) - LOWER(par0));
 }
 
-}
+}}

@@ -3,6 +3,7 @@
 
 #include "GLMFactory.h"
 
+namespace jags {
 namespace glm {
 
     /**
@@ -21,13 +22,12 @@ namespace glm {
 	 * families, but in the BUGS language, these are not
 	 * parameterized in terms of their mean and precision.
 	 */
-	bool checkOutcome(StochasticNode const *snode,
-			  LinkNode const *lnode) const;
+	bool checkOutcome(StochasticNode const *snode) const;
 	/**
 	 * Returns a newly allocated object of class IWLS
 	 */
 	GLMMethod *newMethod(GraphView const *view, 
-			     std::vector<GraphView const *> const &sub_views,
+			     std::vector<SingletonGraphView const *> const &sub_views,
 			     unsigned int chain) const;
 	/**
 	 * Returns false if any parents of the candidate node are
@@ -48,6 +48,6 @@ namespace glm {
 	bool fixedDesign() const;
     };
 
-}
+}}
 
 #endif /* IWLS_FACTORY_H_ */

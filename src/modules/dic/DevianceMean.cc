@@ -8,6 +8,8 @@ using std::vector;
 using std::string;
 using std::copy;
 
+namespace jags {
+
 static vector<Node const *> toNodeVec(vector<StochasticNode const *> const &s)
 {
     vector<Node const *> ans(s.size());
@@ -55,8 +57,4 @@ namespace dic {
 	}
     }
 
-    void DevianceMean::reserve(unsigned int niter)
-    {
-    }
-    
-}
+}}

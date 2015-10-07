@@ -4,7 +4,7 @@
 #include <string>
 #include <cstring>
 #include <compiler/ParseTree.h>
-#include "parser.h"
+#include "parser.hh"
 
     std::vector<FILE*> file_stack;
     int command_buffer_count = 0;
@@ -52,6 +52,7 @@ samplers                zzlval.intval=SAMPLERS; return SAMPLERS;
 rng                     zzlval.intval=RNGTOK; return RNGTOK;
 factory                 zzlval.intval=FACTORY; return FACTORY;
 factories               zzlval.intval=FACTORIES; return FACTORIES;
+seed                    zzlval.intval=SEED; return SEED;
 
 coda			zzlval.intval=CODA; return CODA;
 stem			zzlval.intval=STEM; return STEM;
@@ -80,12 +81,12 @@ run                     zzlval.intval=RUN; return RUN;
 "`"                     return '`';
 
 "/*"                    BEGIN(COMMENT);
-<COMMENT>[^*]*          /* Eat up anything that's not a '*'   */
-<COMMENT>"*"+[^*/n]*    /* Eat up '*'s not followed by a '/'  */
+<COMMENT>[^*]*          /* Eat up anything that's not a '*' */
+<COMMENT>"*"+[^*/]*     /* Eat up '*'s not followed by a '/'  */
 <COMMENT>"*"+"/"        BEGIN(INITIAL);
 
-<RDATA,INITIAL>[ \t\r]+ /* Eat whitespace */
-<RDATA,INITIAL>"#".*\n  /* Eat comments */
+<RDATA,INITIAL>[ \t\r\f]+ /* Eat whitespace */
+<RDATA,INITIAL>"#".*\n  /* Eat single-line comments */
 <RDATA>[\n]+            /* Eat newlines */
 <INITIAL>[\n]           return ENDCMD;
 

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace jags {
+
 class Range;
 
 /**
@@ -44,10 +46,9 @@ public:
      */
     virtual std::string alias() const;
     /**
-     * Checks that a vector of parameters of length npar is consistent
-     * with the function.
+     * Returns the number of parameters. A variadic function returns 0. 
      */
-    bool checkNPar(unsigned int npar) const;
+    unsigned int npar() const;
     /**
      * Returns true if the function returns integer values. The
      * default implementation returns false. A function that returns
@@ -58,8 +59,17 @@ public:
      */
     virtual bool isDiscreteValued(std::vector<bool> const &mask) const;
     /**
+     * Checks whether the required arguments are discrete-valued.
+     * Most functions do not require discrete-valued arguments, so
+     * a default implementation is provided which always returns true.
+     *
+     * @param mask Boolean vector indicating which parameters are
+     * discrete valued.
+     */
+    virtual bool checkParameterDiscrete(std::vector<bool> const &mask) const;
+    /**
      * Tests whether the function preserves scale transformations, i.e.
-     * it can be represented in the form f(x) = B %*% x.
+     * it can be represented element-wise in the form f(x)[i] = B[i] * x[i].
      *
      * It is permitted for the isScale function to return false
      * negatives, i.e. to return false when the function does preserve
@@ -68,16 +78,17 @@ public:
      * 
      * @param mask boolean vector of length equal to the number of
      * parameters.  The mask indicates a subset of parameters (those
-     * with value true) that are themselves scale transformations of x
-     * (the others are not functions of x). At least one element of
+     * with value true) that are themselves scale transformations of
+     * x.  The others are not functions of x. At least one element of
      * mask must be true.
      *
      * @param isfixed boolean vector. This may be empty, in which case
      * it is ignored.  A non-empty vector must have length equal to
      * mask, and denotes the parameters whose values are fixed. In
      * this case the test is more restrictive, and returns true only
-     * if the coefficient B is fixed, assuming that the parameters for
-     * which mask is true are themselves fixed scale transformations.
+     * if the coefficient B[i] is fixed for all i, assuming that the
+     * parameters for which mask is true are themselves fixed scale
+     * transformations.
      *
      * @see DeterministicNode#isClosed
      */
@@ -105,6 +116,14 @@ public:
     virtual bool isPower(std::vector<bool> const &mask,
 			 std::vector<bool> const &isfixed) const;
     /**
+     * Tests whether the function is additive, i.e.  a function of the
+     * form f(x) = A + sum(x) where sum(x) is the sum of all elements of x.
+     *
+     * The default method returns false
+     */
+    virtual bool isAdditive(std::vector<bool> const &mask,
+			    std::vector<bool> const &isfixed) const;
+    /**
      * Returns a BUGS-language expression representing the function call.
      * The default behaviour for a function named "foo" is to return
      * "foo(arg1,arg2)". Functions that are represented as prefix or infix
@@ -113,6 +132,32 @@ public:
      * @param par Vector of parameter names for the function
      */
     virtual std::string deparse(std::vector<std::string> const &par) const;
+    /**
+     * Checks that the required parameters are fixed. Most functions
+     * do not require any fixed parameters, so the default
+     * implementation returns true. However, for some ArrayFunctions
+     * the dimension of the return value depends on the values of some of
+     * the parameters. These parameters must be fixed so that the
+     * dimension can be determined at compile time. Hence the default
+     * function must be overridden for any function with a return
+     * value whose dimension cannot be determined purely from the 
+     * dimensions of its arguments.
+     *
+     * @param mask Boolean vector indicating which parameters have
+     * fixed values
+     */
+    virtual bool checkParameterFixed(std::vector<bool> const &mask) const;
 };
+
+/**
+ * Checks that a vector of parameters of length npar is consistent
+ * with the function.
+ */
+inline bool checkNPar(Function const *func, unsigned int npar)
+{
+    return (func->npar() == 0 && npar > 0) || func->npar() == npar;
+}
+
+} /* namespace jags */
 
 #endif /* FUNCTION_H_ */

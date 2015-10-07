@@ -1,8 +1,9 @@
 #ifndef DGEN_GAMMA_H_
 #define DGEN_GAMMA_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -32,6 +33,6 @@ class DGenGamma : public RScalarDist {
 	    std::vector<double const *> const &par2) const;
 };
 
-}
+}}
 
 #endif /* DGEN_GAMMA_H_ */

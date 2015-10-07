@@ -22,6 +22,7 @@ static inline double value(vector<double const *> const &par)
 
 static double tol = sqrt(DBL_EPSILON);
 
+namespace jags {
 namespace bugs {
 
     DRound::DRound()
@@ -86,10 +87,10 @@ namespace bugs {
 	return fixmask[0] && fixmask[1];
     }
     
-    double DRound::KL(vector<double const *> const &par1,
-		      vector<double const *> const &par2) const
+    double DRound::KL(vector<double const *> const &par0,
+		      vector<double const *> const &par1) const
     {
-	if (value(par1) == value(par2)) {
+	if (value(par0) == value(par1)) {
 	    return 0;
 	}
 	else {
@@ -97,4 +98,4 @@ namespace bugs {
 	}
     }
 
-}
+}}

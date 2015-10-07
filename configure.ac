@@ -2,9 +2,9 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.63)
 
-AC_INIT([JAGS],[3.4.0],[martyn_plummer@users.sourceforge.net],[JAGS])
-JAGS_MAJOR=3
-JAGS_MINOR=4
+AC_INIT([JAGS],[4.0.0],[martyn_plummer@users.sourceforge.net],[JAGS])
+JAGS_MAJOR=4
+JAGS_MINOR=0
 AC_SUBST(JAGS_MAJOR)
 AC_SUBST(JAGS_MINOR)
 
@@ -12,7 +12,8 @@ AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/lib/Console.cc])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
+AM_PATH_CPPUNIT(1.12.1)
 
 dnl libtool and ltdl configuration
 LT_PREREQ(2.2.6)
@@ -47,44 +48,9 @@ AM_CONDITIONAL(WINDOWS, test x$win = xtrue)
 dnl fortran stuff
 AC_F77_WRAPPERS
 AC_F77_LIBRARY_LDFLAGS
-AX_LAPACK([],[
+ACX_LAPACK([],[
 	AC_MSG_ERROR("You need to install the LAPACK library")
 ])
-
-dnl Rmath stuff
-
-AC_DEFINE(MATHLIB_STANDALONE, 1, [Define if you have standalone R math library])
-
-dnl Relevant parts lifted from R's configure.ac, version 2.3.0
-AC_CHECK_LIB(m, sin)
-
-## IEEE 754. We rely on this in e.g. the working log test.
-##R_IEEE_754
-
-R_CHECK_FUNCS([expm1 log1p], [#include <math.h>])
-## Used to build src/include/Rmath.h.
-## <NOTE>
-## we don't use AC_CONFIG_HEADERS on Rmath.h.in because
-## a) that would comment out #undef statements in Rmath.h.in and
-## b) Rmath.h should be a self-contained file for standalone Rmath use.
-## </NOTE>
-if test "${ac_cv_have_decl_expm1}" = yes; then
-  RMATH_HAVE_EXPM1="# define HAVE_EXPM1 1"
-else
-  RMATH_HAVE_EXPM1="# undef HAVE_EXPM1"
-fi
-AC_SUBST(RMATH_HAVE_EXPM1)
-if test "${ac_cv_have_decl_log1p}" = yes; then
-  RMATH_HAVE_LOG1P="# define HAVE_LOG1P 1"
-else
-  RMATH_HAVE_LOG1P="# undef HAVE_LOG1P"
-fi
-AC_SUBST(RMATH_HAVE_LOG1P)
-
-R_FUNC_LOG
-R_FUNC_LOG1P
-
-dnl End Rmath stuff
 
 jagsmoddir=${libdir}/JAGS/modules-${JAGS_MAJOR}
 AC_SUBST(jagsmoddir)
@@ -161,5 +127,6 @@ AC_CONFIG_FILES([
   win/runtime64/Makefile
   doc/Makefile
   doc/manual/Makefile
+  test/Makefile
 ])
 AC_OUTPUT

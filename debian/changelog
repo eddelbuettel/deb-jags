@@ -1,3 +1,11 @@
+jags (4.0.0-1) unstable; urgency=low
+
+  * New upstream release
+
+  * debian/control: Add new Build-Depends: libcppunit-dev
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Wed, 07 Oct 2015 09:45:54 -0500
+
 jags (3.4.0-3) unstable; urgency=low
 
   * debian/control: Build-Depends on 'g++ (>= 4:5.2)'; ditto for gfortran
@@ -7,6 +15,7 @@ jags (3.4.0-3) unstable; urgency=low
 
 jags (3.4.0-2) unstable; urgency=low
 
+  [ never released, changes later reverted ]
   * debian/rules: Use faketime along with the changelog timestamp to
     enforce reproducible builds
 

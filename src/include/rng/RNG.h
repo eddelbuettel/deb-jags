@@ -4,15 +4,17 @@
 #include <string>
 #include <vector>
 
+namespace jags {
+
 /**
  * Abstract class for a psuedo random number generator
  *
  * @short Random Number Generator
  */
-class RNG
+struct RNG
 {
     const std::string _name;
-public:
+
     RNG(std::string const &name);
     virtual ~RNG();
     /**
@@ -61,6 +63,12 @@ public:
      * Returns the name of the RNG
      */
     std::string const &name() const;
+
+    static double uniform(void *);
+    static double normal(void *);
+    static double exponential(void *);
 };
+
+} /* namespace jags */
 
 #endif /* RNG_H_ */

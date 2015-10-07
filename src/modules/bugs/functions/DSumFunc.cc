@@ -1,10 +1,12 @@
 #include <config.h>
 #include <util/logical.h>
 #include <util/dim.h>
+#include <util/logical.h>
 #include "DSumFunc.h"
 
 using std::vector;
 
+namespace jags {
 namespace bugs {
 
     DSumFunc::DSumFunc()
@@ -33,17 +35,31 @@ namespace bugs {
     bool 
     DSumFunc::checkParameterDim(vector<vector<unsigned int> > const &dims) const
     {
-	for (unsigned int i = 1; i < dims.size(); ++i) {
-	    if (dims[i] != dims[0])
-		return false;
+	if (dims.empty()) return false;
+	if (isFlat(dims[0])) return false;
+	for (unsigned int j = 1; j < dims.size(); ++j) {
+	    if (dims[j] != dims[0]) return false;
 	}
 	return true;
     }
 
     vector<unsigned int>  
-    DSumFunc::dim(vector<vector<unsigned int> > const &dims) const
+    DSumFunc::dim(vector<vector<unsigned int> > const &dims,
+		  vector<double const *> const &values) const
     {
 	return dims[0];
     }
 
-}
+    bool DSumFunc::isLinear(vector<bool> const &mask, 
+			    vector<bool> const &fixed) const
+    {
+	return true;
+    }
+
+    bool DSumFunc::isScale(vector<bool> const &mask, 
+			   vector<bool> const &fixed) const
+    {
+	return allTrue(mask);
+    }
+
+}}

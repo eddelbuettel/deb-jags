@@ -1,8 +1,9 @@
 #ifndef DLOGIS_H_
 #define DLOGIS_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /** 
@@ -29,6 +30,6 @@ class DLogis : public RScalarDist {
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
 };
 
-}
+}}
 
 #endif /* DLOGIS_H_ */

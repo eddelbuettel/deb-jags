@@ -7,7 +7,6 @@
 #include "ConjugateDirichlet.h"
 #include "ConjugateMNormal.h"
 #include "ConjugateWishart.h"
-#include "ConjugateSampler.h"
 //#include "Censored.h"
 //#include "TruncatedGamma.h"
 #include "ShiftedCount.h"
@@ -15,13 +14,15 @@
 
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <module/ModuleError.h>
+#include <sampler/ImmutableSampler.h>
 
 #include <string>
 
 using std::string;
 
+namespace jags {
 namespace bugs {
 
 bool ConjugateFactory::canSample(StochasticNode * snode,
@@ -78,28 +79,33 @@ bool ConjugateFactory::canSample(StochasticNode * snode,
 Sampler *ConjugateFactory::makeSampler(StochasticNode *snode, 
 				       Graph const &graph) const
 {
-    GraphView *gv = new GraphView(snode, graph);
+    SingletonGraphView *gv = new SingletonGraphView(snode, graph);
     ConjugateMethod* method = 0;
-    
+    string name;
 /*
     if (Censored::canSample(snode, graph)) {
 	method = new Censored(gv);
+	name = "Censored";
     }
     else {
 */
 	switch (getDist(snode)) {
 	case NORM:
 	    method = new ConjugateNormal(gv);
+	    name = "bugs::ConjugateNormal";
 	    break;
 	case GAMMA: case CHISQ:
 	    method = new ConjugateGamma(gv);
+	    name = "bugs::ConjugateGamma";
 	    break;
 	case EXP:
 	    if (ConjugateGamma::canSample(snode, graph)) {
 		method = new ConjugateGamma(gv);
+		name = "bugs::ConjugateGamma";
 	    }
 	    else if (ConjugateNormal::canSample(snode, graph)) {
 		method = new ConjugateNormal(gv);
+		name = "bugs::ConjugateNormal";
 	    }
 	    else {
 		throwLogicError("Cannot find conjugate sampler for exponential");
@@ -107,25 +113,31 @@ Sampler *ConjugateFactory::makeSampler(StochasticNode *snode,
 	    break;
 	case BETA:
 	    method = new ConjugateBeta(gv);
+	    name = "bugs::ConjugateBeta";
 	    break;
 	case DIRCH:
 	    method = new ConjugateDirichlet(gv);
+	    name = "bugs::ConjugateDirichlet";
 	    break;
 	case MNORM:
 	    method = new ConjugateMNormal(gv);
+	    name = "bugs::ConjugateMNormal";
 	    break;
 	case WISH:
 	    method = new ConjugateWishart(gv);
+	    name = "bugs::ConjugateWishart";
 	    break;
 	case UNIF:
 	  /*
 	    if (TruncatedGamma::canSample(snode, graph)) {
 		method = new TruncatedGamma(gv);
+		name = "TruncatedGamma";
 	    }
 	    else 
 	  */
 	    if (ConjugateBeta::canSample(snode, graph)) {
 		method = new ConjugateBeta(gv);
+		name = "bugs::ConjugateBeta";
 	    }
 	    else {
 		throwLogicError("Cannot find conjugate sampler for uniform");
@@ -133,9 +145,11 @@ Sampler *ConjugateFactory::makeSampler(StochasticNode *snode,
 	    break;
 	case POIS: case BIN: case NEGBIN:
 	    method = new ShiftedCount(gv);
+	    name = "bugs::ShiftedCount";
 	    break;
 	case MULTI:
 	    method = new ShiftedMultinomial(gv);
+	    name = "bugs::ShiftedMultiNomial";
 	    break;
 	default:
 	    throwLogicError("Unable to create conjugate sampler");
@@ -144,7 +158,7 @@ Sampler *ConjugateFactory::makeSampler(StochasticNode *snode,
    }
 */  
     
-    return new ConjugateSampler(gv, method);
+	return new ImmutableSampler(gv, method, name);
 }
 
 string ConjugateFactory::name() const
@@ -152,4 +166,4 @@ string ConjugateFactory::name() const
     return "bugs::Conjugate";
 }
 
-}
+}}

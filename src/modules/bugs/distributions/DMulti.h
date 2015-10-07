@@ -5,6 +5,7 @@
 
 struct RNG;
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -51,8 +52,9 @@ public:
   double KL(std::vector<double const *> const &par1,
 	    std::vector<double const *> const &par2,
 	    std::vector<unsigned int> const &lengths) const;
+  std::string alias() const;
 };
 
-}
+}}
 
 #endif /* DMULTI_H_ */

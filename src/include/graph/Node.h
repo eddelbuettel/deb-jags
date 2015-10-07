@@ -1,22 +1,36 @@
 #ifndef NODE_H_
 #define NODE_H_
 
-#include <set>
+#include <list>
 #include <vector>
 #include <string>
 
-class RNG;
+namespace jags {
+
+struct RNG;
 class StochasticNode;
 class DeterministicNode;
 class Graph;
+
+/**
+ * @short Random variable status of nodes
+ *
+ * This enumeration is used by Node#randomVariableStatus to classify
+ * nodes into one of three categories.
+ *
+ * Some nodes are considered as random variables, and among those that
+ * are, they may be observed or unobserved. Conversely, a node that is
+ * not a random variable may not be observed.
+ */
+enum RVStatus {RV_FALSE, RV_TRUE_UNOBSERVED, RV_TRUE_OBSERVED};
 
 /**
  * @short Node in a directed acyclic graph
  */
 class Node {
     std::vector<Node const *> _parents;
-    std::set<StochasticNode*> *_stoch_children;
-    std::set<DeterministicNode *> *_dtrm_children;
+    std::list<StochasticNode*> *_stoch_children;
+    std::list<DeterministicNode *> *_dtrm_children;
 
     /* Forbid copying of Node objects */
     Node(Node const &orig);
@@ -24,7 +38,7 @@ class Node {
 
 protected:
     std::vector<unsigned int> const &_dim;
-    unsigned int _length;
+    const unsigned int _length;
     const unsigned int _nchain;
     double *_data;
 
@@ -45,7 +59,7 @@ public:
      * @param parents vector of parent nodes. A node may not be its own
      * parent.
      */
-    Node(std::vector<unsigned int> const &dim, 
+    Node(std::vector<unsigned int> const &dim, unsigned int nchain,
 	 std::vector<Node const *> const &parents);
     /**
      * Destructor. 
@@ -77,11 +91,11 @@ public:
     /**
      * Returns the stochastic children of the node
      */
-    std::set<StochasticNode*> const *stochasticChildren();
+    std::list<StochasticNode*> const *stochasticChildren();
     /**
      * Returns the deterministic children of the node
      */
-    std::set<DeterministicNode*> const *deterministicChildren();
+    std::list<DeterministicNode*> const *deterministicChildren();
     /**
      * Initializes the node for the given chain. The value array of a
      * newly constructed Node consists of missing values (denoted by
@@ -103,15 +117,16 @@ public:
      *
      * @param parents Vector of names of parent nodes
      */
-    virtual std::string deparse(std::vector<std::string> const &parents) const = 0;
+    virtual std::string 
+	deparse(std::vector<std::string> const &parents) const = 0;
     /**
-     * Returns true if the node represents a random variable.
+     * Returns the random variable status of a node.
      */
-    virtual bool isRandomVariable() const = 0;
+    virtual RVStatus randomVariableStatus() const = 0;
     /**
-     * Indicates whether the node is observed. 
+     * Indicates whether the value of the node is fixed.
      */
-    virtual bool isObserved() const = 0;
+    virtual bool isFixed() const = 0;
     /**
      * Sets the value of the node for a given chain
      * @param value Array of values to be assigned
@@ -143,10 +158,12 @@ public:
      * Swaps the values in the given chains
      */
     void swapValue(unsigned int chain1, unsigned int chain2);
+
     void addChild(StochasticNode *node) const;
     void removeChild(StochasticNode *node) const;
     void addChild(DeterministicNode *node) const;
     void removeChild(DeterministicNode *node) const;
+    virtual void unlinkParents() = 0;
 };
 
 /**
@@ -154,5 +171,7 @@ public:
  * if the parameters are inconsistent
  */
 unsigned int countChains(std::vector<Node const *> const &parameters);
+
+} /* namespace jags */
 
 #endif /* NODE_H_ */

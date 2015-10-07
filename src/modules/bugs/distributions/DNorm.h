@@ -1,8 +1,9 @@
 #ifndef DNORM_H_
 #define DNORM_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -40,6 +41,6 @@ class DNorm : public RScalarDist {
 	    std::vector<double const *> const &par1) const;
 };
 
-}
+}}
 
 #endif /* DNORM_H_ */

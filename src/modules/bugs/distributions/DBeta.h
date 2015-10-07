@@ -1,8 +1,9 @@
 #ifndef DBETA_H_
 #define DBETA_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -32,6 +33,6 @@ class DBeta : public RScalarDist {
 	    std::vector<double const *> const &par2) const;
 };
 
-}
+}}
 
 #endif /* DBETA_H_ */

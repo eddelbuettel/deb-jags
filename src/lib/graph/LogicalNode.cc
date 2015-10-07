@@ -16,6 +16,8 @@ using std::string;
 using std::set;
 using std::logic_error;
 
+namespace jags {
+
 static vector<vector<double const *> > 
 mkParams(vector<Node const*> const &parents, unsigned int nchain)
 {
@@ -30,25 +32,31 @@ mkParams(vector<Node const*> const &parents, unsigned int nchain)
     return ans;
 }
 
-LogicalNode::LogicalNode(vector<unsigned int> const &dim, 
+
+LogicalNode::LogicalNode(vector<unsigned int> const &dim,
+			 unsigned int nchain,
 			 vector<Node const *> const &parameters,
 			 Function const *function)
-    : DeterministicNode(dim, parameters), _func(function), _discrete(false), 
-      _parameters(mkParams(parameters, nchain()))
+    : DeterministicNode(dim, nchain, parameters),
+      _func(function), _discrete(false), 
+      _parameters(mkParams(parameters, nchain))
 {
-    if (!function->checkNPar(parameters.size())) {
-	throw FuncError(function, "Incorrect number of parameters");
+    if (!checkNPar(function, parameters.size())) {
+	throw FuncError(function, "Incorrect number of arguments");
     }
     vector<bool> mask(parents().size());
     for (unsigned long j = 0; j < parents().size(); ++j) {
         mask[j] = parents()[j]->isDiscreteValued();
+    }
+    if (!_func->checkParameterDiscrete(mask)) {
+	throw FuncError(function, "Failed check for discrete-valued arguments");
     }
     _discrete = _func->isDiscreteValued(mask);
 }
 
 string LogicalNode::deparse(vector<string> const &parents) const
 {
-    string name = "(";
+    string name = "(a";
     name.append(_func->deparse(parents));
     name.append(")");
 	      
@@ -69,7 +77,7 @@ bool LogicalNode::isClosed(set<Node const *> const &ancestors,
 	    ++nmask;
 	}
 	if (fixed) {
-	    fixed_mask.push_back(par[i]->isObserved());
+	    fixed_mask.push_back(par[i]->isFixed());
 	}
     }
 
@@ -78,6 +86,9 @@ bool LogicalNode::isClosed(set<Node const *> const &ancestors,
     }
 
     switch(fc) {
+    case DNODE_ADDITIVE:
+	return _func->isAdditive(mask, fixed_mask);
+	break;
     case DNODE_LINEAR:
 	return _func->isLinear(mask, fixed_mask);
         break;
@@ -99,3 +110,5 @@ bool LogicalNode::isDiscreteValued() const
 {
     return _discrete;
 }
+
+} //namespace jags

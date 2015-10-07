@@ -4,6 +4,8 @@
 #include <graph/DeterministicNode.h>
 #include <vector>
 
+namespace jags {
+
 class Function;
 
 /**
@@ -23,7 +25,8 @@ public:
      * A logical node is defined by a function (which may be an inline
      * operator in the BUGS language) and its parameters.
      */
-    LogicalNode(std::vector<unsigned int> const &dim, 
+    LogicalNode(std::vector<unsigned int> const &dim,
+		unsigned int nchain,
                 std::vector<Node const*> const &parameters,
 		Function const *func);
     /**
@@ -41,5 +44,7 @@ public:
 		  ClosedFuncClass fc, bool fixed) const;
     std::string deparse(std::vector<std::string> const &) const;
 };
+
+} /* namespace jags */
 
 #endif /* LOGICAL_NODE_H_ */

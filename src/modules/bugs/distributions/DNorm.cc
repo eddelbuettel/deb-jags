@@ -13,6 +13,7 @@ using std::vector;
 #define SIGMA(par) (1/sqrt(*par[1]))
 #define TAU(par) (*par[1])
 
+namespace jags {
 namespace bugs {
 
 DNorm::DNorm()
@@ -77,14 +78,15 @@ double DNorm::randomSample(vector<double const *> const &par,
 }
 
 
-double DNorm::KL(vector<double const *> const &par0,
-		 vector<double const *> const &par1) const
-{
-    double mu0 = MU(par0), tau0 = TAU(par0);
-    double mu1 = MU(par1), tau1 = TAU(par1);
-
-    return ((mu0 - mu1) * (mu0 - mu1) * tau1 + tau1/tau0 - 1 + 
-	    log(tau0/tau1)) / 2;
-}
-
-}
+    double DNorm::KL(vector<double const *> const &par0,
+		     vector<double const *> const &par1) const
+	
+    {
+	double mu0 = MU(par0), tau0 = TAU(par0);
+	double mu1 = MU(par1), tau1 = TAU(par1);
+	
+	return ((mu0 - mu1) * (mu0 - mu1) * tau1 + tau1/tau0 - 1 + 
+		log(tau0/tau1)) / 2;
+    }
+    
+}}

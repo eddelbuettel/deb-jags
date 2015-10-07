@@ -9,16 +9,23 @@
 #include <JRmath.h>
 
 using std::vector;
+using std::string;
 
 #define PROB(par) (par[0])
 #define SIZE(par) (*par[1])
 
+namespace jags {
 namespace bugs {
 
 DMulti::DMulti()
   : VectorDist("dmulti", 2) 
 {}
 
+string DMulti::alias() const
+{
+    return "dmultinom";
+}
+    
 bool DMulti::isDiscreteValued(vector<bool> const &mask) const
 {
     return true;
@@ -26,8 +33,8 @@ bool DMulti::isDiscreteValued(vector<bool> const &mask) const
 
 bool DMulti::checkParameterLength(vector<unsigned int> const &len) const
 {
-    //Check that SIZE is a scalar
-    return len[1] == 1;
+    //Check that PROB is non-empty and SIZE is a scalar
+    return len[0] >= 1 && len[1] == 1;
 }
 
 bool DMulti::checkParameterDiscrete(vector<bool> const &mask) const
@@ -225,4 +232,4 @@ double DMulti::KL(vector<double const *> const &par1,
     return y;
 }
 
-}
+}}

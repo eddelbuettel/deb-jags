@@ -1,8 +1,9 @@
 #ifndef DBIN_H_
 #define DBIN_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -39,6 +40,6 @@ class DBin : public RScalarDist {
 	    std::vector<double const *> const &par2) const;
 };
 
-}
+}}
 
 #endif /* DBIN_H_ */

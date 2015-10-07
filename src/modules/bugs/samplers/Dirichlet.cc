@@ -15,6 +15,9 @@ using std::log;
 using std::string;
 using std::vector;
 
+namespace jags {
+namespace bugs {
+
 static vector<double> initValue(GraphView const *gv, unsigned int chain)
 {
     vector<double> ivalue(gv->length());
@@ -22,12 +25,11 @@ static vector<double> initValue(GraphView const *gv, unsigned int chain)
     return ivalue;
 }
 
-namespace bugs {
-
 DirchMetropolis::DirchMetropolis(GraphView const *gv, unsigned int chain)
     : RWMetropolis(initValue(gv, chain), 0.1),
       _gv(gv), _chain(chain), _s(1)
 {
+    gv->checkFinite(chain); //Check validity of initial values
 }
 
 void DirchMetropolis::step(vector<double> &value,  double step, RNG *rng) const
@@ -89,9 +91,4 @@ double DirchMetropolis::logJacobian(vector<double> const &value) const
     return lj;
 }
 
-string DirchMetropolis::name() const
-{
-    return "DirchMetropolis";
-}
-
-}
+}}

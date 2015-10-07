@@ -14,6 +14,7 @@ using std::length_error;
 using std::out_of_range;
 using std::string;
 
+namespace jags {
 
 /* 
    Two utility functions "substitute_parents" and "substitute_offsets"
@@ -62,12 +63,13 @@ static vector<unsigned int> sub_offsets(vector<Node const *> const &parents,
     return newoffsets;
 }
 
-AggNode::AggNode(vector<unsigned int> const &dim, 
+AggNode::AggNode(vector<unsigned int> const &dim,
+		 unsigned int nchain,
 		 vector<Node const *> const &parents,
                  vector<unsigned int> const &offsets)
-    : DeterministicNode(dim, sub_parents(parents, offsets)), 
+    : DeterministicNode(dim, nchain, sub_parents(parents, offsets)), 
       _offsets(sub_offsets(parents, offsets)),
-      _parent_values(_length * _nchain), _discrete(true)
+      _parent_values(_length * nchain), _discrete(true)
 {
     // Check argument lengths
     if (_length != parents.size() || _length != offsets.size()) {
@@ -101,8 +103,8 @@ AggNode::AggNode(vector<unsigned int> const &dim,
 	}
     }
 
-    // Initialize if fully observed. See DeterministicNode constructor
-    if (isObserved()) {
+    // Initialize if fixed. See comments in the DeterministicNode constructor
+    if (isFixed()) {
 	for (unsigned int ch = 0; ch < _nchain; ++ch) {
 	    deterministicSample(ch);
 	}
@@ -151,7 +153,34 @@ bool AggNode::isLinear(GraphMarks const &linear_marks, bool fixed) const
 bool AggNode::isClosed(set<Node const *> const &ancestors, 
 		       ClosedFuncClass fc, bool fixed) const
 {
+    
     switch(fc) {
+    case DNODE_ADDITIVE:
+    {
+	//Only one parent may be additive, and it must be completely
+	//embedded in the AggNode
+	Node const *pnode = 0;
+	vector<bool> pmask;
+	vector<Node const *> const &par = parents();
+	for (unsigned int i = 0; i < par.size(); ++i) {
+	    if (ancestors.count(par[i])) {
+		if (pnode == 0) {
+		    pnode = par[i];
+		    pmask = vector<bool>(pnode->length(), false);
+		}
+		else {
+		    if (par[i] != pnode) return false;
+		    if (pmask[_offsets[i]]) return false;
+		}
+		pmask[_offsets[i]] = true;
+	    }
+	    else if (fixed) {
+		if (!par[i]->isFixed()) return false;
+	    }
+	}
+	if (!allTrue(pmask)) return false;
+    }
+    break;
     case DNODE_SCALE:
 	//All parents must be scale transformations
 	for (unsigned int i = 0; i < parents().size(); ++i) {
@@ -189,11 +218,13 @@ string AggNode::deparse(vector<string> const &parents) const
 	parents.back() + ")";
 }
 
+/*    
 DeterministicNode *
 AggNode::clone(vector<Node const *> const &parents) const
 {
     return new AggNode(this->dim(), parents, _offsets);
 }
+*/
 
 bool AggNode::isDiscreteValued() const
 {
@@ -204,3 +235,5 @@ vector<unsigned int> const &AggNode::offsets() const
 {
     return _offsets;
 }
+
+} //namespace jags

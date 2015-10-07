@@ -11,6 +11,7 @@ static bool lt_doubleptr (double const *arg1, double const *arg2) {
   return *arg1 < *arg2;
 }
 
+namespace jags {
 namespace bugs {
 
     Order::Order ()
@@ -37,7 +38,8 @@ namespace bugs {
 	delete [] argptrs;
     }
 
-    unsigned int Order::length (vector<unsigned int> const &lengths) const
+    unsigned int Order::length (vector<unsigned int> const &lengths,
+				vector<double const *> const &parvalues) const
     {
 	return lengths[0];
     }
@@ -47,4 +49,4 @@ namespace bugs {
 	return true;
     }
 
-}
+}}

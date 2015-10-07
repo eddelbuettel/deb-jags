@@ -3,18 +3,21 @@
 
 #include "ConjugateMethod.h"
 
+namespace jags {
+    
+    class Graph;
+
 namespace bugs {
 
 class ConjugateGamma : public ConjugateMethod {
     double *_coef;
 public:
-    ConjugateGamma(GraphView const *gv);
+    ConjugateGamma(SingletonGraphView const *gv);
     ~ConjugateGamma();
     static bool canSample(StochasticNode *snode, Graph const &graph);
     void update(unsigned int chain, RNG *rng) const;
-    std::string name() const;
 };
 
-}
+}}
 
 #endif /* CONJUGATE_GAMMA_H_ */

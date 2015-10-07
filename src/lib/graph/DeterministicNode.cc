@@ -2,52 +2,66 @@
 #include <graph/DeterministicNode.h>
 
 using std::vector;
+using std::set;
 
-DeterministicNode::DeterministicNode(vector<unsigned int> const &dim, 
+namespace jags {
+
+DeterministicNode::DeterministicNode(vector<unsigned int> const &dim,
+				     unsigned int nchain,
                                      vector<Node const *> const &parents)
-    : Node(dim, parents), _observed(true)
+    : Node(dim, nchain, parents), _fixed(true)
 {
     //Add this node as a deterministic child of its parents
+    //taking care to avoid repeats
+    set<Node const*> pset;
     for (unsigned int i = 0; i < parents.size(); ++i) {
-	parents[i]->addChild(this);
+	Node const *p = parents[i];
+	if (pset.insert(p).second) {
+	    p->addChild(this);
+	}
     }
 
-    //Deterministic nodes are not observed if any parents are unobserved
+    //Deterministic nodes are not fixed if any parents are not fixed
     vector<Node const*>::const_iterator p;
     for (p = parents.begin(); p != parents.end(); ++p)
     {
-	if (!(*p)->isObserved()) {
-	    _observed =  false;
+	if (!(*p)->isFixed()) {
+	    _fixed =  false;
 	    break;
 	}
     }
 
     /* 
-       Observed deterministic nodes should be immediately initialized
-       by calling deterministicSample. We can't do this here because
-       this is a virtual function. So we have to do it in whatever
+       Fixed deterministic nodes should be immediately initialized by
+       calling deterministicSample. We can't do this here because this
+       is a virtual function. So we have to do it in whatever
        sub-class defines the deterministicSample member function.
     */
-       
 }
 
 DeterministicNode::~DeterministicNode()
 {
-    for (unsigned int i = 0; i < parents().size(); ++i) {
-	parents()[i]->removeChild(this);
-    }
 }
 
-void DeterministicNode::randomSample(RNG*, unsigned int nchain) {
-    deterministicSample(nchain);
+void DeterministicNode::randomSample(RNG*, unsigned int chain) {
+    deterministicSample(chain);
 }
 
-bool DeterministicNode::isRandomVariable() const { 
-    return false; 
+RVStatus DeterministicNode::randomVariableStatus() const 
+{ 
+    return RV_FALSE; 
 }
 
-bool DeterministicNode::isObserved() const
+bool DeterministicNode::isFixed() const
 {
-    return _observed;
+    return _fixed;
 }
 
+    void DeterministicNode::unlinkParents()
+    {
+	for (unsigned int i = 0; i < parents().size(); ++i) {
+	    parents()[i]->removeChild(this);
+	}
+    }
+    
+} //namespace jags

@@ -16,6 +16,8 @@ using std::ostringstream;
 using std::ofstream;
 using std::ostream;
 
+namespace jags {
+
 static void writeDouble(double x, ostream &out)
 {
     if (x == JAGS_NA) {
@@ -35,7 +37,44 @@ static void writeDouble(double x, ostream &out)
     }
 }
 
+    static vector<bool> missingValues(MonitorControl const &control,
+				      unsigned int nchain)
+    {
+	/* 
+	   Returns a boolean vector that indicates which variables
+	   have at least one missing value in at least one chain.
+	   Such variables are omitted when writing the index and
+	   output files.
+	*/
+
+	Monitor const *monitor = control.monitor();
+	unsigned int nvar = product(monitor->dim());
+	
+	vector<bool> ans(nvar, false);
+	for (unsigned int ch = 0; ch < nchain; ++ch) {
+	    vector<double> const &y = monitor->value(ch);
+	    for (unsigned int v = 0; v < nvar; ++v) {
+		if (ans[v]) continue;
+		if (monitor->poolIterations()) {
+		    if (y[v] == JAGS_NA) {
+			ans[v] = true;
+		    }
+		}
+		else {
+		    for (unsigned int k = 0; k < control.niter(); ++k) {
+			if (y[k * nvar + v] == JAGS_NA) {
+			    ans[v] = true;
+			    break;
+			}
+		    }
+		}
+	    }
+	}
+	return ans;
+    }
+    
 static void WriteIndex(MonitorControl const &control,
+		       vector<bool> const &missing,
 		       ofstream &index, unsigned int &lineno)
 {
     /* 
@@ -49,8 +88,9 @@ static void WriteIndex(MonitorControl const &control,
 
     unsigned int nvar = product(monitor->dim());
     vector<string> const &enames = monitor->elementNames();
-    for (unsigned int i = 0; i < nvar; ++i) {
-	index << enames[i] << " " << lineno + 1 << " "
+    for (unsigned int v = 0; v < nvar; ++v) {
+	if (missing[v]) continue;
+	index << enames[v] << " " << lineno + 1 << " "
 	      << lineno + control.niter() << '\n';
 	lineno += control.niter();
     }
@@ -58,6 +98,7 @@ static void WriteIndex(MonitorControl const &control,
 
 //Write output file
 static void WriteOutput(MonitorControl const &control, int chain,
+			vector<bool> const &missing,
 			ofstream &output)
 {
     Monitor const *monitor = control.monitor();
@@ -67,11 +108,12 @@ static void WriteOutput(MonitorControl const &control, int chain,
     
     vector<double> const &y = monitor->value(chain);
     unsigned int nvar = product(monitor->dim());
-    for (unsigned int offset = 0; offset < nvar; ++offset) {
+    for (unsigned int v = 0; v < nvar; ++v) {
+	if (missing[v]) continue;
 	unsigned int iter = control.start();
 	for (unsigned int k = 0; k < control.niter(); ++k) {
 	    output << iter << "  ";
-	    writeDouble(y[k * nvar + offset], output);
+	    writeDouble(y[k * nvar + v], output);
 	    output << '\n';
 	    iter += control.thin();
 	}
@@ -79,6 +121,7 @@ static void WriteOutput(MonitorControl const &control, int chain,
 }
 
 static void WriteTable(MonitorControl const &control, int chain,
+		       vector<bool> const &missing,
 		       ofstream &index)
 {
     Monitor const *monitor = control.monitor();
@@ -90,8 +133,11 @@ static void WriteTable(MonitorControl const &control, int chain,
     vector<string> const &enames = monitor->elementNames();
     
     unsigned int nvar = product(monitor->dim());
-    for (unsigned int i = 0; i < nvar; ++i) {
-	index << enames[i] << " " << y[i] << '\n';
+    for (unsigned int v = 0; v < nvar; ++v) {
+	if (missing[v]) continue;
+	index << enames[v] << " ";
+	writeDouble(y[v], index);
+	index << '\n';
     }
 }
 
@@ -158,9 +204,10 @@ void CODA(list<MonitorControl> const &mvec, string const &stem,
     for (p = mvec.begin(); p != mvec.end(); ++p) {
 	Monitor const *monitor = p->monitor();
 	if (!monitor->poolChains() && !monitor->poolIterations()) {
-	    WriteIndex(*p, index, lineno);
+	    vector<bool> missing = missingValues(*p, nchain);
+	    WriteIndex(*p, missing, index, lineno);
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
-		WriteOutput(*p, ch, *output[ch]);
+		WriteOutput(*p, ch, missing, *output[ch]);
 	    }
 	}
     }
@@ -203,8 +250,9 @@ void CODA0(list<MonitorControl> const &mvec, string const &stem, string &warn)
     for (p = mvec.begin(); p != mvec.end(); ++p) {
 	Monitor const *monitor = p->monitor();
 	if (monitor->poolChains() && !monitor->poolIterations()) {
-	    WriteIndex(*p, index, lineno);
-	    WriteOutput(*p, 0, output);
+	    vector<bool> missing = missingValues(*p, 1);
+	    WriteIndex(*p, missing, index, lineno);
+	    WriteOutput(*p, 0, missing, output);
 	}
     }
     
@@ -248,8 +296,9 @@ void TABLE(list<MonitorControl> const &mvec, string const &stem,
     for (p = mvec.begin(); p != mvec.end(); ++p) {
 	Monitor const *monitor = p->monitor();
 	if (!monitor->poolChains() && monitor->poolIterations()) {
+	    vector<bool> missing = missingValues(*p, nchain);
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
-		WriteTable(*p, ch, *output[ch]);
+		WriteTable(*p, ch, missing, *output[ch]);
 	    }
 	}
     }
@@ -280,9 +329,12 @@ void TABLE0(list<MonitorControl> const &mvec, string const &stem, string &warn)
     for (p = mvec.begin(); p != mvec.end(); ++p) {
 	Monitor const *monitor = p->monitor();
 	if (monitor->poolChains() && monitor->poolIterations()) {
-	    WriteTable(*p, 0, output);
+	    vector<bool> missing = missingValues(*p, 1);
+	    WriteTable(*p, 0, missing, output);
 	}
     }
     
     output.close();
 }
+
+} //namespace jags

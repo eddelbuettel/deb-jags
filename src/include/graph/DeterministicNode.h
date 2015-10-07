@@ -3,6 +3,10 @@
 
 #include <graph/Node.h>
 
+#include <set>
+
+namespace jags {
+
 /**
  * @short Closed classes of deterministic nodes
  *
@@ -11,6 +15,10 @@
  * composition: if g() and f() both belong to the class, then so does
  * g(f()). This property is used by some Samplers to determine whether
  * a node, or block of nodes, can be sampled.
+ *
+ * DNODE_ADDITIVE denotes a function f of the single ancestor nodes X
+ * such that sum(f(X)) = a + sum(X), where sum() denotes the sum of
+ * all the elements of the given node.
  *
  * DNODE_LINEAR denotes a linear function of the ancestor nodes X =
  * (X1, ... XN). A linear function takes the form A + B %*% X1 + B2
@@ -34,18 +42,20 @@
  *
  * @see DeterministicNode#isClosed
  */
-enum ClosedFuncClass {DNODE_LINEAR, DNODE_SCALE, DNODE_SCALE_MIX, DNODE_POWER};
+enum ClosedFuncClass {DNODE_ADDITIVE, DNODE_LINEAR, DNODE_SCALE,
+		      DNODE_SCALE_MIX, DNODE_POWER};
 
 /**
- * @short Base class for deterministic Node objects
+ * @short Base class for deterministic Nodes
  *
  * The value of a deterministic node is determined exactly by the
  * values of its parents.
  */
 class DeterministicNode : public Node {
-    bool _observed;
+    bool _fixed;
 public:
     DeterministicNode(std::vector<unsigned int> const &dim,
+		      unsigned int nchain,
 		      std::vector<Node const *> const &parents);
     ~DeterministicNode();
     /**
@@ -55,14 +65,13 @@ public:
      */
     void randomSample(RNG*, unsigned int nchain);
     /**
-     * Deterministic nodes are not random variables. This function
-     * always returns false.
+     * Deterministic nodes are not random variables. 
      */
-    bool isRandomVariable() const;
+    RVStatus randomVariableStatus() const;
     /**
-     * A deterministic node is observed if all its parents are
+     * A deterministic node is fixed if all its parents are fixed.
      */
-    bool isObserved() const;
+    bool isFixed() const;
     /**
      * Tests whether the node belongs to a closed class when
      * considered as a function of a given ancestor node X, or nodes
@@ -89,14 +98,18 @@ public:
      */
     virtual bool isClosed(std::set<Node const *> const &ancestors, 
 			  ClosedFuncClass fc, bool fixed) const = 0;
-    /**
+    /*
      * Creates a copy of the deterministic node.  Supplying the parents
      * of this node as the argument creates an identical copy.
      *
      * @param parents Parents of the cloned node. 
-     */
+     *
     virtual DeterministicNode * clone(std::vector<Node const *> const &parents)
 	const = 0;
+     */
+    void unlinkParents();
 };
+
+} /* namespace jags */
 
 #endif /* DETERMINISTIC_NODE_H_ */

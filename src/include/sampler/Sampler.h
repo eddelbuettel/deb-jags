@@ -5,14 +5,25 @@
 #include <string>
 #include <set>
 
-class RNG;
+namespace jags {
+
+struct RNG;
 class StochasticNode;
 class GraphView;
 
 /**
  * @short Updates a set of stochastic nodes
  *
- * A sampler updates a set of stochastic nodes.  
+ * A sampler updates a set of stochastic nodes at each iteration.
+ * In addition, the sampler is responsible for updating the immediate
+ * deterministic descendants of the sampled nodes.
+ *
+ * The Sampler class is designed to be as abstract as possible to give
+ * maximum freedom in implementing samplers.  In practice, all the
+ * Samplers in the modules distributed with JAGS are implementations
+ * of one of two subclasses -- MutableSampler or ImmutableSampler --
+ * depending on whether the Sampler does or does not have a state that
+ * it must preserve between iterations.
  */
 class Sampler {
     GraphView *_gv;
@@ -21,8 +32,9 @@ public:
      * Constructor
      *
      * @param gv GraphView providing a view of the sampling graph for
-     * the sampler. The Sampler takes ownership of the GraphView and
-     * deletes it when the destructor is called.
+     * the sampler. This should be dynamically allocated by the
+     * SamplerFactory: the Sampler takes ownership of the GraphView
+     * and deletes it when the destructor is called.
      */
     Sampler(GraphView *gv);
     virtual ~Sampler();
@@ -46,7 +58,7 @@ public:
      * sampler.
      */
     virtual void adaptOff() = 0;
-    /*
+    /**
      * The adaptOff function may be called at any time. Premature
      * ending of adaptive mode may result in an extremely inefficient
      * sampler.  Therefore the checkAdaptation function implements an
@@ -65,5 +77,7 @@ public:
      */
     virtual std::string name() const = 0;
 };
+
+} /* namespace jags */
 
 #endif /* SAMPLER_H_ */

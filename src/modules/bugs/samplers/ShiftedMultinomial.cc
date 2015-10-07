@@ -4,7 +4,7 @@
 
 #include <graph/StochasticNode.h>
 #include <sampler/Linear.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 
 #include <JRmath.h>
 
@@ -16,8 +16,11 @@ using std::copy;
   Helper functions
 */
 
+namespace jags {
+namespace bugs {
+
 static inline 
-StochasticNode const *CHILD(GraphView const *gv, unsigned int i)
+StochasticNode const *CHILD(SingletonGraphView const *gv, unsigned int i)
 {
     return gv->stochasticChildren()[i];
 }
@@ -52,7 +55,7 @@ double const *PROB(StochasticNode const *cnode, unsigned int chain)
   NB It is only safe to call this after the other checks in canSample.
 */
 
-static vector<int> makeIndex(GraphView const *gv, unsigned int chain)
+static vector<int> makeIndex(SingletonGraphView const *gv, unsigned int chain)
 {
     unsigned int m = gv->length(); //Length of sampled node
     vector<int> index(m, -1);
@@ -103,9 +106,7 @@ static vector<int> makeIndex(GraphView const *gv, unsigned int chain)
     return index;
 }
 
-namespace bugs {
-
-    ShiftedMultinomial::ShiftedMultinomial(GraphView const *gv)
+    ShiftedMultinomial::ShiftedMultinomial(SingletonGraphView const *gv)
 	: ConjugateMethod(gv), _index(makeIndex(gv,0))
     {
 
@@ -120,10 +121,10 @@ namespace bugs {
 	if (isBounded(snode))
 	    return false;
 
-	GraphView gv(vector<StochasticNode*>(1,snode), graph);
+	SingletonGraphView gv(snode, graph);
 
 	// Stochastic children must all be unbounded binomial
-	vector<StochasticNode const*> const &stoch_children = 
+	vector<StochasticNode *> const &stoch_children = 
 	    gv.stochasticChildren();
 	for (unsigned int i = 0; i < stoch_children.size(); ++i) {
 	    if (getDist(stoch_children[i]) != BIN)
@@ -156,7 +157,7 @@ namespace bugs {
 
     void ShiftedMultinomial::update(unsigned int chain, RNG *rng) const
     {
-	StochasticNode *snode = _gv->nodes()[0]; // Sampled node
+	StochasticNode *snode = _gv->node(); // Sampled node
 	unsigned int m = snode->length(); // Length of sampled node
 	double N = SIZE(snode, chain);
 	double const *p = PROB(snode, chain);
@@ -205,9 +206,4 @@ namespace bugs {
 
     }
 
-    string ShiftedMultinomial::name() const
-    {
-	return "ShiftedMultinomial";
-    }
-
-}
+}}

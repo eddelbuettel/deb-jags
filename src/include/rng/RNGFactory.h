@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
-class RNG;
+namespace jags {
+
+struct RNG;
 
 /**
  * @short Factory for RNG objects
@@ -18,6 +20,14 @@ class RNGFactory
      * it generates, and should delete them when the destructor is called.
      */
     virtual ~RNGFactory() {};
+    /**
+     * Sets the random seed of the RNG factory so that a reproducible
+     * sequence of RNGs can be produced.
+     *
+     * @param seed Seed that uniquely determines the sequence of RNGs 
+     * produced by subsequent calls to makeRNGs.
+     */
+    virtual void setSeed(unsigned int seed) = 0;
     /**
      * Returns a vector of newly allocated RNG objects.
      *
@@ -39,5 +49,7 @@ class RNGFactory
      */
     virtual std::string name() const = 0;
 };
+
+} /* namespace jags */
 
 #endif /* RNG_FACTORY_H_ */

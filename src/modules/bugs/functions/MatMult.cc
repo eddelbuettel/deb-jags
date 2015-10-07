@@ -7,6 +7,7 @@
 
 using std::vector;
 
+namespace jags {
 namespace bugs {
 
     //FIXME: deparse?
@@ -43,7 +44,8 @@ namespace bugs {
     }
 
     vector<unsigned int> 
-    MatMult::dim (vector <vector<unsigned int> > const &dims) const
+    MatMult::dim (vector <vector<unsigned int> > const &dims,
+		  vector<double const *> const &values) const
     {
 	vector<unsigned int> ans(2,1);
 
@@ -88,4 +90,9 @@ namespace bugs {
 	    return (mask[0] || fix[0]) && (mask[1] || fix[1]);
 	}
     }
-}
+
+    bool MatMult::isDiscreteValued(vector<bool> const &mask) const
+    {
+	return mask[0] && mask[1];
+    }
+}}

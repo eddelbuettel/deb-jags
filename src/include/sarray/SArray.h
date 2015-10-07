@@ -1,10 +1,12 @@
 #ifndef SARRAY_H_
 #define SARRAY_H_
 
-#include <sarray/Range.h>
+#include <sarray/SimpleRange.h>
 
 #include <vector>
 #include <string>
+
+namespace jags {
 
 /**
  * @short multi-dimensional real-valued array
@@ -13,7 +15,7 @@
  */
 class SArray 
 {
-    Range const _range;
+    const SimpleRange _range;
     std::vector<double> _value;
     bool _discrete;
     std::vector<std::vector<std::string> > _s_dimnames;
@@ -77,7 +79,7 @@ public:
     /**
      * Returns the range associated with the SArray.
      */
-    Range const &range() const;
+    SimpleRange const &range() const;
     /**
      * Returns the names of the dimensions. A newly created SArray has
      * no dimension names and this function returns an empty vector.
@@ -117,5 +119,7 @@ public:
     std::vector<unsigned int> const &
 	dim(bool drop) const { return range().dim(drop); }
 };
+
+} /* namespace jags */
 
 #endif /* SARRAY_H_ */

@@ -3,6 +3,7 @@
 
 #include <function/ScalarFunction.h>
 
+namespace jags {
 namespace bugs {
 
     /**
@@ -18,9 +19,9 @@ namespace bugs {
     public:
 	Probit ();
 	double evaluate(std::vector<double const *> const &args) const;
-	bool checkScalarValue(std::vector<double const *> const &args) const;
+	bool checkParameterValue(std::vector<double const *> const &args) const;
     };
 
-}
+}}
 
 #endif /* FUNC_PROBIT_H_ */

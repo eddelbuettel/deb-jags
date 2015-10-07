@@ -44,6 +44,7 @@
 #include <set>
 #include <climits>
 #include <algorithm>
+#include <list>
 
 using std::vector;
 using std::pair;
@@ -54,13 +55,15 @@ using std::set;
 using std::map;
 using std::copy;
 using std::reverse;
+using std::list;
+
+namespace jags {
 
 //Structure to hold subset indices
 struct SSI {
   Node const *node;
-  int lower;
-  int upper;
-  SSI() : node(0), lower(0), upper(0) {};
+  vector<int> indices;
+  SSI() : node(0) {};
 };
 
 
@@ -75,41 +78,31 @@ struct SSI {
 */
 static void getSubsetRanges(vector<pair<vector<int>, Range> > &subsets,  
 			    vector<SSI> const &limits,
-			    Range const &default_range)
+			    SimpleRange const &default_range)
 {
-  unsigned int ndim = limits.size();
-  //Count number of variable indices (nvi)
-  int nvi = 0;
-  for (unsigned int j = 0; j < ndim; ++j) {
-    if (limits[j].node != 0)
-      ++nvi;
-  }
+    unsigned int ndim = limits.size();
 
-  // Create upper and lower bounds
-  vector<int> variable_offset(nvi,1), variable_lower(nvi,1), variable_upper(nvi,1);
-  vector<int> lower_index(ndim,1), upper_index(ndim,1);
-  int k = 0;
-  for (unsigned int j = 0; j < ndim; ++j) {
-    if (limits[j].node != 0) {
-      variable_offset[k] = j;
-      variable_lower[k] = default_range.lower()[j];
-      variable_upper[k] = default_range.upper()[j];
-      ++k;
+    // Create upper and lower bounds
+    vector<int> var_offset, var_lower, var_upper;
+    vector<vector<int> > scope(ndim);
+    for (unsigned int j = 0; j < ndim; ++j) {
+	if (limits[j].node) {
+	    var_offset.push_back(j);
+	    var_lower.push_back(default_range.lower()[j]);
+	    var_upper.push_back(default_range.upper()[j]);
+	}
+	else {
+	    scope[j] = limits[j].indices;
+	}
     }
-    else {
-      lower_index[j] = limits[j].lower;
-      upper_index[j] = limits[j].upper;
+
+    SimpleRange var_range(var_lower, var_upper); //range of variable indices
+    for (RangeIterator p(var_range); !p.atEnd(); p.nextLeft()) {
+	for (unsigned int k = 0; k < var_offset.size(); ++k) {
+	    scope[var_offset[k]] = vector<int>(1, p[k]);
+	}
+	subsets.push_back(pair<vector<int>, Range>(p, Range(scope)));
     }
-  }
-  
-  for (RangeIterator i(Range(variable_lower, variable_upper)); !i.atEnd(); 
-       i.nextLeft()) {
-    for (int k = 0; k < nvi; ++k) {
-      lower_index[variable_offset[k]] = i[k];
-      upper_index[variable_offset[k]] = i[k];
-    }
-    subsets.push_back(pair<vector<int>, Range>(i, Range(lower_index, upper_index)));
-  }
 }
 
 //  Returns true if node, or one of its deterministic descendants, is
@@ -127,10 +120,10 @@ static bool hasDescendant(DeterministicNode *node,
 	dnodes.push_back(node);
 	return true;
     }
-
+    
     bool ans = false;
-    set<DeterministicNode*> const *dc = node->deterministicChildren();
-    for(set<DeterministicNode*>::const_iterator p = dc->begin();
+    list<DeterministicNode*> const *dc = node->deterministicChildren();
+    for(list<DeterministicNode*>::const_iterator p = dc->begin();
 	p != dc->end(); ++p)
     {
 	if (hasDescendant(*p, target_nodes, dnodes, known_dnodes)) {
@@ -161,10 +154,7 @@ static bool findStochasticIndices(vector<Node const *> const &tgt_nodes,
     set<DeterministicNode*> known_dnodes;
     vector<StochasticNode*> const &snodes = model.stochasticNodes();
     for (unsigned int i = 0; i < snodes.size(); ++i) {
-	/*
-	  if (snodes[i]->isObserved())
-	  continue;
-	*/
+
 	if (tgt_set.count(snodes[i])) {
 	    stoch_parents.push_back(snodes[i]);
 	}
@@ -178,9 +168,9 @@ static bool findStochasticIndices(vector<Node const *> const &tgt_nodes,
 	    }
 
 	    bool ans = false;
-	    set<DeterministicNode*> const *dc = 
+	    list<DeterministicNode*> const *dc = 
 		snodes[i]->deterministicChildren();
-	    for(set<DeterministicNode*>::const_iterator p = dc->begin();
+	    for(list<DeterministicNode*>::const_iterator p = dc->begin();
 		p != dc->end(); ++p)
 	    {
 		if (hasDescendant(*p, tgt_set, dtrm_parents, known_dnodes)) {
@@ -206,6 +196,7 @@ static bool findStochasticIndices(vector<Node const *> const &tgt_nodes,
     return true;
 }
 
+    /*
 static void cloneNodes(vector<StochasticNode*> const &nodes, 
 		       vector<StochasticNode*> &newnodes,
 		       map<Node const*, Node const*> &remap)
@@ -236,7 +227,8 @@ static void cloneNodes(vector<DeterministicNode*> const &nodes,
 	remap[nodes[i]] = newnode;
     }
 }
-
+    */
+    
 static Node* 
 getMixtureNode1(NodeArray *array, vector<SSI> const &limits, Compiler *compiler)
 // Try to simplify the mixture node by enumerating all possible values
@@ -246,13 +238,12 @@ getMixtureNode1(NodeArray *array, vector<SSI> const &limits, Compiler *compiler)
     unsigned int ndim = limits.size();
 
     vector<Node const*> indices;
-    unsigned int nvi = 0;
     for (unsigned int i = 0; i < ndim; ++i) {
 	if (limits[i].node) {
 	    indices.push_back(limits[i].node);
-	    ++nvi;
 	}
     }
+    unsigned int nvi = indices.size();
 
     vector<StochasticNode *> sparents;
     vector<DeterministicNode *> dparents;
@@ -277,67 +268,57 @@ getMixtureNode1(NodeArray *array, vector<SSI> const &limits, Compiler *compiler)
 	upper[i] = static_cast<int>(u);
     }
 
-    map<Node const*, Node const*> remap;
-    vector<StochasticNode *> rep_sparents;
-    cloneNodes(sparents, rep_sparents, remap);
-    
-    vector<DeterministicNode const*> dtrm_parents;
-    vector<DeterministicNode*> rep_dparents;
-    cloneNodes(dparents, rep_dparents, remap);
-
-    vector<Node const*> rep_indices(indices.size());
-    for (unsigned int i = 0; i < indices.size(); ++i) {
-	rep_indices[i] = remap[indices[i]];
+    //Store current value of all stochastic parents
+    vector<vector<double> > stored_parent_values;
+    for (unsigned int j = 0; j < sparents.size(); ++j) {
+	double const *pv = sparents[j]->value(0);
+	vector<double> value(sparents[j]->length());
+	copy(pv, pv + sparents[j]->length(), value.begin());
+	stored_parent_values.push_back(value);
     }
-
+    
     // Create a set containing all possible values that the stochastic
     // indices can take
 
     set<vector<int> > index_values;
     vector<int>  this_index(indices.size(),1);
-    Range stoch_node_range(lower, upper);
+    SimpleRange stoch_node_range(lower, upper);
 
     for (RangeIterator i(stoch_node_range); !i.atEnd(); i.nextLeft()) {
 
 	for (unsigned int j = 0; j < sparents.size(); ++j) {
 	    double v = i[j];
-	    rep_sparents[j]->setValue(&v, 1, 0);
+	    sparents[j]->setValue(&v, 1, 0);
 	}
 
 	for (unsigned int k = 0; k < dparents.size(); ++k) {
-	    rep_dparents[k]->deterministicSample(0);
+	    dparents[k]->deterministicSample(0);
 	}
     
 	for (unsigned int l = 0; l < indices.size(); ++l) {
-	    this_index[l] = static_cast<int>(*rep_indices[l]->value(0));
+	    this_index[l] = static_cast<int>(*indices[l]->value(0));
 	}
     
 	index_values.insert(this_index);
     }
-    
-    // We are done with the replicate nodes
-    rep_indices.clear();
-    while (!rep_dparents.empty()) {
-	delete rep_dparents.back();
-	rep_dparents.pop_back();
-    }
-    while (!rep_sparents.empty()) {
-	delete rep_sparents.back();
-	rep_sparents.pop_back();
+
+    //Restore value of all stochastic parents
+    vector<vector<double> > parent_values;
+    for (unsigned int j = 0; j < sparents.size(); ++j) {
+	vector<double> const &pv = stored_parent_values[j];
+	sparents[j]->setValue(&pv[0], pv.size(), 0);
     }
 
     // Now set up the possible subsets defined by the stochastic indices
 
-    vector<int> variable_offset(nvi, 1);
-    vector<int> lower_index(ndim, 1), upper_index(ndim, 1);
-    int k = 0;
+    vector<int> variable_offset;
+    vector<vector<int> > scope(ndim);
     for (unsigned int j = 0; j < ndim; ++j) {
-	if (limits[j].node != 0) {
-	    variable_offset[k++] = j;
+	if (limits[j].node) {
+	    variable_offset.push_back(j);
 	}
 	else {
-	    lower_index[j] = limits[j].lower;
-	    upper_index[j] = limits[j].upper;
+	    scope[j] = limits[j].indices;
 	}
     }
 
@@ -347,10 +328,9 @@ getMixtureNode1(NodeArray *array, vector<SSI> const &limits, Compiler *compiler)
 
 	vector<int> const &i = *p;
 	for (unsigned int k = 0; k < nvi; ++k) {
-	    lower_index[variable_offset[k]] = i[k];
-	    upper_index[variable_offset[k]] = i[k];
+	    scope[variable_offset[k]] = vector<int>(1, i[k]);
 	}
-	ranges.push_back(pair<vector<int>, Range>(i, Range(lower_index, upper_index)));
+	ranges.push_back(pair<vector<int>, Range>(i, Range(scope)));
     }
 
     //Look out for trivial mixture nodes in which all subsets are the same.
@@ -430,40 +410,17 @@ Node * getMixtureNode(ParseTree const * var, Compiler *compiler)
 	    throw runtime_error("Malformed range expression");
 	}
 	SSI ssi;
-	ssi.node = 0;
-	ParseTree const *p0, *p1;
+	ParseTree const *p0;
 	switch(range_element->parameters().size()) {
 	case 0:
 	    // Index is empty, implying the whole range 
-	    ssi.lower = array->range().lower()[i];
-	    ssi.upper = array->range().upper()[i];
+	    ssi.indices = array->range().scope()[i];
 	    break;
 	case 1:
-	    // Single index: upper = lower
 	    p0 = range_element->parameters()[0];
-	    if(compiler->indexExpression(p0, ssi.lower)) {
-		ssi.upper = ssi.lower;
-	    }
-	    else {
+	    if(!compiler->indexExpression(p0, ssi.indices)) {
 		ssi.node = compiler->getParameter(p0);
 		if (ssi.node == 0)
-		    return 0;
-		else
-		    ++nvi;
-	    }
-	    break;
-	case 2:
-	    // Upper and lower indices
-	    p0 = range_element->parameters()[0];
-	    p1 = range_element->parameters()[1];
-	    if(compiler->indexExpression(p0, ssi.lower)) {
-		if (!compiler->indexExpression(p1, ssi.upper)) {
-		    return 0;
-		}
-	    }
-	    else {
-		ssi.node = compiler->getParameter(p0);
-		if (compiler->getParameter(p1) != ssi.node)
 		    return 0;
 		else
 		    ++nvi;
@@ -482,25 +439,32 @@ Node * getMixtureNode(ParseTree const * var, Compiler *compiler)
 	    }
 	}
 	else {
-	    if (ssi.lower < array->range().lower()[i] ||
-		ssi.upper > array->range().upper()[i] ||
-		ssi.upper < ssi.lower)
-	    {
-		throw runtime_error("Requested invalid variable subset of " + 
+	    if (ssi.indices.empty()) {
+		throw runtime_error("Requested invalid variable subset of " +
 				    var->name());
 	    }
-    }
+	    for (unsigned int j = 0; j < ssi.indices.size(); ++j) {
+		if (ssi.indices[j] < array->range().lower()[i] ||
+		    ssi.indices[j] > array->range().upper()[i])
+		{
+		    throw runtime_error("Requested invalid variable subset of "
+					+ var->name());
+		}
+	    }
+	}
 	limits.push_back(ssi);
-}
-  
+    }
+    
     //Check number of variable indices (nvi)
     if (nvi == 0) {
 	throw logic_error("Trivial mixture node");
     }
 
-Node *mnode = getMixtureNode1(array, limits, compiler);
-if (mnode)
-    return mnode;
-else
-    return getMixtureNode2(array, limits, compiler);
-}
+    Node *mnode = getMixtureNode1(array, limits, compiler);
+    if (mnode)
+	return mnode;
+    else
+	return getMixtureNode2(array, limits, compiler);
+    }
+    
+} //namespace jags

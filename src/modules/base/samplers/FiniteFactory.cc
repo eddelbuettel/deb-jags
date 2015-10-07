@@ -1,7 +1,6 @@
 #include <config.h>
-#include <sampler/ParallelSampler.h>
-#include <sampler/GraphView.h>
-#include <sampler/SampleMethod.h>
+#include <sampler/ImmutableSampler.h>
+#include <sampler/SingletonGraphView.h>
 
 #include "FiniteMethod.h"
 #include "FiniteFactory.h"
@@ -11,6 +10,7 @@
 using std::vector;
 using std::string;
 
+namespace jags {
 namespace base {
 
     bool 
@@ -19,20 +19,17 @@ namespace base {
 	return FiniteMethod::canSample(snode);
     }
 
-    Sampler *  FiniteFactory::makeSampler(StochasticNode *snode,
-					  Graph const &graph) const
+    Sampler * FiniteFactory::makeSampler(StochasticNode *snode,
+					 Graph const &graph) const
     {
-	GraphView *gv = new GraphView(snode, graph);
-	unsigned int N = nchain(gv);
-	vector<SampleMethod*> methods(N, 0);
-	for (unsigned int ch = 0; ch < N; ++ch) {
-	    methods[ch] = new FiniteMethod(gv, ch);
-	}
-	return new ParallelSampler(gv, methods);
+	SingletonGraphView *gv = new SingletonGraphView(snode, graph);
+	FiniteMethod *method = new FiniteMethod(gv);
+	return new ImmutableSampler(gv, method, name());
     }
 
     string FiniteFactory::name() const
     {
 	return "base::Finite";
     }
-}
+
+}}

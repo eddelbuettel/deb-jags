@@ -1,15 +1,17 @@
 #include <config.h>
 
 #include "PDMonitor.h"
-#include "CalKL.h"
 #include <graph/StochasticNode.h>
 #include <module/ModuleError.h>
+#include <rng/RNG.h>
 
 #include <algorithm>
 
 using std::vector;
 using std::string;
 using std::copy;
+
+namespace jags {
 
 static vector<Node const *> toNodeVec(vector<StochasticNode const *> const &s)
 {
@@ -21,21 +23,20 @@ static vector<Node const *> toNodeVec(vector<StochasticNode const *> const &s)
 namespace dic {
 
     PDMonitor::PDMonitor(vector<StochasticNode const *> const &snodes,
-			 vector<CalKL *> const &calkl, double scale)
-	: Monitor("mean", toNodeVec(snodes)), _calkl(calkl),
+			 vector<RNG *> const &rngs,
+			 unsigned int nrep, double scale)
+	: Monitor("mean", toNodeVec(snodes)), _snodes(snodes), _rngs(rngs),
+	  _nrep(nrep),
 	  _values(snodes.size(), 0),  _weights(snodes.size(), 0),
-	  _scale(scale), _nchain(snodes[0]->nchain())
+	  _scale(scale), _nchain(rngs.size())
     {
-	if (snodes[0]->nchain() < 2) {
+	if (_nchain < 2) {
 	    throwLogicError("PDMonitor needs at least 2 chains");
 	}
     }
 
     PDMonitor::~PDMonitor() 
     {
-	for (unsigned int i = 0; i < _calkl.size(); ++i) {
-	    delete _calkl[i];
-	}
     }
 
     vector<unsigned int> PDMonitor::dim() const
@@ -46,10 +47,6 @@ namespace dic {
     vector<double> const &PDMonitor::value(unsigned int chain) const
     {
 	return _values;
-    }
-
-    void PDMonitor::reserve(unsigned int niter)
-    {
     }
 
     bool PDMonitor::poolChains() const
@@ -70,9 +67,11 @@ namespace dic {
 	    double pdsum = 0;
 	    double wsum = 0;
 	    for (unsigned int i = 0; i < _nchain; ++i) {
-		w[i] = weight(k, i);
+		w[i] = weight(_snodes[k], i);
 		for (unsigned int j = 0; j < i; ++j) {
-		    pdsum += w[i] * w[j] * _calkl[k]->divergence(i, j);
+		    pdsum += w[i] * w[j] * (
+			_snodes[k]->KL(i, j, _rngs[i], _nrep) +
+			_snodes[k]->KL(j, i, _rngs[j], _nrep));
 		    wsum += w[i] * w[j];
 		}
 	    }
@@ -85,9 +84,9 @@ namespace dic {
     }
 
 
-    double PDMonitor::weight(unsigned int k, unsigned int ch) const
+    double PDMonitor::weight(StochasticNode const *snode, unsigned int ch) const
     {
 	return 1;
     }
 
-}
+}}

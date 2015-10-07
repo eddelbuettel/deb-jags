@@ -4,8 +4,8 @@
 #include "MNormalFactory.h"
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
-#include <sampler/ParallelSampler.h>
-#include <sampler/GraphView.h>
+#include <sampler/MutableSampler.h>
+#include <sampler/SingletonGraphView.h>
 
 #include <string>
 #include <vector>
@@ -13,6 +13,7 @@
 using std::vector;
 using std::string;
 
+namespace jags {
 namespace bugs {
 
 bool 
@@ -25,13 +26,13 @@ Sampler *
 MNormalFactory::makeSampler(StochasticNode *snode, Graph const &graph) const
 {
     unsigned int N = snode->nchain();
-    vector<SampleMethod*> methods(N, 0);
+    vector<MutableSampleMethod*> methods(N, 0);
 
-    GraphView *gv = new GraphView(snode, graph);
+    SingletonGraphView *gv = new SingletonGraphView(snode, graph);
     for (unsigned int ch = 0; ch < N; ++ch) {
         methods[ch] = new MNormMetropolis(gv, ch);
     }
-    return new ParallelSampler(gv, methods);
+    return new MutableSampler(gv, methods, "bugs::MNormalMetropolis");
 }
 
 string MNormalFactory::name() const 
@@ -39,4 +40,4 @@ string MNormalFactory::name() const
     return "bugs::MNormal";
 }
 
-}
+}}

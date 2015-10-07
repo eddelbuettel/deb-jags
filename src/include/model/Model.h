@@ -1,18 +1,20 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
-#include <graph/Graph.h>
 #include <model/MonitorControl.h>
 
 #include <vector>
 #include <list>
 #include <string>
 
+namespace jags {
+
 class Sampler;
 class SamplerFactory;
-class RNG;
+struct RNG;
 class RNGFactory;
 class MonitorFactory;
+class Node;
 class StochasticNode;
 class DeterministicNode;
 class ConstantNode;
@@ -30,11 +32,10 @@ private:
   unsigned int _nchain;
   std::vector<RNG *> _rng;
   unsigned int _iteration;
-  Graph _graph;
-  std::set<Node*> _extra_nodes;
+  std::vector<Node*> _nodes;
+  std::vector<Node*> _extra_nodes;
   std::vector<Node*> _sampled_extra;
   std::list<MonitorControl> _monitors;
-  std::list<Monitor*> _default_monitors;
   std::vector<StochasticNode*> _stochastic_nodes;
   bool _is_initialized;
   bool _adapt;
@@ -49,11 +50,6 @@ public:
    */
   Model(unsigned int nchain);
   virtual ~Model();
-  /**
-   * Returns the Graph associated with the model. This graph contains
-   * all the nodes in the model
-   */
-  Graph const &graph();
   /**
    * Initializes the model.  Initialization takes place in three steps.
    *
@@ -125,22 +121,10 @@ public:
    */
   void addNode(ConstantNode *node);
   /**
-   * After the model is initialized, extra uninformative nodes may be
-   * added to the graph.  The model takes responsibility for updating
-   * the extra node.
-   *
-   * The extra node cannot be observed, it must not already be in the
-   * model graph, it may not have any children, and all of its parents
-   * must be in the graph.
-   */
-  void addExtraNode(Node *node);
-  /**
    * Access the list of sampler factories, which is common to all
    * models. This is used during initialization to choose samplers.
    * Each sampler factory is paired with a boolean flag which is used
    * to determine whether the factory is active or not
-   *
-   * @seealso Model#chooseSamplers
    */
   static std::list<std::pair<SamplerFactory *, bool> > &samplerFactories();
   /**
@@ -200,6 +184,12 @@ public:
    * Returns a vector of all stochastic nodes in the model
    */
   std::vector<StochasticNode*> const &stochasticNodes() const;
+  /**
+   * Returns a vector of all nodes in the model
+   */ 
+  std::vector<Node*> const &nodes() const;
 };
+
+} /* namespace jags */
 
 #endif /* MODEL_H_ */
