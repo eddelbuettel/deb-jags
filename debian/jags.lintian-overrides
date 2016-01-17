@@ -8,6 +8,6 @@ jags: hardening-no-relro usr/lib/JAGS/modules-4/glm.so
 jags: hardening-no-relro usr/lib/JAGS/modules-4/lecuyer.so
 jags: hardening-no-relro usr/lib/JAGS/modules-4/mix.so
 jags: hardening-no-relro usr/lib/JAGS/modules-4/msm.so
-jags: hardening-no-relro usr/lib/libjags.so.4.0.0
 jags: hardening-no-relro usr/lib/libjrmath.so.0.0.0
-jags: non-dev-pkg-with-shlib-symlink usr/lib/libjags.so.4.0.0 usr/lib/libjags.so
+jags: hardening-no-relro usr/lib/libjags.so.4.0.1
+jags: non-dev-pkg-with-shlib-symlink usr/lib/libjags.so.4.0.1 usr/lib/libjags.so

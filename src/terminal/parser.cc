@@ -70,7 +70,7 @@
 #define yychar          zzchar
 
 /* Copy the first part of user declarations.  */
-#line 2 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:339  */
+#line 2 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:339  */
 
 #include <config.h>
 
@@ -304,7 +304,7 @@ extern int zzdebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 92 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:355  */
+#line 92 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:355  */
 
   int intval;
   double val;
@@ -1614,7 +1614,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 170 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 170 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1623,7 +1623,7 @@ yyreduce:
     break;
 
   case 3:
-#line 174 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 174 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1632,43 +1632,43 @@ yyreduce:
     break;
 
   case 4:
-#line 180 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 180 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {}
 #line 1638 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 181 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 181 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {}
 #line 1644 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 182 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 182 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {if(interactive) yyerrok; else exit(1); }
 #line 1650 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 183 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 183 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {}
 #line 1656 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 184 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 184 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {}
 #line 1662 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 185 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 185 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { doSystem((yyvsp[-1].stringptr)); delete (yyvsp[-1].stringptr);}
 #line 1668 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 213 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 213 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     std::FILE *file = std::fopen(ExpandFileName(((yyvsp[0].stringptr))->c_str()).c_str(), "r");
     if (!file) {
@@ -1685,7 +1685,7 @@ yyreduce:
     break;
 
   case 34:
-#line 225 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 225 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     console->clearModel();
  }
@@ -1693,7 +1693,7 @@ yyreduce:
     break;
 
   case 35:
-#line 230 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 230 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     std::string rngname;
     readRData((yyvsp[-1].pvec), _data_table, rngname);
@@ -1706,7 +1706,7 @@ yyreduce:
     break;
 
   case 36:
-#line 238 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 238 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     // Failed to open the data file 
     if (!interactive) exit(1);
@@ -1715,7 +1715,7 @@ yyreduce:
     break;
 
   case 37:
-#line 244 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 244 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     doDump(*(yyvsp[0].stringptr), jags::DUMP_DATA, 1);
     delete (yyvsp[0].stringptr);
@@ -1724,7 +1724,7 @@ yyreduce:
     break;
 
   case 38:
-#line 250 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 250 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     if(open_data_buffer((yyvsp[0].stringptr))) {
 	std::cout << "Reading data file " << *(yyvsp[0].stringptr) << std::endl;
@@ -1739,7 +1739,7 @@ yyreduce:
     break;
 
   case 39:
-#line 262 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 262 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     std::cout << "Clearing data table " << std::endl;
     _data_table.clear();
@@ -1748,7 +1748,7 @@ yyreduce:
     break;
 
   case 40:
-#line 269 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 269 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     std::map<std::string, jags::SArray> parameter_table;
     std::string rngname;
@@ -1778,7 +1778,7 @@ yyreduce:
     break;
 
   case 41:
-#line 295 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 295 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     std::map<std::string, jags::SArray> parameter_table;
     std::string rngname;
@@ -1796,13 +1796,13 @@ yyreduce:
     break;
 
   case 42:
-#line 308 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 308 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {}
 #line 1802 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 311 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 311 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     doDump(*(yyvsp[0].stringptr), jags::DUMP_PARAMETERS, 1);
     delete (yyvsp[0].stringptr);
@@ -1811,7 +1811,7 @@ yyreduce:
     break;
 
   case 44:
-#line 315 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 315 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     doDump(*(yyvsp[-5].stringptr), jags::DUMP_PARAMETERS, (yyvsp[-1].intval));
     delete (yyvsp[-5].stringptr);
@@ -1820,7 +1820,7 @@ yyreduce:
     break;
 
   case 45:
-#line 321 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 321 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   if(open_data_buffer((yyvsp[0].stringptr))) {
     std::cout << "Reading parameter file " << *(yyvsp[0].stringptr) << std::endl;
@@ -1834,7 +1834,7 @@ yyreduce:
     break;
 
   case 46:
-#line 330 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 330 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   /* Legacy option to not break existing scripts */
   if(open_data_buffer((yyvsp[0].stringptr))) {
@@ -1849,7 +1849,7 @@ yyreduce:
     break;
 
   case 47:
-#line 342 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 342 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     Jtry(console->compile(_data_table, 1, true));
     print_unused_variables(_data_table, true);
@@ -1858,7 +1858,7 @@ yyreduce:
     break;
 
   case 48:
-#line 346 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 346 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     Jtry(console->compile(_data_table, (yyvsp[-1].intval), true));
     print_unused_variables(_data_table, true);
@@ -1867,7 +1867,7 @@ yyreduce:
     break;
 
   case 49:
-#line 352 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 352 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     if (!console->initialize()) {
 	errordump();
@@ -1877,7 +1877,7 @@ yyreduce:
     break;
 
   case 50:
-#line 359 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 359 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
     adaptstar((yyvsp[0].intval), refresh, 50);
@@ -1886,7 +1886,7 @@ yyreduce:
     break;
 
   case 51:
-#line 363 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 363 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     adaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
 }
@@ -1894,7 +1894,7 @@ yyreduce:
     break;
 
   case 52:
-#line 368 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 368 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
     updatestar((yyvsp[0].intval), refresh, 50);
@@ -1903,7 +1903,7 @@ yyreduce:
     break;
 
   case 53:
-#line 372 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 372 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   updatestar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
 }
@@ -1911,13 +1911,13 @@ yyreduce:
     break;
 
   case 54:
-#line 377 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 377 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { return 0; }
 #line 1917 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 380 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 380 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[0].stringptr));
 }
@@ -1925,7 +1925,7 @@ yyreduce:
     break;
 
   case 56:
-#line 383 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 383 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[-3].stringptr));
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
@@ -1934,7 +1934,7 @@ yyreduce:
     break;
 
   case 57:
-#line 389 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 389 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree)); 
 }
@@ -1942,7 +1942,7 @@ yyreduce:
     break;
 
   case 58:
-#line 392 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 392 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
@@ -1950,7 +1950,7 @@ yyreduce:
     break;
 
   case 59:
-#line 397 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 397 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new jags::ParseTree(jags::P_RANGE); setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
@@ -1958,7 +1958,7 @@ yyreduce:
     break;
 
   case 60:
-#line 400 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 400 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new jags::ParseTree(jags::P_RANGE); setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
@@ -1966,13 +1966,13 @@ yyreduce:
     break;
 
   case 61:
-#line 406 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 406 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].intval));}
 #line 1972 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 413 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 413 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { 
     setMonitor((yyvsp[0].ptree), 1, "trace"); delete (yyvsp[0].ptree);
 }
@@ -1980,7 +1980,7 @@ yyreduce:
     break;
 
   case 65:
-#line 416 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 416 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { 
     setMonitor((yyvsp[-5].ptree), (yyvsp[-1].intval), "trace"); delete (yyvsp[-5].ptree);
 }
@@ -1988,7 +1988,7 @@ yyreduce:
     break;
 
   case 66:
-#line 419 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 419 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setMonitor((yyvsp[0].ptree), 1, "trace"); delete (yyvsp[0].ptree);
 }
@@ -1996,7 +1996,7 @@ yyreduce:
     break;
 
   case 67:
-#line 422 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 422 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { 
     setMonitor((yyvsp[-5].ptree), (yyvsp[-1].intval), "trace"); delete (yyvsp[-5].ptree);
 }
@@ -2004,7 +2004,7 @@ yyreduce:
     break;
 
   case 68:
-#line 425 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 425 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setMonitor((yyvsp[-5].ptree), 1, *(yyvsp[-1].stringptr));
     delete (yyvsp[-1].stringptr);
@@ -2013,7 +2013,7 @@ yyreduce:
     break;
 
   case 69:
-#line 429 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 429 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setMonitor((yyvsp[-9].ptree), (yyvsp[-1].intval), *(yyvsp[-5].stringptr)); 
     delete (yyvsp[-5].stringptr);
@@ -2022,7 +2022,7 @@ yyreduce:
     break;
 
   case 70:
-#line 433 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 433 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setMonitor((yyvsp[-9].ptree), (yyvsp[-5].intval), *(yyvsp[-1].stringptr)); 
     delete (yyvsp[-1].stringptr);
@@ -2031,7 +2031,7 @@ yyreduce:
     break;
 
   case 71:
-#line 439 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 439 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     clearMonitor((yyvsp[0].ptree), "trace"); delete (yyvsp[0].ptree);
 }
@@ -2039,7 +2039,7 @@ yyreduce:
     break;
 
   case 72:
-#line 442 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 442 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     clearMonitor((yyvsp[-5].ptree), *(yyvsp[-1].stringptr));
     delete (yyvsp[-1].stringptr);
@@ -2048,7 +2048,7 @@ yyreduce:
     break;
 
   case 73:
-#line 449 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 449 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     dumpMonitors(*(yyvsp[0].stringptr), "trace");
     delete (yyvsp[0].stringptr);
@@ -2057,7 +2057,7 @@ yyreduce:
     break;
 
   case 74:
-#line 454 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 454 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     dumpMonitors(*(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr));
     delete (yyvsp[-5].stringptr);
@@ -2067,19 +2067,19 @@ yyreduce:
     break;
 
   case 75:
-#line 466 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 466 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { (yyval.stringptr) = (yyvsp[0].stringptr);}
 #line 2073 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 467 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 467 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { (yyval.stringptr) = (yyvsp[0].stringptr); }
 #line 2079 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 470 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 470 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   doCoda ((yyvsp[0].ptree), "CODA"); delete (yyvsp[0].ptree);
 }
@@ -2087,7 +2087,7 @@ yyreduce:
     break;
 
   case 78:
-#line 473 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 473 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   doCoda ((yyvsp[-5].ptree), *(yyvsp[-1].stringptr)); delete (yyvsp[-5].ptree); delete (yyvsp[-1].stringptr);
 }
@@ -2095,7 +2095,7 @@ yyreduce:
     break;
 
   case 79:
-#line 476 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 476 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   doAllCoda ("CODA"); 
 }
@@ -2103,7 +2103,7 @@ yyreduce:
     break;
 
   case 80:
-#line 479 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 479 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   doAllCoda (*(yyvsp[-1].stringptr)); delete (yyvsp[-1].stringptr); 
 }
@@ -2111,19 +2111,19 @@ yyreduce:
     break;
 
   case 81:
-#line 484 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 484 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { loadModule(*(yyvsp[0].stringptr)); }
 #line 2117 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 487 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 487 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { unloadModule(*(yyvsp[0].stringptr)); }
 #line 2123 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 491 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 491 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     dumpSamplers(*(yyvsp[0].stringptr));
     delete (yyvsp[0].stringptr);
@@ -2132,7 +2132,7 @@ yyreduce:
     break;
 
   case 84:
-#line 498 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 498 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     listFactories(jags::SAMPLER_FACTORY);
 }
@@ -2140,7 +2140,7 @@ yyreduce:
     break;
 
   case 85:
-#line 503 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 503 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     listFactories(jags::RNG_FACTORY);
 }
@@ -2148,7 +2148,7 @@ yyreduce:
     break;
 
   case 86:
-#line 508 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 508 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     listFactories(jags::MONITOR_FACTORY);
 }
@@ -2156,7 +2156,7 @@ yyreduce:
     break;
 
   case 87:
-#line 514 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 514 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setFactory(*(yyvsp[-6].stringptr), jags::SAMPLER_FACTORY, *(yyvsp[-5].stringptr));
     delete (yyvsp[-6].stringptr);
@@ -2166,7 +2166,7 @@ yyreduce:
     break;
 
   case 88:
-#line 521 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 521 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setFactory(*(yyvsp[-6].stringptr), jags::RNG_FACTORY, *(yyvsp[-5].stringptr));
     delete (yyvsp[-6].stringptr);
@@ -2176,7 +2176,7 @@ yyreduce:
     break;
 
   case 89:
-#line 528 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 528 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setFactory(*(yyvsp[-6].stringptr), jags::MONITOR_FACTORY, *(yyvsp[-5].stringptr));
     delete (yyvsp[-6].stringptr);
@@ -2186,7 +2186,7 @@ yyreduce:
     break;
 
   case 90:
-#line 536 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 536 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     setSeed((yyvsp[0].intval));
 }
@@ -2194,7 +2194,7 @@ yyreduce:
     break;
 
   case 91:
-#line 543 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 543 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree));
 }
@@ -2202,7 +2202,7 @@ yyreduce:
     break;
 
   case 92:
-#line 546 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 546 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.pvec) = (yyvsp[-1].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
@@ -2210,7 +2210,7 @@ yyreduce:
     break;
 
   case 93:
-#line 549 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 549 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
@@ -2218,7 +2218,7 @@ yyreduce:
     break;
 
   case 94:
-#line 554 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 554 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = (yyvsp[0].ptree); setName((yyval.ptree), (yyvsp[-2].stringptr));
 }
@@ -2226,7 +2226,7 @@ yyreduce:
     break;
 
   case 95:
-#line 557 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 557 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
   setName((yyval.ptree), (yyvsp[-2].stringptr));
@@ -2236,7 +2236,7 @@ yyreduce:
     break;
 
   case 96:
-#line 562 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 562 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   /* Allow this for setting the NAME of the random number generator */
   (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[-2].stringptr));
@@ -2247,7 +2247,7 @@ yyreduce:
     break;
 
   case 99:
-#line 572 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 572 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     /* R >= 2.4.0 uses backticks for quoted names */
     (yyval.stringptr) = (yyvsp[-1].stringptr);
@@ -2256,7 +2256,7 @@ yyreduce:
     break;
 
   case 100:
-#line 577 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 577 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY); 
   if ((yyvsp[-1].ptree)) 
@@ -2268,7 +2268,7 @@ yyreduce:
     break;
 
   case 101:
-#line 584 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 584 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
     setParameters((yyval.ptree), (yyvsp[-1].ptree));
@@ -2277,19 +2277,19 @@ yyreduce:
     break;
 
   case 103:
-#line 593 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 593 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree)=0;}
 #line 2283 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 105:
-#line 595 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 595 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree)=(yyvsp[0].ptree);}
 #line 2289 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 106:
-#line 598 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 598 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = (yyvsp[0].ptree);
 }
@@ -2297,7 +2297,7 @@ yyreduce:
     break;
 
   case 107:
-#line 601 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 601 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = (yyvsp[0].ptree);
 }
@@ -2305,13 +2305,13 @@ yyreduce:
     break;
 
   case 110:
-#line 610 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 610 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = (yyvsp[-1].ptree);}
 #line 2311 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 111:
-#line 613 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 613 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     { 
   (yyval.ptree) = new jags::ParseTree(jags::P_VECTOR); 
   setParameters((yyval.ptree), (yyvsp[0].ptree));
@@ -2320,7 +2320,7 @@ yyreduce:
     break;
 
   case 112:
-#line 617 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 617 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new jags::ParseTree(jags::P_VECTOR);
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
@@ -2329,139 +2329,139 @@ yyreduce:
     break;
 
   case 113:
-#line 623 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 623 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree)); }
 #line 2335 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 114:
-#line 624 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 624 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));}
 #line 2341 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 115:
-#line 627 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 627 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].val));}
 #line 2347 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 116:
-#line 628 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 628 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
 #line 2353 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 117:
-#line 634 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 634 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2359 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 118:
-#line 637 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 637 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2365 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 119:
-#line 638 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 638 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2371 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 120:
-#line 641 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 641 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2377 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 121:
-#line 642 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 642 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2383 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 122:
-#line 645 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 645 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2389 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 123:
-#line 646 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 646 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2395 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 124:
-#line 647 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 647 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2401 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 125:
-#line 648 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 648 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2407 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 126:
-#line 649 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 649 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2413 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 127:
-#line 650 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 650 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2419 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 128:
-#line 653 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 653 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2425 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 130:
-#line 657 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 657 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2431 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 131:
-#line 658 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 658 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2437 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 132:
-#line 661 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 661 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2443 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 133:
-#line 662 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 662 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2449 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 134:
-#line 665 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 665 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2455 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 135:
-#line 666 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 666 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {;}
 #line 2461 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 136:
-#line 672 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 672 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     std::string name;
     if (getWorkingDirectory(name)) {
@@ -2475,7 +2475,7 @@ yyreduce:
     break;
 
   case 137:
-#line 683 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 683 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     if (chdir(((yyvsp[0].stringptr))->c_str()) == -1) {
 	std::cout << "ERROR: Cannot change working directory" << std::endl;
@@ -2486,7 +2486,7 @@ yyreduce:
     break;
 
   case 138:
-#line 691 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 691 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     std::string name;
     if (!getWorkingDirectory(name)) {
@@ -2513,7 +2513,7 @@ yyreduce:
     break;
 
   case 139:
-#line 714 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1646  */
+#line 714 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1646  */
     {
     if(open_command_buffer((yyvsp[0].stringptr))) {
 	std::cout << "Running script file " << *(yyvsp[0].stringptr) << std::endl;
@@ -2755,7 +2755,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 725 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1906  */
+#line 725 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1906  */
 
 
 int zzerror (const char *s)
@@ -3424,9 +3424,26 @@ static void print_unused_variables(std::map<std::string, jags::SArray> const &ta
 	model_vars.push_back(".RNG.name");
 	model_vars.push_back(".RNG.seed");
 	model_vars.push_back(".RNG.state");
-	std::sort(model_vars.begin(), model_vars.end());
     }
+	
+	// Make sure both vectors are sorted to avoid false positive WARNINGs:
+	std::sort(model_vars.begin(), model_vars.end());
+	std::sort(supplied_vars.begin(), supplied_vars.end());
+	
+	/*  Test code to check vectors:
+	if(data){
+		std::cout << "Variables in model:\n";
+		std::copy(model_vars.begin(), model_vars.end(),
+			  std::ostream_iterator<std::string>(std::cout, ", "));
+		std::cout << "\n";
 
+		std::cout << "Supplied vars:\n";
+		std::copy(supplied_vars.begin(), supplied_vars.end(),
+			  std::ostream_iterator<std::string>(std::cout, ", "));
+		std::cout << "\n";
+	}  
+	*/
+	
     std::set_difference(supplied_vars.begin(), supplied_vars.end(),
 			model_vars.begin(), model_vars.end(),
 			std::inserter(unused_vars, unused_vars.begin()));

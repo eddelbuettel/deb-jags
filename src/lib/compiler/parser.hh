@@ -106,7 +106,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 42 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1909  */
+#line 42 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1909  */
 
   /*
     We can't put any C++ class that requires a constructor in

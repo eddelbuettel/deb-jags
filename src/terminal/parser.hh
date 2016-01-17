@@ -156,7 +156,7 @@ extern int zzdebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 92 "../../../../mcmc-jags/src/terminal/parser.yy" /* yacc.c:1909  */
+#line 92 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1909  */
 
   int intval;
   double val;

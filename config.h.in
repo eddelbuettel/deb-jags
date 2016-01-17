@@ -158,8 +158,26 @@
 /* Define if isfinite() is correct for -Inf/NaN/Inf. */
 #undef HAVE_WORKING_ISFINITE
 
+/* Mercurial Month and Dday */
+#undef HG_MONTH_DAY
+
+/* Mercurial Version */
+#undef HG_VERSION
+
+/* Mercurial Year */
+#undef HG_YEAR
+
 /* Define if you have IEEE 754 floating point arithmetic. */
 #undef IEEE_754
+
+/* Major version of JAGS library */
+#undef JAGS_MAJOR
+
+/* Minor version of JAGS library */
+#undef JAGS_MINOR
+
+/* Patch level of JAGS */
+#undef JAGS_PATCH
 
 /* Define if the OS needs help to load dependent libraries for dlopen(). */
 #undef LTDL_DLOPEN_DEPLIBS
