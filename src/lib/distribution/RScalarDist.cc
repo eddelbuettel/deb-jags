@@ -4,6 +4,8 @@
 #include <util/nainf.h>
 #include <util/dim.h>
 
+#include "c99_math.h"
+
 #include <cmath>
 #include <algorithm>
 
@@ -12,6 +14,10 @@ using std::vector;
 using std::log;
 using std::min;
 using std::max;
+
+//debuggin
+#include <stdexcept>
+using std::logic_error;
 
 namespace jags {
 
@@ -91,10 +97,11 @@ RScalarDist::logDensity(double x, PDFType type,
     double loglik =  d(x, type, parameters, true);
 
     if (type != PDF_PRIOR && (lower || upper)) {
+
 	//Normalize truncated distributions
 
 	double ll = l(parameters);
-	if (lower && *lower < ll) ll = *lower;
+	if (lower) ll = max(*lower, ll);
 	if (_discrete) ll -= 1; //Adjustment for discrete valued distributions
 
 	/* In theory, we just have to subtract log[P(lower <= X <=
@@ -106,20 +113,22 @@ RScalarDist::logDensity(double x, PDFType type,
 
 	if (have_lower && have_upper) {
 	    if (p(ll, parameters, false, false) < 0.5) {
-		//Use upper tail
+		//Use upper tail: log (P(lower <= X) - P(upper < X))
 		loglik -= log(p(ll, parameters, false, false) -
 			      p(*upper, parameters, false, false));
 	    }
 	    else {
-		//Use lower tail
+		//Use lower tail: log (P(X <= upper) - P(X < lower))
 		loglik -= log(p(*upper, parameters, true, false) - 
 			      p(ll, parameters, true, false));
 	    }
 	}
 	else if (have_lower) {
+	    // log P(lower <= X)
 	    loglik -= p(ll, parameters, false, true);
 	}
 	else if (have_upper) {
+	    // log P(X <= upper)
 	    loglik -= p(*upper, parameters, true, true);
 	}
     }
@@ -164,7 +173,7 @@ RScalarDist::randomSample(vector<double const *> const &parameters,
 	else {
 	    double logpu = p(*upper, parameters, false, true);
 	    double delta = logpu - logpl;
-	    logp += log1p(rng->uniform() * expm1(delta));
+	    logp += jags_log1p(rng->uniform() * jags_expm1(delta));
 	}
 	return q(logp, parameters, false, true);
     }
@@ -180,7 +189,7 @@ RScalarDist::randomSample(vector<double const *> const &parameters,
 	    if (_discrete) ll -= 1;
 	    double logpl = p(ll, parameters, true, true);
 	    double delta = logpl - logpu;
-	    logp += log1p(rng->uniform() * expm1(delta));
+	    logp += jags_log1p(rng->uniform() * jags_expm1(delta));
 	}
 	return q(logp, parameters, true, true);
     }
