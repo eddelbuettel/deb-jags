@@ -1,3 +1,11 @@
+jags (4.2.0-2) unstable; urgency=medium
+
+  * debian/jags.postinst: Add missing shebang		(Closes: #843290)
+
+  * debian/control: Set Standards-Version: to current version 
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sat, 05 Nov 2016 12:59:52 -0500
+
 jags (4.2.0-1) unstable; urgency=medium
 
   * New upstream release
