@@ -70,7 +70,9 @@
     static bool getWorkingDirectory(std::string &name);
     static void errordump();
     static void updatestar(long niter, long refresh, int width);
-    static void adaptstar(long niter, long refresh, int width);
+	// Run adaptation phase until adapted, regardless of iterations:
+    static void autoadaptstar(long maxiter, long refresh, int width);
+    static void adaptstar(long niter, long refresh, int width, bool force);
     static void setParameters(jags::ParseTree *p, jags::ParseTree *param1);
     static void setParameters(jags::ParseTree *p, std::vector<jags::ParseTree*> *parameters);
     static void setParameters(jags::ParseTree *p, jags::ParseTree *param1, jags::ParseTree *param2);
@@ -80,10 +82,15 @@
     static void delete_pvec(std::vector<jags::ParseTree*> *);
     static void print_unused_variables(std::map<std::string, jags::SArray> const &table, bool data);
     static void listFactories(jags::FactoryType type);
+	static void listModules();
     static void setFactory(std::string const &name, jags::FactoryType type,
                            std::string const &status);
     static void setSeed(unsigned int seed);
     static bool Jtry(bool ok);
+	// Needed for update (and adapt) functions to dump variable states:
+    static bool Jtry_dump(bool ok);
+	// Note: on !ok, Jtry(_dump) only exits if !interactive and otherwise returns ok, 
+	// so the parent function should evaluate the value and return; if appriopriate
     %}
 
 %defines
@@ -116,6 +123,8 @@
 %token <intval> COMPILE
 %token <intval> INITIALIZE
 %token <intval> ADAPT
+%token <intval> AUTOADAPT
+%token <intval> FORCEADAPT
 %token <intval> UPDATE
 %token <intval> BY
 %token <intval> MONITORS
@@ -136,6 +145,7 @@
 %token <intval> RNGTOK
 %token <intval> FACTORY;
 %token <intval> FACTORIES;
+%token <intval> MODULES;
 %token <intval> SEED;
 
 %token <intval> LIST 
@@ -148,6 +158,7 @@
 %token <intval> ARROW
 %token <intval> ENDDATA
 %token <intval> ASINTEGER
+%token <intval> DOTDATA
 
 %token <intval> DIRECTORY
 %token <intval> CD
@@ -157,11 +168,11 @@
 
 %type <ptree> var index 
 %type <ptree> r_assignment r_structure
-%type <ptree> range_element r_dim 
+%type <ptree> range_element r_dim
 %type <ptree> r_attribute_list
 %type <ptree> r_value 
 %type <pvec>  r_value_list r_assignment_list range_list
-%type <ptree> r_value_collection r_integer_collection r_collection
+%type <ptree> r_value_collection r_integer_collection r_collection r_data
 %type <stringptr> file_name;
 %type <stringptr> r_name;
 
@@ -194,6 +205,8 @@ command: model
 | compile
 | initialize
 | adapt
+| autoadapt
+| forceadapt
 | update
 | monitor
 | monitors_to
@@ -206,6 +219,7 @@ command: model
 | set_working_dir
 | samplers_to
 | list_factories
+| list_modules
 | set_factory
 | set_seed
 ;
@@ -342,7 +356,7 @@ parameters: PARAMETERS IN file_name {
 compile: COMPILE {
     Jtry(console->compile(_data_table, 1, true));
     print_unused_variables(_data_table, true);
-}
+ }
 | COMPILE ',' NCHAINS '(' INT ')' {
     Jtry(console->compile(_data_table, $5, true));
     print_unused_variables(_data_table, true);
@@ -356,12 +370,30 @@ initialize: INITIALIZE {
 }
 ;
 
+autoadapt: AUTOADAPT INT {
+    long refresh = interactive ? $2/50 : 0;
+    autoadaptstar($2, refresh, 50);
+}
+| AUTOADAPT INT ',' BY '(' INT ')' {
+    autoadaptstar($2,$6, 50);
+}
+;
+
+forceadapt: FORCEADAPT INT {
+    long refresh = interactive ? $2/50 : 0;
+    adaptstar($2, refresh, 50, true);
+}
+| FORCEADAPT INT ',' BY '(' INT ')' {
+    adaptstar($2,$6, 50, true);
+}
+;
+
 adapt: ADAPT INT {
     long refresh = interactive ? $2/50 : 0;
-    adaptstar($2, refresh, 50);
+    adaptstar($2, refresh, 50, false);
 }
 | ADAPT INT ',' BY '(' INT ')' {
-    adaptstar($2,$6, 50);
+    adaptstar($2,$6, 50, false);
 }
 ;
 
@@ -510,6 +542,12 @@ LIST FACTORIES ',' TYPE '(' MONITOR ')'
 }
 ;
 
+list_modules: LIST MODULES
+{
+    listModules();
+}
+;
+
 set_factory: SET FACTORY STRING NAME ',' TYPE '(' SAMPLER ')'
 {
     setFactory(*$3, jags::SAMPLER_FACTORY, *$4);
@@ -574,14 +612,19 @@ r_name: STRING
     $$ = $2;
 }
 
-r_structure: STRUCTURE '(' r_collection ',' r_attribute_list ')' {
+r_data: r_collection
+| DOTDATA '=' r_collection {
+    $$ = $3;
+}
+
+r_structure: STRUCTURE '(' r_data ',' r_attribute_list ')' {
   $$ = new jags::ParseTree(jags::P_ARRAY); 
   if ($5) 
     setParameters($$, $3, $5);
   else
     setParameters($$, $3);
 }
-| STRUCTURE '(' r_collection ')' {
+| STRUCTURE '(' r_data ')' {
     $$ = new jags::ParseTree(jags::P_ARRAY);
     setParameters($$, $3);
 }
@@ -1050,6 +1093,9 @@ static void errordump()
 	    doDump(fname.str(), jags::DUMP_ALL, i);
 	    fname.str("");
 	}
+	// Moved clearModel from Console.cc CATCH_ERRORS to here
+	// to allow doDump to work as described in the manual:
+	console->clearModel();
     }
     if (!interactive) exit(1);
 }
@@ -1072,7 +1118,7 @@ static void updatestar(long niter, long refresh, int width)
     }
 
     if (refresh == 0) {
-	Jtry(console->update(niter/2));
+	if( !Jtry_dump(console->update(niter/2)) ) return;
 	bool status = true;
 	if (adapt) {
 	    if (!console->checkAdaptation(status)) {
@@ -1084,7 +1130,7 @@ static void updatestar(long niter, long refresh, int width)
 		return;
 	    }
 	}
-	Jtry(console->update(niter - niter/2));
+	if( !Jtry_dump(console->update(niter - niter/2)) ) return;
 	if (!status) {
 	    std::cerr << "WARNING: Adaptation incomplete\n";
 	}
@@ -1120,12 +1166,11 @@ static void updatestar(long niter, long refresh, int width)
 	    }
 	}
 	long nupdate = std::min(n, refresh);
-	if(console->update(nupdate)) {
+	if(Jtry_dump(console->update(nupdate))) {
 	    std::cout << "*" << std::flush;
 	}
 	else {
 	    std::cout << std::endl;
-	    errordump();
 	    return;
 	}
 	col++;
@@ -1142,17 +1187,113 @@ static void updatestar(long niter, long refresh, int width)
     }
 }
 
-static void adaptstar(long niter, long refresh, int width)
+static void autoadaptstar(long maxiter, long refresh, int width)
 {
     if (!console->isAdapting()) {
-	std::cerr << "Adaptation skipped: model is not in adaptive mode.\n";
-	return;
+        std::cout << "Adaptation skipped: model is not in adaptive mode.\n";
+		return;
+    }
+    std::cout << "Autoadapting up to " << maxiter << " iterations" << std::endl;
+	
+    if (width > maxiter / refresh + 1)
+		width = maxiter / refresh + 1;
+	
+	long i = 0;
+	bool status = false;
+	
+	if ( refresh == 0 ) {
+		for (i = 0; i < maxiter; i++) {
+			if (!console->checkAdaptation(status)) {
+			    errordump();
+			    return;
+			}
+			if(status)
+				break;
+
+			if( !Jtry_dump(console->update(1)) ) {
+				std::cout << std::endl;
+				return;
+			}
+		}
+	}
+	else {
+	    for (int j = 0; j < width - 1; ++j) {
+			std::cout << "-";
+	    }
+	    std::cout << "| " << std::min(width * refresh, maxiter) << std::endl 
+		      << std::flush;
+
+		int col = 0;
+	    for (long n = maxiter; n > 0; n -= refresh) {
+		    long nupdate = std::min(n, refresh);
+			for (long j = 0; j < nupdate; j++) {
+				if (!console->checkAdaptation(status)) {
+				    errordump();
+				    return;
+				}
+				if(status)
+					break;
+
+				if( !Jtry_dump(console->update(1)) ) {
+					std::cout << std::endl;
+					return;
+				}
+				i++;
+			}
+			if(status){
+		    	std::cout << std::endl;
+				break;
+			}
+
+	        std::cout << "+" << std::flush;
+	    	col++;
+	    	if (col == width || n <= nupdate) {
+	    	    int percent = 100 - (n-nupdate) * 100/maxiter;
+	    	    std::cout << " " << percent << "%" << std::endl;
+	    	    if (n > nupdate) {
+	        		col = 0;
+		        }
+		    }
+	    }
+	}
+		
+	if (!console->checkAdaptation(status)) {
+	    errordump();
+	    return;
+	}
+	
+	if (!status) {
+	    std::cerr << "Adaptation incomplete\n";
+	}
+	else {
+		std::cout << "Adaptation completed in " << i << " iterations" << std::endl;
+		if (!console->adaptOff()) {
+			std::cout << std::endl;
+			errordump();
+			return;
+	    }
+	}
+    return;
+}
+
+static void adaptstar(long niter, long refresh, int width, bool force)
+{
+    if (!console->isAdapting()) {
+	    if( force ) {
+			// Missing endl is deliberate - updatestar will write to the same line:
+		    std::cout << "Model not in adaptive mode: ";
+			updatestar(niter, refresh, width);			
+		}
+		else {
+	        std::cerr << "Adaptation skipped: model is not in adaptive mode.\n";
+		}
+		return;
     }
     std::cout << "Adapting " << niter << std::endl;
     
     bool status = true;
     if (refresh == 0) {
-	console->update(niter);
+	if( !Jtry_dump(console->update(niter)) ) return;
 	if (!console->checkAdaptation(status)) {
 	    errordump();
 	    return;
@@ -1179,11 +1320,10 @@ static void adaptstar(long niter, long refresh, int width)
     int col = 0;
     for (long n = niter; n > 0; n -= refresh) {
 	long nupdate = std::min(n, refresh);
-	if(console->update(nupdate))
+	if(Jtry_dump(console->update(nupdate)))
 	    std::cout << "+" << std::flush;
 	else {
 	    std::cout << std::endl;
-	    errordump();
 	    return;
 	}
 	col++;
@@ -1454,6 +1594,15 @@ void doSystem(std::string const *command)
     std::system(command->c_str());
 }
 
+void listModules(){
+  std::vector<std::string> mods = jags::Console::listModules();
+  std::cout << "Modules:" << std::endl;
+  for (unsigned int i = 0; i < mods.size(); ++i) {
+      std::cout << "  " << mods[i] << std::endl;
+  }
+}
+
+
 void listFactories(jags::FactoryType type)
 {
     std::vector<std::pair<std::string, bool> > faclist = 
@@ -1520,5 +1669,17 @@ bool Jtry(bool ok)
     if (!ok && !interactive) 
 	exit(1);
     else
+	return ok;
+}
+
+bool Jtry_dump(bool ok)
+{
+	// Allows doDump to work as described in the manual:
+	if (!ok) {
+	errordump();
+	console->clearModel();
+    if (!interactive) 
+	exit(1);
+	}
 	return ok;
 }

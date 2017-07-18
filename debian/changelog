@@ -1,3 +1,9 @@
+jags (4.3.0-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Tue, 18 Jul 2017 17:29:51 -0500
+
 jags (4.2.0-3) unstable; urgency=medium
 
   * debian/control: Add Build-Depends: on pkg-config and dh-autoreconf

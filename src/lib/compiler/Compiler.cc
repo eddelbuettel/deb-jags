@@ -48,7 +48,26 @@ using std::set;
 using std::fabs;
 using std::max_element;
 
+
+
 namespace jags {
+
+    typedef pair<vector<unsigned int>, vector<double> > CNodeKey;
+    bool lt(CNodeKey const &k1, CNodeKey const &k2) {
+	//Sort first on dimension
+	if (k1.first < k2.first) {
+	    return true;
+	}
+	else if (k1.first > k2.first) {
+	    return false;
+	}
+	else {
+	    //Fuzzy sort on values
+	    return lt(&k1.second[0], &k2.second[0], k1.second.size());
+	}
+
+    }
+    typedef map<CNodeKey, ConstantNode *, fuzzy_less<CNodeKey> > CNodeMap;
 
 #include <sstream>
 template<class T> 
@@ -81,7 +100,8 @@ static void CompileError(ParseTree const *p, string const &msg1,
      * but which are never defined. This is such a fundamental error
      * that it is worth doing this before trying to build the Model.
      */
-    
+
+    /*
     static void getRHSNames(ParseTree const *t,
 			    map<string, int> &rhs,
 			    vector<string> const &cntrs)
@@ -109,6 +129,7 @@ static void CompileError(ParseTree const *p, string const &msg1,
 	    getRHSNames(*p, rhs, cntrs);
 	}
     }
+    */
 
     /* Experimental features to add additional checks prior to compilation
 
@@ -329,23 +350,28 @@ bool Compiler::indexExpression(ParseTree const *p, vector<int> &value)
        evaluation of the index expression.
     */
 
+    bool isfixed = true;
+
     _index_expression++;
     Node *node = getParameter(p);
     _index_expression--;
 
     if (!node || !node->isFixed()) {
-	return false;
+	isfixed = false;
+    }
+    else {
+	for (unsigned int i = 0; i < node->length(); ++i) {
+	    double v = node->value(0)[i];
+	    if (!checkInteger(v)) {
+		throw NodeError(node, 
+				"Index expression evaluates to non-integer value");
+	    }
+	    value.push_back(asInteger(v));
+	}
     }
 
-    for (unsigned int i = 0; i < node->length(); ++i) {
-	double v = node->value(0)[i];
-	if (!checkInteger(v)) {
-	    throw NodeError(node, 
-			    "Index expression evaluates to non-integer value");
-	}
-	value.push_back(asInteger(v));
-    }
-	
+    /* Make sure we always clean up at the top-level call to IndexExpression */
+
     if (_index_expression == 0) {
 	while(!_index_nodes.empty()) {
 	    Node *inode = _index_nodes.back();
@@ -354,7 +380,8 @@ bool Compiler::indexExpression(ParseTree const *p, vector<int> &value)
 	    delete inode;
 	}
     }
-    return true;
+
+    return isfixed;
 }
 
 Range Compiler::getRange(ParseTree const *p, 
@@ -520,15 +547,8 @@ Range Compiler::CounterRange(ParseTree const *var)
     Node * 
     Compiler::getConstant(double value, unsigned int nchain, bool observed) 
     {
-	ConstantNode * cnode = new ConstantNode(value, nchain, observed);
-	if (_index_expression) {
-	    _index_nodes.push_back(cnode);
-	}
-	else {
-	    _model.addNode(cnode);
-	}
-	return cnode;
-	
+	return getConstant(vector<unsigned int>(1, 1), vector<double>(1, value),
+			   nchain, observed);
     }
 
     Node * 
@@ -536,15 +556,24 @@ Range Compiler::CounterRange(ParseTree const *var)
 			  vector<double> const &value,
 			  unsigned int nchain, bool observed)
     {
-	ConstantNode * cnode = new ConstantNode(dim, value, nchain, observed);
+	ConstantNode * cnode = 0;
 	if (_index_expression) {
+	    cnode = new ConstantNode(dim, value, nchain, observed);
 	    _index_nodes.push_back(cnode);
 	}
 	else {
-	    _model.addNode(cnode);
+	    CNodeMap::key_type k(dim, value);
+	    CNodeMap::const_iterator p = _cnode_map.find(k);
+	    if (p != _cnode_map.end()) {
+		cnode = p->second;
+	    }
+	    else {
+		cnode = new ConstantNode(dim, value, nchain, observed);
+		_cnode_map[k] = cnode;
+		_model.addNode(cnode);
+	    }
 	}
 	return cnode;
-	
     }
 
 Node *Compiler::getArraySubset(ParseTree const *p)
@@ -1203,7 +1232,14 @@ void Compiler::writeRelations(ParseTree const *relations)
     _is_resolved = vector<bool>(_n_relations, false);
     for (unsigned long N = _n_relations; N > 0; N -= _n_resolved) {
 	_n_resolved = 0;
-	traverseTree(relations, &Compiler::allocate);
+	/* 
+	   Here we use the abilitiy to sweep forwards and backwards
+	   through the relations, allowing rapid compilation of models
+	   written in both topological order and reverse topological
+	   order. Without this facility, compilation of some large
+	   models can be very slow.
+	*/
+	traverseTree(relations, &Compiler::allocate, true, true);
 	if (_n_resolved == 0) break;
     }
     _is_resolved.clear();
@@ -1286,45 +1322,90 @@ void Compiler::writeRelations(ParseTree const *relations)
 
 
 void Compiler::traverseTree(ParseTree const *relations, CompilerMemFn fun,
-			    bool resetcounter)
+			    bool resetcounter, bool reverse)
 {
-  /* 
-     Traverse parse tree, expanding FOR loops and applying function
-     fun to relations.
-  */
+    /* 
+       Traverse parse tree, expanding FOR loops and applying function
+       fun to relations.
 
-  if (resetcounter) {
-    _n_relations = 0;
-  }
+       In JAGS 4.3.0 we do a breadth first search, i.e. we process the
+       relations within each block before expanding the for loops. This
+       allows us to optionally reverse through the relations. See
+       writeRelations for more details.
+    */
 
-  vector<ParseTree*> const &relation_list = relations->parameters();
-  for (vector<ParseTree*>::const_reverse_iterator p = relation_list.rbegin(); 
-       p != relation_list.rend(); ++p) 
-    {  
-      Counter *counter;
-      ParseTree *var;
-      
-      switch ((*p)->treeClass()) {
-      case P_FOR:
-	var = (*p)->parameters()[0];
-	if (!isNULL(CounterRange(var))) {
-	  counter = _countertab.pushCounter(var->name(), CounterRange(var));
-	  for (; !counter->atEnd(); counter->next()) {
-	    traverseTree((*p)->parameters()[1], fun, false);
-	  }
-	  _countertab.popCounter();
-	}
-	break;
-      case P_STOCHREL: case P_DETRMREL:
-	(this->*fun)(*p);
-	_n_relations++;
-	break;
-      default:
-	throw logic_error("Malformed parse tree in Compiler::traverseTree");
-	break;
-      }
+    if (resetcounter) {
+	_n_relations = 0;
     }
+
+    vector<ParseTree*> const &relation_list = relations->parameters();
+    for (vector<ParseTree*>::const_reverse_iterator p = relation_list.rbegin(); 
+	 p != relation_list.rend(); ++p) 
+    {  
+	switch ((*p)->treeClass()) {
+	case P_FOR:
+	    break;
+	case P_STOCHREL: case P_DETRMREL:
+	    (this->*fun)(*p);
+	    _n_relations++;
+	    break;
+	default:
+	    throw logic_error("Malformed parse tree in Compiler::traverseTree");
+	    break;
+	}
+    }
+
+    if (reverse) {
+
+	unsigned int nrel = _n_relations; //Save current relation number
+      
+	for (vector<ParseTree*>::const_iterator p = relation_list.begin(); 
+	     p != relation_list.end(); ++p) 
+	{
+	    //Reverse sweep through relations
+	    switch ((*p)->treeClass()) {
+	    case P_FOR:
+		break;
+	    case P_STOCHREL: case P_DETRMREL:
+		_n_relations--;
+		(this->*fun)(*p);
+		break;
+	    default:
+		break;
+	    }
+	}
+
+	_n_relations = nrel; //Restore current relation number
+    }
+      
+    for (vector<ParseTree*>::const_reverse_iterator p = relation_list.rbegin(); 
+	 p != relation_list.rend(); ++p) 
+    {
+	//Expand for loops
+	
+	Counter *counter;
+	ParseTree *var;
+      
+	switch ((*p)->treeClass()) {
+	case P_FOR:
+	    var = (*p)->parameters()[0];
+	    if (!isNULL(CounterRange(var))) {
+		counter = _countertab.pushCounter(var->name(), CounterRange(var));
+		for (; !counter->atEnd(); counter->next()) {
+		    traverseTree((*p)->parameters()[1], fun, false, reverse);
+		}
+		_countertab.popCounter();
+	    }
+	    break;
+	case P_STOCHREL: case P_DETRMREL:
+	    break;
+	default:
+	    break;
+	}
+    }
+  
 }
+
 
 Compiler::Compiler(BUGSModel &model, map<string, SArray> const &data_table)
     : _model(model), _countertab(), 

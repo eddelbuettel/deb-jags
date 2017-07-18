@@ -2,10 +2,10 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.63)
 
-AC_INIT([JAGS],[4.2.0],[martyn_plummer@users.sourceforge.net],[JAGS])
+AC_INIT([JAGS],[4.3.0],[martyn_plummer@users.sourceforge.net],[JAGS])
 
 JAGS_MAJOR=4
-JAGS_MINOR=2
+JAGS_MINOR=3
 JAGS_PATCH=0
 
 AC_SUBST(JAGS_MAJOR)
@@ -31,8 +31,14 @@ AC_CONFIG_SRCDIR([src/lib/Console.cc])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([subdir-objects])
-dnl AM_PATH_CPPUNIT(1.12.1)
-PKG_CHECK_MODULES(CPPUNIT, cppunit >= 1.12.1)
+
+dnl pkg-config and cppunit are required only for checks, so make them optional
+PKG_PROG_PKG_CONFIG()
+AS_IF([test -n "$PKG_CONFIG"],[
+   PKG_CHECK_MODULES([CPPUNIT], [cppunit >= 1.12.1],
+   [cancheck=yes], [cancheck=no])
+])   
+AM_CONDITIONAL([CANCHECK], [test x$cancheck = xyes])
 
 dnl libtool and ltdl configuration
 LT_PREREQ(2.2.6)
@@ -126,10 +132,11 @@ AC_CONFIG_FILES([
   src/modules/dic/Makefile
   src/modules/lecuyer/Makefile
   src/modules/glm/Makefile
-  src/modules/glm/CSparse/Makefile
   src/modules/glm/SSparse/Makefile
-  src/modules/glm/SSparse/UFconfig/Makefile
+  src/modules/glm/SSparse/config/Makefile
   src/modules/glm/SSparse/AMD/Makefile
+  src/modules/glm/SSparse/CAMD/Makefile
+  src/modules/glm/SSparse/CCOLAMD/Makefile
   src/modules/glm/SSparse/COLAMD/Makefile
   src/modules/glm/SSparse/CHOLMOD/Makefile
   src/modules/glm/SSparse/CHOLMOD/Check/Makefile
@@ -140,6 +147,7 @@ AC_CONFIG_FILES([
   src/modules/glm/SSparse/CHOLMOD/Modify/Makefile
   src/modules/glm/SSparse/CHOLMOD/Supernodal/Makefile
   src/modules/glm/samplers/Makefile
+  src/modules/glm/distributions/Makefile
   src/terminal/Makefile
   win/Makefile
   win/runtime32/Makefile

@@ -16,6 +16,7 @@
 #include <distributions/DLnorm.h>
 #include <distributions/DLogis.h>
 #include <distributions/DMNorm.h>
+#include <distributions/DMNormVC.h>
 #include <distributions/DMT.h>
 #include <distributions/DMulti.h>
 #include <distributions/DNegBin.h>
@@ -25,6 +26,7 @@
 #include <distributions/DPar.h>
 #include <distributions/DPois.h>
 #include <distributions/DRound.h>
+#include <distributions/DRW1.h>
 #include <distributions/DSample.h>
 #include <distributions/DT.h>
 #include <distributions/DUnif.h>
@@ -94,6 +96,8 @@
 #include <samplers/MNormalFactory.h>
 #include <samplers/DirichletFactory.h>
 #include <samplers/SumFactory.h>
+#include <samplers/RW1Factory.h>
+#include <samplers/BinomSliceFactory.h>
 
 using std::vector;
 
@@ -125,6 +129,7 @@ namespace bugs {
 	insert(new DLnorm);
 	insert(new DLogis);
 	insert(new DMNorm);
+	insert(new DMNormVC);
 	insert(new DMT);
 	insert(new DMulti);
 	insert(new DNChisqr);
@@ -133,6 +138,7 @@ namespace bugs {
 	insert(new DNT);
 	insert(new DPar);
 	insert(new DPois);
+	insert(new DRW1);
 	insert(new DSample);
 	insert(new DT);
 	insert(new DUnif);
@@ -202,6 +208,8 @@ namespace bugs {
 	insert(new DSumFactory);
 	insert(new SumFactory);
 	insert(new CensoredFactory);
+	insert(new RW1Factory);
+	insert(new BinomSliceFactory);
     }
 
     BUGSModule::~BUGSModule() {
