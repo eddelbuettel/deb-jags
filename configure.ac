@@ -2,9 +2,9 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.63)
 
-AC_INIT([JAGS],[3.2.0],[martyn_plummer@users.sourceforge.net],[JAGS])
+AC_INIT([JAGS],[3.3.0],[martyn_plummer@users.sourceforge.net],[JAGS])
 JAGS_MAJOR=3
-JAGS_MINOR=2
+JAGS_MINOR=3
 AC_SUBST(JAGS_MAJOR)
 AC_SUBST(JAGS_MINOR)
 
@@ -47,7 +47,7 @@ AM_CONDITIONAL(WINDOWS, test x$win = xtrue)
 dnl fortran stuff
 AC_F77_WRAPPERS
 AC_F77_LIBRARY_LDFLAGS
-ACX_LAPACK([],[
+AX_LAPACK([],[
 	AC_MSG_ERROR("You need to install the LAPACK library")
 ])
 
