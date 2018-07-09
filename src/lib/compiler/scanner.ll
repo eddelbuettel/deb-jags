@@ -9,6 +9,11 @@
 #include "remap.h"
 #include "parser.h"
 
+#include <stdexcept>
+
+void jags_scanner_error(const char *msg);
+#define YY_FATAL_ERROR(msg) jags_scanner_error (msg)
+
 %}
 
 EXPONENT	[eE][+-][0-9]+
@@ -58,6 +63,7 @@ BRACKET		[ \t]*\(
 "/"			return '/';
 
 "T"/{BRACKET}           return 'T';
+"I"/{BRACKET}           return 'I';
 
 "%"+[^% \t\r\n]*"%" {
     /* Special operators, e.g. %*% for matrix multiplication */
@@ -73,6 +79,7 @@ BRACKET		[ \t]*\(
 [ \t\r\n]+              /* Eat whitespace */
 "#".*\n                 /* Eat comments */
 
+
 ([0-9]+){EXPONENT}? {
   yylval.val = atof(yytext); return DOUBLE;
 }
@@ -83,7 +90,7 @@ BRACKET		[ \t]*\(
   yylval.val = atof(yytext); return DOUBLE;
 }
 
-([a-zA-Z]+)/{BRACKET} {
+([a-zA-Z]+[a-zA-Z0-9\._]*)/{BRACKET} {
   yylval.stringptr = new std::string(yytext);
   return FUNC;
 }
@@ -94,6 +101,10 @@ BRACKET		[ \t]*\(
 }
 
 <<EOF>>	yyterminate();
+
+\357\277\275 {
+  throw std::logic_error("Coding error in file (UTF-8 replacement char U+FFFD found by parser)");
+}
 
 . {
   /* Default rule for unmatched input.
@@ -108,4 +119,9 @@ BRACKET		[ \t]*\(
 int yywrap()
 {
   return 1;
+}
+
+void jags_scanner_error (char const *msg)
+{
+    throw std::runtime_error(msg);
 }

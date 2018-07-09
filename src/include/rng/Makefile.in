@@ -35,7 +35,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = src/include/rng
-DIST_COMMON = $(distribinclude_HEADERS) $(srcdir)/Makefile.am \
+DIST_COMMON = $(rnginclude_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 \
@@ -73,8 +73,8 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(distribincludedir)"
-HEADERS = $(distribinclude_HEADERS)
+am__installdirs = "$(DESTDIR)$(rngincludedir)"
+HEADERS = $(rnginclude_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -155,6 +155,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -208,7 +209,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 ltdl_LIBOBJS = @ltdl_LIBOBJS@
 ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
@@ -227,8 +227,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-distribincludedir = $(pkgincludedir)/distribution
-distribinclude_HEADERS = RNG.h RmathRNG.h RNGFactory.h TruncatedNormal.h
+rngincludedir = $(pkgincludedir)/rng
+rnginclude_HEADERS = RNG.h RmathRNG.h RNGFactory.h TruncatedNormal.h
 all: all-am
 
 .SUFFIXES:
@@ -268,26 +268,26 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-distribincludeHEADERS: $(distribinclude_HEADERS)
+install-rngincludeHEADERS: $(rnginclude_HEADERS)
 	@$(NORMAL_INSTALL)
-	test -z "$(distribincludedir)" || $(MKDIR_P) "$(DESTDIR)$(distribincludedir)"
-	@list='$(distribinclude_HEADERS)'; test -n "$(distribincludedir)" || list=; \
+	test -z "$(rngincludedir)" || $(MKDIR_P) "$(DESTDIR)$(rngincludedir)"
+	@list='$(rnginclude_HEADERS)'; test -n "$(rngincludedir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(distribincludedir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(distribincludedir)" || exit $$?; \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(rngincludedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(rngincludedir)" || exit $$?; \
 	done
 
-uninstall-distribincludeHEADERS:
+uninstall-rngincludeHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(distribinclude_HEADERS)'; test -n "$(distribincludedir)" || list=; \
+	@list='$(rnginclude_HEADERS)'; test -n "$(rngincludedir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(distribincludedir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(distribincludedir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(rngincludedir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(rngincludedir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -375,7 +375,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(distribincludedir)"; do \
+	for dir in "$(DESTDIR)$(rngincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -423,7 +423,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-distribincludeHEADERS
+install-data-am: install-rngincludeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -467,7 +467,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-distribincludeHEADERS
+uninstall-am: uninstall-rngincludeHEADERS
 
 .MAKE: install-am install-strip
 
@@ -475,14 +475,14 @@ uninstall-am: uninstall-distribincludeHEADERS
 	clean-libtool ctags distclean distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
-	install-data-am install-distribincludeHEADERS install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-rngincludeHEADERS \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-distribincludeHEADERS
+	tags uninstall uninstall-am uninstall-rngincludeHEADERS
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -65,7 +65,10 @@ am_glmsampler_la_OBJECTS = glmsampler_la-GLMFactory.lo \
 	glmsampler_la-IWLS.lo glmsampler_la-LGMix.lo \
 	glmsampler_la-AuxMix.lo glmsampler_la-AuxMixPoisson.lo \
 	glmsampler_la-AuxMixBinomial.lo glmsampler_la-AuxMixNormal.lo \
-	glmsampler_la-AMMethod.lo glmsampler_la-AMFactory.lo
+	glmsampler_la-AMMethod.lo glmsampler_la-AMFactory.lo \
+	glmsampler_la-ConjugateFMethod.lo \
+	glmsampler_la-ConjugateFSampler.lo \
+	glmsampler_la-ConjugateFFactory.lo
 glmsampler_la_OBJECTS = $(am_glmsampler_la_OBJECTS)
 glmsampler_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -166,6 +169,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -219,7 +223,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 ltdl_LIBOBJS = @ltdl_LIBOBJS@
 ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
@@ -240,7 +243,9 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = glmsampler.la
 glmsampler_la_CPPFLAGS = -I$(top_srcdir)/src/include \
-		-I$(top_srcdir)/src/modules/glm/CSparse
+		-I$(top_srcdir)/src/modules/glm/CSparse \
+		-I$(top_srcdir)/src/modules/glm/SSparse/UFconfig \
+		-I$(top_srcdir)/src/modules/glm/SSparse/CHOLMOD/Include
 
 glmsampler_la_LDFLAGS = -no-undefined -module -avoid-version
 glmsampler_la_SOURCES = GLMFactory.cc GLMSampler.cc GLMMethod.cc	\
@@ -248,13 +253,15 @@ LinearFactory.cc LinearGibbsFactory.cc Linear.cc BinaryFactory.cc	\
 BinaryGLM.cc KS.cc AlbertChibFactory.cc AlbertChibGibbsFactory.cc	\
 AlbertChib.cc HolmesHeldFactory.cc HolmesHeld.cc IWLSFactory.cc		\
 IWLS.cc LGMix.cc AuxMix.cc AuxMixPoisson.cc AuxMixBinomial.cc		\
-AuxMixNormal.cc AMMethod.cc AMFactory.cc
+AuxMixNormal.cc AMMethod.cc AMFactory.cc ConjugateFMethod.cc		\
+ConjugateFSampler.cc ConjugateFFactory.cc 
 
 noinst_HEADERS = GLMFactory.h GLMSampler.h GLMMethod.h LinearFactory.h	\
 LinearGibbsFactory.h Linear.h BinaryFactory.h BinaryGLM.h KS.h		\
 AlbertChibFactory.h AlbertChibGibbsFactory.h AlbertChib.h		\
-HolmesHeldFactory.h HolmesHeld.h IWLSFactory.h IWLS.h LGMix.h AuxMix.h 	\
-AuxMixPoisson.h AuxMixBinomial.h AuxMixNormal.h AMMethod.h AMFactory.h
+HolmesHeldFactory.h HolmesHeld.h IWLSFactory.h IWLS.h LGMix.h AuxMix.h	\
+AuxMixPoisson.h AuxMixBinomial.h AuxMixNormal.h AMMethod.h AMFactory.h	\
+ConjugateFMethod.h ConjugateFSampler.h ConjugateFFactory.h
 
 all: all-am
 
@@ -319,6 +326,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-AuxMixPoisson.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-BinaryFactory.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-BinaryGLM.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-ConjugateFFactory.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-ConjugateFMethod.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-ConjugateFSampler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-GLMFactory.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-GLMMethod.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glmsampler_la-GLMSampler.Plo@am__quote@
@@ -513,6 +523,27 @@ glmsampler_la-AMFactory.lo: AMFactory.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AMFactory.cc' object='glmsampler_la-AMFactory.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(glmsampler_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o glmsampler_la-AMFactory.lo `test -f 'AMFactory.cc' || echo '$(srcdir)/'`AMFactory.cc
+
+glmsampler_la-ConjugateFMethod.lo: ConjugateFMethod.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(glmsampler_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT glmsampler_la-ConjugateFMethod.lo -MD -MP -MF $(DEPDIR)/glmsampler_la-ConjugateFMethod.Tpo -c -o glmsampler_la-ConjugateFMethod.lo `test -f 'ConjugateFMethod.cc' || echo '$(srcdir)/'`ConjugateFMethod.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/glmsampler_la-ConjugateFMethod.Tpo $(DEPDIR)/glmsampler_la-ConjugateFMethod.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ConjugateFMethod.cc' object='glmsampler_la-ConjugateFMethod.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(glmsampler_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o glmsampler_la-ConjugateFMethod.lo `test -f 'ConjugateFMethod.cc' || echo '$(srcdir)/'`ConjugateFMethod.cc
+
+glmsampler_la-ConjugateFSampler.lo: ConjugateFSampler.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(glmsampler_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT glmsampler_la-ConjugateFSampler.lo -MD -MP -MF $(DEPDIR)/glmsampler_la-ConjugateFSampler.Tpo -c -o glmsampler_la-ConjugateFSampler.lo `test -f 'ConjugateFSampler.cc' || echo '$(srcdir)/'`ConjugateFSampler.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/glmsampler_la-ConjugateFSampler.Tpo $(DEPDIR)/glmsampler_la-ConjugateFSampler.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ConjugateFSampler.cc' object='glmsampler_la-ConjugateFSampler.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(glmsampler_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o glmsampler_la-ConjugateFSampler.lo `test -f 'ConjugateFSampler.cc' || echo '$(srcdir)/'`ConjugateFSampler.cc
+
+glmsampler_la-ConjugateFFactory.lo: ConjugateFFactory.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(glmsampler_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT glmsampler_la-ConjugateFFactory.lo -MD -MP -MF $(DEPDIR)/glmsampler_la-ConjugateFFactory.Tpo -c -o glmsampler_la-ConjugateFFactory.lo `test -f 'ConjugateFFactory.cc' || echo '$(srcdir)/'`ConjugateFFactory.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/glmsampler_la-ConjugateFFactory.Tpo $(DEPDIR)/glmsampler_la-ConjugateFFactory.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ConjugateFFactory.cc' object='glmsampler_la-ConjugateFFactory.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(glmsampler_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o glmsampler_la-ConjugateFFactory.lo `test -f 'ConjugateFFactory.cc' || echo '$(srcdir)/'`ConjugateFFactory.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.63)
 
-AC_INIT([JAGS],[2.1.0],[martyn_plummer@users.sourceforge.net],[JAGS])
+AC_INIT([JAGS],[2.2.0],[martyn_plummer@users.sourceforge.net],[JAGS])
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/lib/Console.cc])
 AC_CONFIG_MACRO_DIR([m4])
@@ -15,9 +15,9 @@ LT_CONFIG_LTDL_DIR([libltdl])
 LT_INIT([dlopen disable-static win32-dll])
 LTDL_INIT([recursive])
 
-
 AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_F77
 AM_PROG_LEX
 AC_PROG_YACC
 
@@ -135,6 +135,18 @@ AC_CONFIG_FILES([
   src/modules/lecuyer/Makefile
   src/modules/glm/Makefile
   src/modules/glm/CSparse/Makefile
+  src/modules/glm/SSparse/Makefile
+  src/modules/glm/SSparse/UFconfig/Makefile
+  src/modules/glm/SSparse/AMD/Makefile
+  src/modules/glm/SSparse/COLAMD/Makefile
+  src/modules/glm/SSparse/CHOLMOD/Makefile
+  src/modules/glm/SSparse/CHOLMOD/Check/Makefile
+  src/modules/glm/SSparse/CHOLMOD/Cholesky/Makefile
+  src/modules/glm/SSparse/CHOLMOD/Core/Makefile
+  src/modules/glm/SSparse/CHOLMOD/Include/Makefile
+  src/modules/glm/SSparse/CHOLMOD/MatrixOps/Makefile
+  src/modules/glm/SSparse/CHOLMOD/Modify/Makefile
+  src/modules/glm/SSparse/CHOLMOD/Supernodal/Makefile
   src/modules/glm/samplers/Makefile
   src/terminal/Makefile
   win/Makefile

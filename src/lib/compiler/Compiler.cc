@@ -45,8 +45,8 @@ using std::set;
 using std::fabs;
 
 #include <sstream>
-template<class T>
-std::string ToString(const T& val)
+template<class T> 
+string ToString(const T& val)
 {
     ostringstream strm;
     strm << val;
@@ -127,8 +127,6 @@ Node * Compiler::constFromTable(ParseTree const *p)
     }
 }
 
-//debuggin
-#include <iostream>
 bool Compiler::indexExpression(ParseTree const *p, int &value)
 {
     /* 
@@ -166,7 +164,6 @@ bool Compiler::indexExpression(ParseTree const *p, int &value)
 	throw NodeError(node, "Vector value in index expression"); 
     }
     if (!checkInteger(node->value(0)[0])) {
-	std::cout << node->value(0)[0] << std::endl;
 	throw NodeError(node, 
 			"Index expression evaluates to non-integer value");
     }
@@ -246,7 +243,28 @@ Range Compiler::getRange(ParseTree const *p, Range const &default_range)
     }
   }
   
-  //FIXME: Give informative error message if we request invalid range
+  for (unsigned int i = 0; i < size; ++i) {
+      if (lower[i] > upper[i]) {
+	  //Invalid range. We can't use the print method for Range
+	  //objects to print it as we can't construct a Range object.
+	  //So do it by hand
+	  ostringstream ostr;
+	  ostr << "[";
+	  for (unsigned int j = 0; j < size; ++j) {
+	      if (j > 0)
+		  ostr << ",";
+	      if (lower[j] == upper[j]) {
+		  ostr << lower[j];
+	      }
+	      else {
+		  ostr << lower[j] << ":" << upper[j];
+	      }
+	  }
+	  ostr << "]";
+	  CompileError(p, "Invalid range:", ostr.str());
+      }
+  }
+  
   return Range(lower, upper);
 }
 
@@ -367,17 +385,16 @@ Node *Compiler::getArraySubset(ParseTree const *p)
 	    if (!isNULL(subset_range)) {
 		//A fixed subset
 		if (!array->range().contains(subset_range)) {
-		    string msg = string("Subset ") + array->name() 
-			+ print(subset_range) + " out of range";
-		    CompileError(p, msg);
+		    CompileError(p, "Subset out of range:", array->name() +
+				 print(subset_range));
 		}
 		node = array->getSubset(subset_range, _model);
 		if (node == 0 && _strict_resolution) {
-		    string msg = string("Unable to resolve parameter ")
-			+ array->name() + print(subset_range);
-		    CompileError(p, msg,
-				 "(one of its ancestors may be undefined)");
-		
+ 		    string msg = string("Unable to resolve node ")
+ 			+ array->name() + print(subset_range) 
+			+ "\nThis may be due to an undefined ancestor node or"
+                        + " a directed cycle in the graph";
+ 		    CompileError(p, msg);
 		}
 	    }
 	    else if (!_index_expression) {
@@ -609,9 +626,6 @@ bool Compiler::getParameterVector(ParseTree const *t,
     return true;
 }
 
-
-//debuggin
-#include <iostream>
 Node * Compiler::allocateStochastic(ParseTree const *stoch_relation)
 {
     ParseTree const *distribution = stoch_relation->parameters()[1];  
@@ -688,6 +702,7 @@ Node * Compiler::allocateStochastic(ParseTree const *stoch_relation)
 	    data_length = 0;
 	}
 	else if (nmissing != 0) {
+	    delete [] this_data;
 	    CompileError(var, var->name() + print(target_range),
 			 "has missing values");
 	}
@@ -766,6 +781,26 @@ Node * Compiler::allocateLogical(ParseTree const *rel)
 	break;
     default:
 	throw logic_error("Malformed parse tree in Compiler::allocateLogical");
+    }
+
+    /*
+      Check that there are no values in the data table corresponding to
+      this node.
+    */
+    ParseTree *var = rel->parameters()[0];
+    map<string,SArray>::const_iterator q = _data_table.find(var->name());
+    if (q != _data_table.end()) {
+	vector<double> const &data_value = q->second.value();
+	Range const &data_range = q->second.range();
+	Range target_range = VariableSubsetRange(var);
+
+	for (RangeIterator p(target_range); !p.atEnd(); p.nextLeft()) {
+	    unsigned int j = data_range.leftOffset(p);
+	    if (data_value[j] != JAGS_NA) {
+		CompileError(var, var->name() + print(target_range),
+			     "is a logical node and cannot be observed");
+	    }
+	}
     }
 
     return node;
@@ -1100,22 +1135,37 @@ void Compiler::undeclaredVariables(ParseTree const *prelations)
     }
 }
 
+/* 
+   We use construct-on-first-use for the lookup tables used by the
+   compiler.  By dynamically allocating a table, we ensure that its
+   destructor is never called - the memory is simply returned to the
+   OS on exit.
+
+   This fixes a nasty exit bug.  We cannot guarantee the order that
+   static destructors are called in.  Therefore, a segfault can occur
+   if a module tries to unload itself from a table that has already
+   been destroyed.
+
+   See also Model.cc, where the same technique is used for factory
+   lists.
+*/
+
 DistTab &Compiler::distTab()
 {
-    static DistTab _disttab;
-    return _disttab;
+    static DistTab *_disttab = new DistTab();
+    return *_disttab;
 }
 
 FuncTab &Compiler::funcTab()
 {
-    static FuncTab _functab;
-    return _functab;
+    static FuncTab *_functab = new FuncTab();
+    return *_functab;
 }
 
 ObsFuncTab &Compiler::obsFuncTab()
 {
-    static ObsFuncTab _oftab;
-    return _oftab;
+    static ObsFuncTab *_oftab = new ObsFuncTab();
+    return *_oftab;
 }
 
 MixtureFactory& Compiler::mixtureFactory1()
@@ -1132,3 +1182,4 @@ BUGSModel &Compiler::model() const
 {
     return _model;
 }
+

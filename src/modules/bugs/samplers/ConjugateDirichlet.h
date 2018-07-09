@@ -12,9 +12,11 @@
  * multinomial distribution (dmult) with snode as the probability
  * vector.  In the case of a multinomial distribution, the sample size
  * must not depend on snode.  The immediate deterministic children
- * must be either identity functions or mixture nodes.
+ * must be either aggregate nodes or mixture nodes.
  */
 class ConjugateDirichlet : public ConjugateMethod {
+    bool _mix;
+    std::vector<std::vector<unsigned int> > _off;
 public:
     ConjugateDirichlet(GraphView const *gv);
     void update(unsigned int chain, RNG *rng) const;

@@ -61,7 +61,8 @@ am_basefunctions_la_OBJECTS = basefunctions_la-Infix.lo \
 	basefunctions_la-Not.lo basefunctions_la-Equal.lo \
 	basefunctions_la-NotEqual.lo basefunctions_la-GreaterThan.lo \
 	basefunctions_la-GreaterOrEqual.lo \
-	basefunctions_la-LessThan.lo basefunctions_la-LessOrEqual.lo
+	basefunctions_la-LessThan.lo basefunctions_la-LessOrEqual.lo \
+	basefunctions_la-IfElse.lo
 basefunctions_la_OBJECTS = $(am_basefunctions_la_OBJECTS)
 basefunctions_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -162,6 +163,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -215,7 +217,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 ltdl_LIBOBJS = @ltdl_LIBOBJS@
 ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
@@ -239,11 +240,11 @@ basefunctions_la_CPPFLAGS = -I$(top_srcdir)/src/include
 basefunctions_la_LDFLAGS = -no-undefined -module -avoid-version
 basefunctions_la_SOURCES = Infix.cc Add.cc Subtract.cc Divide.cc	\
 Multiply.cc Neg.cc Pow.cc And.cc Or.cc Not.cc Equal.cc NotEqual.cc	\
-GreaterThan.cc GreaterOrEqual.cc LessThan.cc LessOrEqual.cc 
+GreaterThan.cc GreaterOrEqual.cc LessThan.cc LessOrEqual.cc IfElse.cc
 
 noinst_HEADERS = Infix.h Add.h Subtract.h Divide.h Multiply.h Neg.h	\
 Pow.h And.h Or.h Not.h Equal.h NotEqual.h GreaterThan.h			\
-GreaterOrEqual.h LessThan.h LessOrEqual.h
+GreaterOrEqual.h LessThan.h LessOrEqual.h IfElse.h
 
 all: all-am
 
@@ -303,6 +304,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basefunctions_la-Equal.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basefunctions_la-GreaterOrEqual.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basefunctions_la-GreaterThan.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basefunctions_la-IfElse.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basefunctions_la-Infix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basefunctions_la-LessOrEqual.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basefunctions_la-LessThan.Plo@am__quote@
@@ -446,6 +448,13 @@ basefunctions_la-LessOrEqual.lo: LessOrEqual.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LessOrEqual.cc' object='basefunctions_la-LessOrEqual.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basefunctions_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o basefunctions_la-LessOrEqual.lo `test -f 'LessOrEqual.cc' || echo '$(srcdir)/'`LessOrEqual.cc
+
+basefunctions_la-IfElse.lo: IfElse.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basefunctions_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT basefunctions_la-IfElse.lo -MD -MP -MF $(DEPDIR)/basefunctions_la-IfElse.Tpo -c -o basefunctions_la-IfElse.lo `test -f 'IfElse.cc' || echo '$(srcdir)/'`IfElse.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/basefunctions_la-IfElse.Tpo $(DEPDIR)/basefunctions_la-IfElse.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IfElse.cc' object='basefunctions_la-IfElse.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basefunctions_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o basefunctions_la-IfElse.lo `test -f 'IfElse.cc' || echo '$(srcdir)/'`IfElse.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

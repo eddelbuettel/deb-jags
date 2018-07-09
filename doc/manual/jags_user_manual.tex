@@ -5,7 +5,7 @@
 \usepackage{url}
 \usepackage{multirow}
 \usepackage{amsfonts}
-\newcommand{\release}{2.0.0}
+\newcommand{\release}{2.2.0}
 \newcommand{\JAGS}{\textsf{JAGS}}
 \newcommand{\rjags}{\textsf{rjags}}
 \newcommand{\BUGS}{\textsf{BUGS}}
@@ -482,6 +482,24 @@ A {\em monitor} in \JAGS\ is an object that records sampled
 values. The simplest monitor is a {\em trace monitor}, which stores
 the sampled value of a node at each iteration.
 
+\JAGS\ cannot monitor a node unless it has been defined in the model
+file.  For vector- or array-valued nodes, this means that every
+element must be defined. Here is an example of a simple for loop that
+only defines elements $2$ to $N$ of \verb+theta+
+
+\begin{verbatim}
+for (i in 2:N) {
+   theta[i] ~ dnorm(0,1);
+}
+\end{verbatim}
+
+Unless \verb+theta[1]+ is defined somewhere else in the model file,
+the multivariate node \verb+theta+ is undefined and therefore it
+will not be possible to monitor \verb+theta+ as a whole.  In such
+cases you can request each element separately , e.g. \verb+theta[2]+,
+\verb+theta[3]+, {\em etc.}, or request a subset that is fully defined,
+e.g. \verb+theta[2:6]+.
+
 Monitors can be classified according to whether they pool values over
 iterations and whether they pool values over parallel chains (The
 standard trace monitor does neither). When monitor values are written
@@ -544,7 +562,7 @@ A typical script file has the following commands:
 model in "line.bug"      # Read model file
 data in "line-data.R"    # Read data in from file
 compile, nchains(2)      # Compile a model with two parallel chains
-inits in "line-inits.R"  # Read initial values from file
+parameters in "line-inits.R"  # Read initial values from file
 initialize               # Initialize the model
 update 1000              # Adaptation (if necessary) and burnin for 1000 iterations
 monitor alpha            # Set trace monitor for node alpha ...
@@ -1244,10 +1262,17 @@ tables \ref{table:bugs:distributions:real} and
 \hline
 Usage  & Description & Value & Restrictions on arguments \\ 
 \hline
-\verb+abs(x)+       & Absolute value      & Real & \\
+\verb+abs(x)+       & Absolute value        & Real & \\
+\verb+acos(x)+      & Arc-cosine            & Real & $-1 < x < 1$\\
+\verb+acosh(x)+     & Hyperbolic arc-cosine & Real & $1 < x$ \\
+\verb+asin(x)+      & Arc-sine              & Real & $-1 < x < 1$\\
+\verb+asinh(x)+     & Hyperbolic arc-sine   & Real &\\
+\verb+atan(x)+      & Arc-tangent           & Real &\\
+\verb+atanh(x)+     & Hyperbolic arc-tangent & Real & $-1 < x < 1$\\
 \verb+cos(x)+       & Cosine              & Real & \\
-\verb+cloglog(x)+   & Complementary log log & Real & $0 < x < 1$ \\
-\verb+equals(x,y)+  & Test for equality   & Logical & \\
+\verb+cosh(x)+      & Hyperbolic Cosine   & Real & \\
+\verb+cloglog(x)+    & Complementary log log & Real & $0 < x < 1$ \\
+\verb+equals(x,y)+   & Test for equality   & Logical & \\
 \verb+exp(x)+       & Exponential         & Real & \\
 \verb+icloglog(x)+  & Inverse complementary & Real & \\
                     & log log function    & \\
@@ -1262,8 +1287,11 @@ Usage  & Description & Value & Restrictions on arguments \\
 \verb+round(x)+     & Round to integer    & Integer & \\
                     & away from zero      &      & \\
 \verb+sin(x)+       & Sine                & Real & \\
+\verb+sinh(x)+      & Hyperbolic Sine     & Real & \\
 \verb+sqrt(x)+      & Square-root         & Real & $x >= 0$ \\
 \verb+step(x)+      & Test for $x \geq 0$ & Logical & \\
+\verb+tan(x)+       & Tangent             & Real & \\
+\verb+tanh(x)+      & Hyperbolic Tangent  & Real & \\
 \verb+trunc(x)+     & Round to integer    & Integer & \\
                     & towards zero        & \\
 \hline
@@ -1284,6 +1312,7 @@ Binomial           & dbin      & pbin      & qbin \\
 Chi-square         & dchisqr   & pchisqr   & qchisqr \\
 Double exponential & ddexp     & pdexp     & qdexp \\
 Exponential        & dexp      & pexp      & qexp \\
+F                  & df        & pf        & qf \\
 Gamma              & dgamma    & pgamma    & qgamma \\
 Generalized gamma  & dgengamma & pgengamma & qgengamma \\
 Hypergeometric     & dhyper    & phyper    & qhyper \\
@@ -1422,6 +1451,13 @@ their distribution.
       Exponential & \verb+dexp(lambda)+ & 
       \multirow{2}{*}{$\lambda \exp(-\lambda x)$} & 0 & \\ 
       & $\lambda > 0$ \\
+      F   & \verb+df(n,m)+ & 
+      \multirow{2}{*}{
+        $\textstyle \frac{\Gamma(\frac{n + m}{2})}
+                         {\Gamma(\frac{n}{2}) \Gamma(\frac{m}{2})}
+        \left(\frac{n}{m} \right)^{\frac{n}{2}} x^{\frac{n}{2} - 1} 
+        \left\{1 + \frac{nx}{m} \right\}^{-\frac{(n + m)}{2}}$} & 0 & \\
+      & $n > 0$, $m > 0$ \\
       Gamma       & \verb+dgamma(r, mu)+ & 
       \multirow{2}{*}{
         $\frac{\textstyle \mu^r x^{r - 1} \exp(-\mu x)}
@@ -1599,9 +1635,9 @@ $c[]$, a vector of cut points of length $M$, say. If \texttt{X $\sim$
 dinterval(t, c)} then 
 
 \begin{tabular}{lll}
-$X=0$   & if & $t < c[1]$\\
-$X=m$   & if & $c[m] \leq t < c[m+1]$ for $1 \leq m < M$\\
-$X = M$ & if & $c[M] \leq t$.
+$X=0$   & if & $t \leq c[1]$\\
+$X=m$   & if & $c[m] < t \leq c[m+1]$ for $1 \leq m < M$\\
+$X = M$ & if & $c[M] < t$.
 \end{tabular}
 
 \item The \texttt{dsum} distribution represents the sum of two or more
@@ -1623,7 +1659,8 @@ is trivial: it is 1 if the parameters are consistent with the data and
 0 otherwise.  The \texttt{dsum} distribution also requires a special
 sampler, which can currently only handle the case where the parameters
 of \texttt{dsum} are unobserved stochastic nodes, and where the
-parameters are either all discrete-valued or all continuous-valued.
+parameters are either all discrete-valued or all continuous-valued. A node
+cannot be subject to more than one \texttt{dsum} constraint.
 
 \subsection{Data transformations}
 \label{section:data:tranformations}
