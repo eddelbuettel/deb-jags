@@ -1,48 +1,14 @@
-## Process this file with automake to produce Makefile.in
+ACLOCAL_AMFLAGS = -I m4
+SUBDIRS = m4 libltdl src etc win32
+EXTRA_DIST = Doxyfile
 
-SUBDIRS = src plugins
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	if test -d src/pixmaps; then \
-	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/pixmaps; \
-	  for pixmap in src/pixmaps/*; do \
-	    if test -f $$pixmap; then \
-	      $(INSTALL_DATA) $$pixmap $(DESTDIR)$(pkgdatadir)/pixmaps; \
-	    fi \
-	  done \
-	fi 
-	if test -d plugins; then \
-	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/plugins; \
-	  for plugin in plugins/*.plugin; do \
-            $(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/$$plugin; \
-	      for i in $$plugin/*; do \
-                 if test -f $$i; then \
-                   $(INSTALL_DATA) $$i $(DESTDIR)$(pkgdatadir)/$$plugin; \
-                 fi \
-               done \
-	  done \
-	fi 
-	if test -d src/sounds; then \
-	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/sounds; \
-	  for sound in src/sounds/*; do \
-	    if test -f $$sound; then \
-	      $(INSTALL_DATA) $$sound $(DESTDIR)$(pkgdatadir)/sounds; \
-	    fi \
-	  done \
-	fi 
-	if test -f src/jags.conf.sample; then \
-	  cp src/jags.conf.sample $(DESTDIR)$(pkgdatadir)/jags.conf.sample;	\
-	  echo "";\
-	  echo "************************************************";\
-	  echo "* NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE *";\
-	  echo "************************************************";\
-	  echo "";\
-	  echo "Jags successfully installed.";\
-	  echo "";\
-	  echo "If you're upgrading from a previous version of Jags: ";\
-	  echo "Please run ./upgrade as your regular user to make ";\
-	  echo "sure that your config-files will be updated.";\
-	  echo "";\
-	  echo "";\
-	fi
+win32-installer:
+	make prefix=`pwd`/win32/inst
+	make install prefix=`pwd`/win32/inst
+	(cd win32; for f in `ls lapack/*.dll`; do \
+	    ${INSTALL} $${f} inst/bin; \
+	  done; \
+	  for f in `ls lapack/*.dll.a`; do \
+	    ${INSTALL} $${f} inst/lib; \
+	  done;) 
+	makensis -DVERSION=${PACKAGE_VERSION} win32/jags.nsi
