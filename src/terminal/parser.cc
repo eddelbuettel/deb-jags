@@ -159,7 +159,7 @@
     static void listFactories(FactoryType type);
     static void setFactory(std::string const &name, FactoryType type,
                            std::string const &status);
-
+    static bool Jtry(bool ok);
     
 
 /* Line 189 of yacc.c  */
@@ -679,17 +679,17 @@ static const yytype_uint16 yyrline[] =
        0,   168,   168,   172,   178,   179,   180,   181,   182,   183,
      186,   187,   188,   189,   190,   191,   192,   193,   194,   195,
      196,   197,   198,   199,   200,   201,   202,   203,   204,   205,
-     206,   207,   210,   221,   226,   234,   237,   243,   254,   260,
-     279,   292,   295,   299,   305,   314,   326,   330,   336,   343,
-     347,   352,   357,   362,   365,   368,   374,   377,   382,   385,
-     391,   394,   395,   398,   401,   404,   407,   410,   414,   418,
-     424,   427,   433,   439,   451,   452,   455,   458,   461,   464,
-     469,   472,   475,   482,   487,   492,   498,   505,   512,   522,
-     525,   528,   533,   536,   541,   549,   550,   551,   556,   567,
-     568,   569,   570,   573,   578,   579,   582,   585,   589,   595,
-     596,   599,   600,   606,   609,   610,   613,   614,   617,   618,
-     619,   620,   621,   622,   625,   626,   629,   630,   633,   634,
-     637,   638,   643,   654,   662,   686
+     206,   207,   210,   222,   227,   235,   241,   247,   259,   265,
+     289,   302,   305,   309,   315,   324,   336,   340,   346,   353,
+     357,   362,   367,   372,   375,   378,   384,   387,   392,   395,
+     401,   404,   405,   408,   411,   414,   417,   420,   424,   428,
+     434,   437,   443,   449,   461,   462,   465,   468,   471,   474,
+     479,   482,   485,   492,   497,   502,   508,   515,   522,   532,
+     535,   538,   543,   546,   551,   559,   560,   561,   566,   577,
+     578,   579,   580,   583,   588,   589,   592,   595,   599,   605,
+     606,   609,   610,   616,   619,   620,   623,   624,   627,   628,
+     629,   630,   631,   632,   635,   636,   639,   640,   643,   644,
+     647,   648,   653,   664,   672,   696
 };
 #endif
 
@@ -1858,28 +1858,29 @@ yyreduce:
     std::FILE *file = std::fopen(ExpandFileName(((yyvsp[(3) - (3)].stringptr))->c_str()).c_str(), "r");
     if (!file) {
 	std::cerr << "Failed to open file " << *((yyvsp[(3) - (3)].stringptr)) << std::endl;
+	if (!interactive) exit(1);
     }
     else {
-	console->checkModel(file);
+	Jtry(console->checkModel(file));
 	std::fclose(file);
     }
     delete (yyvsp[(3) - (3)].stringptr);
-}
+ }
     break;
 
   case 33:
 
 /* Line 1464 of yacc.c  */
-#line 221 "parser.yy"
+#line 222 "parser.yy"
     {
     console->clearModel();
-}
+ }
     break;
 
   case 34:
 
 /* Line 1464 of yacc.c  */
-#line 226 "parser.yy"
+#line 227 "parser.yy"
     {
     std::string rngname;
     readRData((yyvsp[(2) - (3)].pvec), _data_table, rngname);
@@ -1893,14 +1894,17 @@ yyreduce:
   case 35:
 
 /* Line 1464 of yacc.c  */
-#line 234 "parser.yy"
-    {}
+#line 235 "parser.yy"
+    {
+    // Failed to open the data file 
+    if (!interactive) exit(1);
+  }
     break;
 
   case 36:
 
 /* Line 1464 of yacc.c  */
-#line 237 "parser.yy"
+#line 241 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_DATA, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -1910,13 +1914,14 @@ yyreduce:
   case 37:
 
 /* Line 1464 of yacc.c  */
-#line 243 "parser.yy"
+#line 247 "parser.yy"
     {
     if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
 	std::cout << "Reading data file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
     }
     else {
 	std::cerr << "Unable to open file " << *(yyvsp[(3) - (3)].stringptr) << std::endl << std::flush;
+	if (!interactive) exit(1);
     }
     delete (yyvsp[(3) - (3)].stringptr);
  }
@@ -1925,17 +1930,17 @@ yyreduce:
   case 38:
 
 /* Line 1464 of yacc.c  */
-#line 254 "parser.yy"
+#line 259 "parser.yy"
     {
-  std::cout << "Clearing data table " << std::endl;
-  _data_table.clear();
+    std::cout << "Clearing data table " << std::endl;
+    _data_table.clear();
 }
     break;
 
   case 39:
 
 /* Line 1464 of yacc.c  */
-#line 261 "parser.yy"
+#line 266 "parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -1945,13 +1950,18 @@ yyreduce:
        RNG state in addition to the parameter values then all
        chains will be identical!
     */
+    if (console->model() == 0) {
+	std::cout << "ERROR: Initial values ignored. "
+		  <<  "(You must compile the model first)" << std::endl;
+	if (!interactive) exit(1);
+    }
     for (unsigned int i = 1; i <= console->nchain(); ++i) {
 	/* We have to set the name first, because the state or seed
 	   might be embedded in the parameter_table */
 	if (rngname.size() != 0) {
-	    console->setRNGname(rngname, i);
+	    Jtry(console->setRNGname(rngname, i));
 	}
-	console->setParameters(parameter_table, i);
+	Jtry(console->setParameters(parameter_table, i));
     }
 }
     break;
@@ -1959,7 +1969,7 @@ yyreduce:
   case 40:
 
 /* Line 1464 of yacc.c  */
-#line 280 "parser.yy"
+#line 290 "parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -1968,23 +1978,23 @@ yyreduce:
     /* We have to set the name first, because the state or seed
        might be embedded in the parameter_table */
     if (rngname.size() != 0) {
-        console->setRNGname(rngname, (yyvsp[(7) - (8)].intval));
+        Jtry(console->setRNGname(rngname, (yyvsp[(7) - (8)].intval)));
     }
-    console->setParameters(parameter_table, (yyvsp[(7) - (8)].intval));
+    Jtry(console->setParameters(parameter_table, (yyvsp[(7) - (8)].intval)));
 }
     break;
 
   case 41:
 
 /* Line 1464 of yacc.c  */
-#line 292 "parser.yy"
+#line 302 "parser.yy"
     {}
     break;
 
   case 42:
 
 /* Line 1464 of yacc.c  */
-#line 295 "parser.yy"
+#line 305 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_PARAMETERS, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -1994,7 +2004,7 @@ yyreduce:
   case 43:
 
 /* Line 1464 of yacc.c  */
-#line 299 "parser.yy"
+#line 309 "parser.yy"
     {
     doDump(*(yyvsp[(3) - (8)].stringptr), DUMP_PARAMETERS, (yyvsp[(7) - (8)].intval));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -2004,7 +2014,7 @@ yyreduce:
   case 44:
 
 /* Line 1464 of yacc.c  */
-#line 305 "parser.yy"
+#line 315 "parser.yy"
     {
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
     std::cout << "Reading parameter file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
@@ -2019,7 +2029,7 @@ yyreduce:
   case 45:
 
 /* Line 1464 of yacc.c  */
-#line 314 "parser.yy"
+#line 324 "parser.yy"
     {
   /* Legacy option to not break existing scripts */
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
@@ -2035,9 +2045,9 @@ yyreduce:
   case 46:
 
 /* Line 1464 of yacc.c  */
-#line 326 "parser.yy"
+#line 336 "parser.yy"
     {
-    console->compile(_data_table, 1, true);
+    Jtry(console->compile(_data_table, 1, true));
     print_unused_variables();
 }
     break;
@@ -2045,9 +2055,9 @@ yyreduce:
   case 47:
 
 /* Line 1464 of yacc.c  */
-#line 330 "parser.yy"
+#line 340 "parser.yy"
     {
-    console->compile(_data_table, (yyvsp[(5) - (6)].intval), true);
+    Jtry(console->compile(_data_table, (yyvsp[(5) - (6)].intval), true));
     print_unused_variables();
 }
     break;
@@ -2055,64 +2065,64 @@ yyreduce:
   case 48:
 
 /* Line 1464 of yacc.c  */
-#line 336 "parser.yy"
+#line 346 "parser.yy"
     {
-  if (!console->initialize()) {
-    errordump();
-  }
+    if (!console->initialize()) {
+	errordump();
+    }
 }
     break;
 
   case 49:
 
 /* Line 1464 of yacc.c  */
-#line 343 "parser.yy"
+#line 353 "parser.yy"
     {
-    long refresh = (yyvsp[(2) - (2)].intval)/40;
-    adaptstar((yyvsp[(2) - (2)].intval), refresh, 40);
+    long refresh = (yyvsp[(2) - (2)].intval)/50;
+    adaptstar((yyvsp[(2) - (2)].intval), refresh, 50);
 }
     break;
 
   case 50:
 
 /* Line 1464 of yacc.c  */
-#line 347 "parser.yy"
+#line 357 "parser.yy"
     {
-    adaptstar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval),40);
+    adaptstar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval), 50);
 }
     break;
 
   case 51:
 
 /* Line 1464 of yacc.c  */
-#line 352 "parser.yy"
+#line 362 "parser.yy"
     {
   //fixme: put refresh option
   long refresh = (yyvsp[(2) - (2)].intval)/40;
-  updatestar((yyvsp[(2) - (2)].intval), refresh, 40);
+  updatestar((yyvsp[(2) - (2)].intval), refresh, 50);
 }
     break;
 
   case 52:
 
 /* Line 1464 of yacc.c  */
-#line 357 "parser.yy"
+#line 367 "parser.yy"
     {
-  updatestar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval), 40);
+  updatestar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval), 50);
 }
     break;
 
   case 53:
 
 /* Line 1464 of yacc.c  */
-#line 362 "parser.yy"
+#line 372 "parser.yy"
     { return 0; }
     break;
 
   case 54:
 
 /* Line 1464 of yacc.c  */
-#line 365 "parser.yy"
+#line 375 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (1)].stringptr));
 }
@@ -2121,7 +2131,7 @@ yyreduce:
   case 55:
 
 /* Line 1464 of yacc.c  */
-#line 368 "parser.yy"
+#line 378 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (4)].stringptr));
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
@@ -2131,7 +2141,7 @@ yyreduce:
   case 56:
 
 /* Line 1464 of yacc.c  */
-#line 374 "parser.yy"
+#line 384 "parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); 
 }
@@ -2140,7 +2150,7 @@ yyreduce:
   case 57:
 
 /* Line 1464 of yacc.c  */
-#line 377 "parser.yy"
+#line 387 "parser.yy"
     {
   (yyval.pvec)=(yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
@@ -2149,7 +2159,7 @@ yyreduce:
   case 58:
 
 /* Line 1464 of yacc.c  */
-#line 382 "parser.yy"
+#line 392 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree),(yyvsp[(1) - (1)].ptree));
 }
@@ -2158,7 +2168,7 @@ yyreduce:
   case 59:
 
 /* Line 1464 of yacc.c  */
-#line 385 "parser.yy"
+#line 395 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree), (yyvsp[(1) - (3)].ptree), (yyvsp[(3) - (3)].ptree));
 }
@@ -2167,14 +2177,14 @@ yyreduce:
   case 60:
 
 /* Line 1464 of yacc.c  */
-#line 391 "parser.yy"
+#line 401 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].intval));}
     break;
 
   case 63:
 
 /* Line 1464 of yacc.c  */
-#line 398 "parser.yy"
+#line 408 "parser.yy"
     { 
     setMonitor((yyvsp[(3) - (3)].ptree), 1, "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
@@ -2183,7 +2193,7 @@ yyreduce:
   case 64:
 
 /* Line 1464 of yacc.c  */
-#line 401 "parser.yy"
+#line 411 "parser.yy"
     { 
     setMonitor((yyvsp[(3) - (8)].ptree), (yyvsp[(7) - (8)].intval), "trace"); delete (yyvsp[(3) - (8)].ptree);
 }
@@ -2192,7 +2202,7 @@ yyreduce:
   case 65:
 
 /* Line 1464 of yacc.c  */
-#line 404 "parser.yy"
+#line 414 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (2)].ptree), 1, "trace"); delete (yyvsp[(2) - (2)].ptree);
 }
@@ -2201,7 +2211,7 @@ yyreduce:
   case 66:
 
 /* Line 1464 of yacc.c  */
-#line 407 "parser.yy"
+#line 417 "parser.yy"
     { 
     setMonitor((yyvsp[(2) - (7)].ptree), (yyvsp[(6) - (7)].intval), "trace"); delete (yyvsp[(2) - (7)].ptree);
 }
@@ -2210,7 +2220,7 @@ yyreduce:
   case 67:
 
 /* Line 1464 of yacc.c  */
-#line 410 "parser.yy"
+#line 420 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (7)].ptree), 1, *(yyvsp[(6) - (7)].stringptr));
     delete (yyvsp[(6) - (7)].stringptr);
@@ -2220,7 +2230,7 @@ yyreduce:
   case 68:
 
 /* Line 1464 of yacc.c  */
-#line 414 "parser.yy"
+#line 424 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(10) - (11)].intval), *(yyvsp[(6) - (11)].stringptr)); 
     delete (yyvsp[(6) - (11)].stringptr);
@@ -2230,7 +2240,7 @@ yyreduce:
   case 69:
 
 /* Line 1464 of yacc.c  */
-#line 418 "parser.yy"
+#line 428 "parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(6) - (11)].intval), *(yyvsp[(10) - (11)].stringptr)); 
     delete (yyvsp[(10) - (11)].stringptr);
@@ -2240,7 +2250,7 @@ yyreduce:
   case 70:
 
 /* Line 1464 of yacc.c  */
-#line 424 "parser.yy"
+#line 434 "parser.yy"
     {
     clearMonitor((yyvsp[(3) - (3)].ptree), "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
@@ -2249,7 +2259,7 @@ yyreduce:
   case 71:
 
 /* Line 1464 of yacc.c  */
-#line 427 "parser.yy"
+#line 437 "parser.yy"
     {
     clearMonitor((yyvsp[(3) - (8)].ptree), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(7) - (8)].stringptr);
@@ -2259,7 +2269,7 @@ yyreduce:
   case 72:
 
 /* Line 1464 of yacc.c  */
-#line 434 "parser.yy"
+#line 444 "parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (3)].stringptr), "trace");
     delete (yyvsp[(3) - (3)].stringptr);
@@ -2269,7 +2279,7 @@ yyreduce:
   case 73:
 
 /* Line 1464 of yacc.c  */
-#line 439 "parser.yy"
+#line 449 "parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (8)].stringptr), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -2280,21 +2290,21 @@ yyreduce:
   case 74:
 
 /* Line 1464 of yacc.c  */
-#line 451 "parser.yy"
+#line 461 "parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr);}
     break;
 
   case 75:
 
 /* Line 1464 of yacc.c  */
-#line 452 "parser.yy"
+#line 462 "parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr); }
     break;
 
   case 76:
 
 /* Line 1464 of yacc.c  */
-#line 455 "parser.yy"
+#line 465 "parser.yy"
     {
   doCoda ((yyvsp[(2) - (2)].ptree), "CODA"); delete (yyvsp[(2) - (2)].ptree);
 }
@@ -2303,7 +2313,7 @@ yyreduce:
   case 77:
 
 /* Line 1464 of yacc.c  */
-#line 458 "parser.yy"
+#line 468 "parser.yy"
     {
   doCoda ((yyvsp[(2) - (7)].ptree), *(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(2) - (7)].ptree); delete (yyvsp[(6) - (7)].stringptr);
 }
@@ -2312,7 +2322,7 @@ yyreduce:
   case 78:
 
 /* Line 1464 of yacc.c  */
-#line 461 "parser.yy"
+#line 471 "parser.yy"
     {
   doAllCoda ("CODA"); 
 }
@@ -2321,7 +2331,7 @@ yyreduce:
   case 79:
 
 /* Line 1464 of yacc.c  */
-#line 464 "parser.yy"
+#line 474 "parser.yy"
     {
   doAllCoda (*(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(6) - (7)].stringptr); 
 }
@@ -2330,21 +2340,21 @@ yyreduce:
   case 80:
 
 /* Line 1464 of yacc.c  */
-#line 469 "parser.yy"
+#line 479 "parser.yy"
     { loadModule(*(yyvsp[(2) - (2)].stringptr)); }
     break;
 
   case 81:
 
 /* Line 1464 of yacc.c  */
-#line 472 "parser.yy"
+#line 482 "parser.yy"
     { unloadModule(*(yyvsp[(2) - (2)].stringptr)); }
     break;
 
   case 82:
 
 /* Line 1464 of yacc.c  */
-#line 476 "parser.yy"
+#line 486 "parser.yy"
     {
     dumpSamplers(*(yyvsp[(3) - (3)].stringptr));
     delete (yyvsp[(3) - (3)].stringptr);
@@ -2354,7 +2364,7 @@ yyreduce:
   case 83:
 
 /* Line 1464 of yacc.c  */
-#line 483 "parser.yy"
+#line 493 "parser.yy"
     {
     listFactories(SAMPLER_FACTORY);
 }
@@ -2363,7 +2373,7 @@ yyreduce:
   case 84:
 
 /* Line 1464 of yacc.c  */
-#line 488 "parser.yy"
+#line 498 "parser.yy"
     {
     listFactories(RNG_FACTORY);
 }
@@ -2372,7 +2382,7 @@ yyreduce:
   case 85:
 
 /* Line 1464 of yacc.c  */
-#line 493 "parser.yy"
+#line 503 "parser.yy"
     {
     listFactories(MONITOR_FACTORY);
 }
@@ -2381,7 +2391,7 @@ yyreduce:
   case 86:
 
 /* Line 1464 of yacc.c  */
-#line 499 "parser.yy"
+#line 509 "parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), SAMPLER_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2392,7 +2402,7 @@ yyreduce:
   case 87:
 
 /* Line 1464 of yacc.c  */
-#line 506 "parser.yy"
+#line 516 "parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), RNG_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2403,7 +2413,7 @@ yyreduce:
   case 88:
 
 /* Line 1464 of yacc.c  */
-#line 513 "parser.yy"
+#line 523 "parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), MONITOR_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2414,7 +2424,7 @@ yyreduce:
   case 89:
 
 /* Line 1464 of yacc.c  */
-#line 522 "parser.yy"
+#line 532 "parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree));
 }
@@ -2423,7 +2433,7 @@ yyreduce:
   case 90:
 
 /* Line 1464 of yacc.c  */
-#line 525 "parser.yy"
+#line 535 "parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (2)].pvec); (yyval.pvec)->push_back((yyvsp[(2) - (2)].ptree));
 }
@@ -2432,7 +2442,7 @@ yyreduce:
   case 91:
 
 /* Line 1464 of yacc.c  */
-#line 528 "parser.yy"
+#line 538 "parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
@@ -2441,7 +2451,7 @@ yyreduce:
   case 92:
 
 /* Line 1464 of yacc.c  */
-#line 533 "parser.yy"
+#line 543 "parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
 }
@@ -2450,7 +2460,7 @@ yyreduce:
   case 93:
 
 /* Line 1464 of yacc.c  */
-#line 536 "parser.yy"
+#line 546 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY);
   setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2461,7 +2471,7 @@ yyreduce:
   case 94:
 
 /* Line 1464 of yacc.c  */
-#line 541 "parser.yy"
+#line 551 "parser.yy"
     {
   /* Allow this for setting the NAME of the random number generator */
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2473,7 +2483,7 @@ yyreduce:
   case 97:
 
 /* Line 1464 of yacc.c  */
-#line 551 "parser.yy"
+#line 561 "parser.yy"
     {
     /* R >= 2.4.0 uses backticks for quoted names */
     (yyval.stringptr) = (yyvsp[(2) - (3)].stringptr);
@@ -2483,7 +2493,7 @@ yyreduce:
   case 98:
 
 /* Line 1464 of yacc.c  */
-#line 556 "parser.yy"
+#line 566 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY); 
   if ((yyvsp[(5) - (6)].ptree)) 
@@ -2496,21 +2506,21 @@ yyreduce:
   case 100:
 
 /* Line 1464 of yacc.c  */
-#line 568 "parser.yy"
+#line 578 "parser.yy"
     {(yyval.ptree)=0;}
     break;
 
   case 102:
 
 /* Line 1464 of yacc.c  */
-#line 570 "parser.yy"
+#line 580 "parser.yy"
     {(yyval.ptree)=(yyvsp[(3) - (3)].ptree);}
     break;
 
   case 103:
 
 /* Line 1464 of yacc.c  */
-#line 573 "parser.yy"
+#line 583 "parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree);
 }
@@ -2519,14 +2529,14 @@ yyreduce:
   case 106:
 
 /* Line 1464 of yacc.c  */
-#line 582 "parser.yy"
+#line 592 "parser.yy"
     {(yyval.ptree) = (yyvsp[(3) - (4)].ptree);}
     break;
 
   case 107:
 
 /* Line 1464 of yacc.c  */
-#line 585 "parser.yy"
+#line 595 "parser.yy"
     { 
   (yyval.ptree) = new ParseTree(P_VECTOR); 
   setParameters((yyval.ptree), (yyvsp[(1) - (1)].ptree));
@@ -2536,7 +2546,7 @@ yyreduce:
   case 108:
 
 /* Line 1464 of yacc.c  */
-#line 589 "parser.yy"
+#line 599 "parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VECTOR);
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
@@ -2546,161 +2556,161 @@ yyreduce:
   case 109:
 
 /* Line 1464 of yacc.c  */
-#line 595 "parser.yy"
+#line 605 "parser.yy"
     {(yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); }
     break;
 
   case 110:
 
 /* Line 1464 of yacc.c  */
-#line 596 "parser.yy"
+#line 606 "parser.yy"
     {(yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));}
     break;
 
   case 111:
 
 /* Line 1464 of yacc.c  */
-#line 599 "parser.yy"
+#line 609 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].val));}
     break;
 
   case 112:
 
 /* Line 1464 of yacc.c  */
-#line 600 "parser.yy"
+#line 610 "parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
     break;
 
   case 113:
 
 /* Line 1464 of yacc.c  */
-#line 606 "parser.yy"
+#line 616 "parser.yy"
     {;}
     break;
 
   case 114:
 
 /* Line 1464 of yacc.c  */
-#line 609 "parser.yy"
+#line 619 "parser.yy"
     {;}
     break;
 
   case 115:
 
 /* Line 1464 of yacc.c  */
-#line 610 "parser.yy"
+#line 620 "parser.yy"
     {;}
     break;
 
   case 116:
 
 /* Line 1464 of yacc.c  */
-#line 613 "parser.yy"
+#line 623 "parser.yy"
     {;}
     break;
 
   case 117:
 
 /* Line 1464 of yacc.c  */
-#line 614 "parser.yy"
+#line 624 "parser.yy"
     {;}
     break;
 
   case 118:
 
 /* Line 1464 of yacc.c  */
-#line 617 "parser.yy"
+#line 627 "parser.yy"
     {;}
     break;
 
   case 119:
 
 /* Line 1464 of yacc.c  */
-#line 618 "parser.yy"
+#line 628 "parser.yy"
     {;}
     break;
 
   case 120:
 
 /* Line 1464 of yacc.c  */
-#line 619 "parser.yy"
+#line 629 "parser.yy"
     {;}
     break;
 
   case 121:
 
 /* Line 1464 of yacc.c  */
-#line 620 "parser.yy"
+#line 630 "parser.yy"
     {;}
     break;
 
   case 122:
 
 /* Line 1464 of yacc.c  */
-#line 621 "parser.yy"
+#line 631 "parser.yy"
     {;}
     break;
 
   case 123:
 
 /* Line 1464 of yacc.c  */
-#line 622 "parser.yy"
+#line 632 "parser.yy"
     {;}
     break;
 
   case 124:
 
 /* Line 1464 of yacc.c  */
-#line 625 "parser.yy"
+#line 635 "parser.yy"
     {;}
     break;
 
   case 126:
 
 /* Line 1464 of yacc.c  */
-#line 629 "parser.yy"
+#line 639 "parser.yy"
     {;}
     break;
 
   case 127:
 
 /* Line 1464 of yacc.c  */
-#line 630 "parser.yy"
+#line 640 "parser.yy"
     {;}
     break;
 
   case 128:
 
 /* Line 1464 of yacc.c  */
-#line 633 "parser.yy"
+#line 643 "parser.yy"
     {;}
     break;
 
   case 129:
 
 /* Line 1464 of yacc.c  */
-#line 634 "parser.yy"
+#line 644 "parser.yy"
     {;}
     break;
 
   case 130:
 
 /* Line 1464 of yacc.c  */
-#line 637 "parser.yy"
+#line 647 "parser.yy"
     {;}
     break;
 
   case 131:
 
 /* Line 1464 of yacc.c  */
-#line 638 "parser.yy"
+#line 648 "parser.yy"
     {;}
     break;
 
   case 132:
 
 /* Line 1464 of yacc.c  */
-#line 644 "parser.yy"
+#line 654 "parser.yy"
     {
     std::string name;
     if (getWorkingDirectory(name)) {
@@ -2715,7 +2725,7 @@ yyreduce:
   case 133:
 
 /* Line 1464 of yacc.c  */
-#line 655 "parser.yy"
+#line 665 "parser.yy"
     {
     if (chdir(((yyvsp[(2) - (2)].stringptr))->c_str()) == -1) {
 	std::cout << "ERROR: Cannot change working directory" << std::endl;
@@ -2727,7 +2737,7 @@ yyreduce:
   case 134:
 
 /* Line 1464 of yacc.c  */
-#line 663 "parser.yy"
+#line 673 "parser.yy"
     {
     std::string name;
     if (!getWorkingDirectory(name)) {
@@ -2755,7 +2765,7 @@ yyreduce:
   case 135:
 
 /* Line 1464 of yacc.c  */
-#line 686 "parser.yy"
+#line 696 "parser.yy"
     {
     if(open_command_buffer((yyvsp[(2) - (2)].stringptr))) {
 	std::cout << "Running script file " << *(yyvsp[(2) - (2)].stringptr) << std::endl;
@@ -2770,7 +2780,7 @@ yyreduce:
 
 
 /* Line 1464 of yacc.c  */
-#line 2774 "parser.cc"
+#line 2784 "parser.cc"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2982,7 +2992,7 @@ yyreturn:
 
 
 /* Line 1684 of yacc.c  */
-#line 697 "parser.yy"
+#line 707 "parser.yy"
 
 
 int zzerror (const char *s)
@@ -3301,30 +3311,51 @@ void setName(ParseTree *p, std::string *name)
 
 static void errordump()
 {
-  if (console->model()) {
-    std::ostringstream fname;
-    for (unsigned int i = 1; i <= console->nchain(); ++i) {
-       fname << "jags.dump" << i << ".R";
-       std::cout << "Dumping chain " << i << " at iteration " 
-                 << console->iter() << " to file " << fname.str() << std::endl;
-       doDump(fname.str(), DUMP_ALL, i);
-       fname.str("");
+    if (console->model()) {
+	std::ostringstream fname;
+	for (unsigned int i = 1; i <= console->nchain(); ++i) {
+	    fname << "jags.dump" << i << ".R";
+	    std::cout << "Dumping chain " << i << " at iteration " 
+		      << console->iter() << " to file " << fname.str() 
+		      << std::endl;
+	    doDump(fname.str(), DUMP_ALL, i);
+	    fname.str("");
+	}
     }
-  }
+    if (!interactive) exit(1);
 }
 
 static void updatestar(long niter, long refresh, int width)
 {
+    std::cout << "Updating " << niter << std::endl;
+
     bool adapt = console->isAdapting();
-	
-    if (refresh == 0) {
-	console->update(niter/2);
-	bool status = true;
-	if (adapt && !console->adaptOff(status)) {
+    if (adapt && console->iter() > 0) {
+	//Turn off iteration immediately if we have some burn-in
+	if (console->adaptOff()) {
+	    adapt = false;
+	}
+	else {
+	    std::cout << std::endl;
 	    errordump();
 	    return;
 	}
-	console->update(niter - niter/2);
+    }
+
+    if (!interactive || refresh == 0) {
+	Jtry(console->update(niter/2));
+	bool status = true;
+	if (adapt) {
+	    if (!console->checkAdaptation(status)) {
+		errordump();
+		return;
+	    }
+	    if (!console->adaptOff()) {
+		errordump();
+		return;
+	    }
+	}
+	Jtry(console->update(niter - niter/2));
 	if (!status) {
 	    std::cerr << "WARNING: Adaptation incomplete\n";
 	}
@@ -3334,7 +3365,6 @@ static void updatestar(long niter, long refresh, int width)
     if (width > niter / refresh + 1)
 	width = niter / refresh + 1;
 
-    std::cout << "Updating " << niter << std::endl;
     for (int i = 0; i < width - 1; ++i) {
 	std::cout << "-";
     }
@@ -3346,7 +3376,12 @@ static void updatestar(long niter, long refresh, int width)
     for (long n = niter; n > 0; n -= refresh) {
 	if (adapt && n <= niter/2) {
 	    // Turn off adaptive mode half way through burnin
-	    if (console->adaptOff(status)) {
+	    if (!console->checkAdaptation(status)) {
+		std::cout << std::endl;
+		errordump();
+		return;
+	    }
+	    if (console->adaptOff()) {
 		adapt = false;
 	    }
 	    else {
@@ -3356,8 +3391,9 @@ static void updatestar(long niter, long refresh, int width)
 	    }
 	}
 	long nupdate = std::min(n, refresh);
-	if(console->update(nupdate))
+	if(console->update(nupdate)) {
 	    std::cout << "*" << std::flush;
+	}
 	else {
 	    std::cout << std::endl;
 	    errordump();
@@ -3379,27 +3415,31 @@ static void updatestar(long niter, long refresh, int width)
 
 static void adaptstar(long niter, long refresh, int width)
 {
+    std::cout << "Adapting " << niter << std::endl;
     if (!console->isAdapting()) {
-	std::cerr << "NOTE: Model is not in adaptive mode\n";
+	std::cerr << "ERROR: Model is not in adaptive mode\n";
+	return;
     }
-	
+    
     bool status = true;
-    if (refresh == 0) {
+    if (!interactive || refresh == 0) {
 	console->update(niter);
-	if (!console->adaptOff(status)) {
+	if (!console->checkAdaptation(status)) {
 	    errordump();
 	    return;
 	}
 	if (!status) {
-	    std::cerr << "WARNING: Adaptation incomplete\n";
+	    std::cerr << "Adaptation incomplete\n";
 	}
-	return;
+	else {
+	    std::cerr << "Adaptation successful\n";
+	    return;
+	}
     }
 
     if (width > niter / refresh + 1)
 	width = niter / refresh + 1;
 
-    std::cout << "Adapting " << niter << std::endl;
     for (int i = 0; i < width - 1; ++i) {
 	std::cout << "-";
     }
@@ -3425,24 +3465,28 @@ static void adaptstar(long niter, long refresh, int width)
 	    }
 	}
     }
-    if (!console->adaptOff(status)) {
+    if (!console->checkAdaptation(status)) {
 	std::cout << std::endl;
 	errordump();
 	return;
     }
     if (!status) {
-	std::cerr << "WARNING: Adaptation incomplete\n";
+	std::cerr << "Adaptation incomplete.\n";
+    }
+    else {
+	std::cerr << "Adaptation successful\n";
     }
 }
 
 static void loadModule(std::string const &name)
 {
+    std::cout << "Loading module: " << name;
     lt_dlhandle mod = lt_dlopenext(name.c_str());
     if (mod == NULL) {
-	std::cout << lt_dlerror() << std::endl;
+	std::cout << ": " << lt_dlerror() << std::endl;
     }
     else {
-	std::cout << "Loading module: " << name << std::endl;
+	std::cout << ": ok" << std::endl;
 	_dyn_lib.push_front(mod);
 	Console::loadModule(name);
     }
@@ -3700,4 +3744,11 @@ void setFactory(std::string const &name, FactoryType type,
     }
 }
 	    
+bool Jtry(bool ok)
+{
+    if (!ok && !interactive) 
+	exit(1);
+    else
+	return ok;
+}
 

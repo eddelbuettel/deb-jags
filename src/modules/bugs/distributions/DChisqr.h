@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * @short Chi square distribution
  * <pre>
@@ -14,7 +16,8 @@ class DChisqr : public RScalarDist {
  public:
   DChisqr();
 
-  double d(double x, std::vector<double const *> const &parameters, 
+  double d(double x, PDFType type,
+	   std::vector<double const *> const &parameters, 
 	   bool give_log) const;
   double p(double q, std::vector<double const *> const &parameters, bool lower,
 	   bool give_log) const;
@@ -25,7 +28,11 @@ class DChisqr : public RScalarDist {
    * Checks that k > 0
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
-
+  std::string alias() const;
+  double KL(std::vector<double const *> const &par1,
+	    std::vector<double const *> const &par2) const;
 };
+
+}
 
 #endif /* DCHISQ_H_ */

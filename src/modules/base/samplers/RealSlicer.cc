@@ -2,15 +2,14 @@
 #include <sampler/GraphView.h>
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
+#include <module/ModuleError.h>
 
 #include "RealSlicer.h"
 
 #include <cmath>
-#include <stdexcept>
 
 using std::vector;
 using std::string;
-using std::logic_error;
 
 namespace base {
 
@@ -21,7 +20,7 @@ namespace base {
 	if (gv->nodes().size() != 1 || 
 	    !canSample(gv->nodes().front()))
 	{
-	    throw logic_error("Invalid RealSlicer");
+	    throwLogicError("Invalid RealSlicer");
 	}
     }
 
@@ -54,7 +53,20 @@ namespace base {
 
     void RealSlicer::update(RNG *rng)
     {
-	updateStep(rng);
+	if (!updateStep(rng)) {
+	    switch(state()) {
+	    case SLICER_POSINF:
+		throwNodeError(_gv->nodes().front(),
+			       "Slicer stuck at value with infinite density");
+		break;
+	    case SLICER_NEGINF:
+		throwNodeError(_gv->nodes().front(),
+			       "Current value is inconsistent with data");
+		break;
+	    case SLICER_OK:
+		break;
+	    }
+	}
     }
 
     string RealSlicer::name() const

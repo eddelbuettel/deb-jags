@@ -8,9 +8,9 @@
 #include <graph/AggNode.h>
 #include <graph/NodeError.h>
 #include <sampler/GraphView.h>
+#include <module/ModuleError.h>
 
 #include <set>
-#include <stdexcept>
 #include <vector>
 #include <cmath>
 
@@ -18,10 +18,10 @@
 
 using std::vector;
 using std::set;
-using std::logic_error;
 using std::string;
 
-static bool checkAggNode(AggNode const *anode, set<Node const *> nodeset)
+static bool checkAggNode(AggNode const *anode, 
+			 set<Node const *> const &nodeset)
 {
     /* 
        Utility function called by ConjugateDirichlet::canSample
@@ -48,7 +48,7 @@ static bool checkAggNode(AggNode const *anode, set<Node const *> nodeset)
 	}
     }
     if (param == 0) {
-	throw logic_error("Error 1 in ConjugateDirichlet::canSample");
+	throwLogicError("Error 1 in ConjugateDirichlet::canSample");
     }
 
     //Check that parent is entirely contained in anode with offsets
@@ -67,7 +67,8 @@ static bool checkAggNode(AggNode const *anode, set<Node const *> nodeset)
     return true;
 }
 
-static bool checkMixNode(MixtureNode const *mnode, set<Node const *> nodeset)
+static bool checkMixNode(MixtureNode const *mnode, 
+			 set<Node const *> const &nodeset)
 {
     /*
       Utility function called by ConjugateDirichlet::canSample
@@ -99,11 +100,13 @@ static bool checkMixNode(MixtureNode const *mnode, set<Node const *> nodeset)
 	}
     }
     if (param == 0) {
-	throw logic_error("Error 2 in ConjugateDirichlet::canSample");
+	throwLogicError("Error 2 in ConjugateDirichlet::canSample");
     }
 
     return true;
 }
+
+namespace bugs {
 
 bool ConjugateDirichlet::canSample(StochasticNode *snode, Graph const &graph)
 {
@@ -240,7 +243,7 @@ makeOffsets(GraphView const *gv, set<Node const *> const &nodeset)
 		}
 	    }
 	    if (param == 0) {
-		throw logic_error("Error 3 in ConjugateDirichlet::canSample");
+		throwLogicError("Error 3 in ConjugateDirichlet::canSample");
 	    }
 
 	    for (unsigned int j = 0; j < par.size(); ++j) {
@@ -294,7 +297,7 @@ ConjugateDirichlet::ConjugateDirichlet(GraphView const *gv)
 	unsigned int slength = gv->nodes()[0]->length();
 	for (unsigned int i = 0; i < _off.size(); ++i) {
 	    if (!_off[i].empty() && _off[i].size() != slength) {
-		throw logic_error("Invalid offsets if ConjugateDirichlet");
+		throwLogicError("Invalid offsets if ConjugateDirichlet");
 	    }
 	}
     }
@@ -377,7 +380,7 @@ void ConjugateDirichlet::update(unsigned int chain, RNG *rng) const
 		}
 		break;
 	    default:
-		throw logic_error("Invalid distribution in ConjugateDirichlet");
+		throwLogicError("Invalid distribution in ConjugateDirichlet");
 	    }
 	}
     }
@@ -385,7 +388,7 @@ void ConjugateDirichlet::update(unsigned int chain, RNG *rng) const
     /* Check structural zeros */
     for (unsigned int i = 0; i < size; ++i) {
 	if (prior[i] == 0 && alpha[i] != 0) {
-	    throw NodeError(snode, "Invalid likelihood for Dirichlet distribution with structural zeros");
+	    throwNodeError(snode, "Invalid likelihood for Dirichlet distribution with structural zeros");
 	}
     }
   
@@ -417,4 +420,6 @@ void ConjugateDirichlet::update(unsigned int chain, RNG *rng) const
 string ConjugateDirichlet::name() const
 {
     return "ConjugateDirichlet";
+}
+
 }

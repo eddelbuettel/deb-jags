@@ -8,9 +8,9 @@
 #include <sampler/Linear.h>
 #include <sampler/GraphView.h>
 #include <rng/TruncatedNormal.h>
+#include <module/ModuleError.h>
 
 #include <set>
-#include <stdexcept>
 #include <vector>
 #include <cmath>
 
@@ -21,9 +21,7 @@
 using std::vector;
 using std::set;
 using std::sqrt;
-using std::invalid_argument;
 using std::string;
-using std::logic_error;
 
 static void calBeta(double *beta, GraphView const *gv, unsigned int chain)
 {
@@ -61,6 +59,7 @@ static void calBeta(double *beta, GraphView const *gv, unsigned int chain)
     }
 }
 
+namespace bugs {
 
 ConjugateNormal::ConjugateNormal(GraphView const *gv)
     : ConjugateMethod(gv), _betas(0), _length_betas(0)
@@ -149,7 +148,7 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
 	B = 0;
     }
     else {
-	throw logic_error("Invalid distribution in conjugate normal method");
+	throwLogicError("Invalid distribution in conjugate normal method");
     }
 
     if (_gv->deterministicChildren().empty()) {
@@ -256,13 +255,14 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
 	}
 	break;
     default:
-	throw logic_error("Invalid distribution in conjugate normal method");
+	throwLogicError("Invalid distribution in conjugate normal method");
     }
     _gv->setValue(&xnew, 1, chain);
-
 }
 
 string ConjugateNormal::name() const
 {
     return "ConjugateNormal";
+}
+
 }

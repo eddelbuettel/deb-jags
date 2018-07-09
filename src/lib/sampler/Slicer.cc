@@ -15,21 +15,26 @@ using std::fabs;
 using std::runtime_error;
 
 Slicer::Slicer(double width, unsigned int max)
-    : _width(width), _adapt(true), _max(max), _sumdiff(0), _iter(0)
+    : _width(width), _adapt(true), _max(max), _sumdiff(0), _iter(0), 
+      _state(SLICER_OK)
 {
 }
 
-void Slicer::updateStep(RNG *rng)
+bool Slicer::updateStep(RNG *rng)
 {
     // Test current value
     double g0 = logDensity();
     if (!jags_finite(g0)) {
 	if (g0 > 0) {
-	    throw runtime_error("Singularity in likelihood found by Slicer");
+	    _state = SLICER_POSINF;
+	    return false;
+	    //throw runtime_error("Singularity in likelihood found by Slicer");
 	}
 	else {
+	    _state = SLICER_NEGINF;
+	    return false;
 	    //FIXME: Not very informative
-	    throw runtime_error("Error in Slicer: Current value is inconsistent with data");
+	    //throw runtime_error("Error in Slicer: Current value is inconsistent with data");
 	}
     }
 
@@ -111,9 +116,11 @@ void Slicer::updateStep(RNG *rng)
 	    _width = 2 * _sumdiff / _iter / (_iter - 1);  
 	}
     }
+
+    return true;
 }
 
-void Slicer::updateDouble(RNG *rng)
+bool Slicer::updateDouble(RNG *rng)
 {
   using namespace std;
 
@@ -121,10 +128,14 @@ void Slicer::updateDouble(RNG *rng)
   double g0 = logDensity();
   if (!jags_finite(g0)) {
     if (g0 < 0) {
-	throw runtime_error("Error in Slicer: Current value is inconsistent with data");
+	_state = SLICER_NEGINF;
+	return false;
+	//throw runtime_error("Error in Slicer: Current value is inconsistent with data");
     }
     else {
-	throw runtime_error("Singularity in likelihood found by Slicer");
+	_state = SLICER_POSINF;
+	return false;
+	//throw runtime_error("Singularity in likelihood found by Slicer");
     }
   }
 
@@ -208,6 +219,7 @@ void Slicer::updateDouble(RNG *rng)
       _width = 2 * _sumdiff / _iter / (_iter - 1);  
     }
   }
+  return true;
 }
 
 bool Slicer::accept(double xold, double xnew, double z, double L, double R,
@@ -245,14 +257,23 @@ bool Slicer::accept(double xold, double xnew, double z, double L, double R,
   return true;
 }  
 
-bool Slicer::adaptOff()
+void Slicer::adaptOff()
 {
   _adapt = false;
-  //FIXME We could try a bit harder than this
-  return (_iter > MIN_ADAPT);
+}
+
+bool Slicer::checkAdaptation() const
+{
+    //FIXME We could try a bit harder than this
+    return (_iter > MIN_ADAPT);
 }
 
 bool Slicer::isAdaptive() const
 {
     return true;
+}
+
+SlicerState Slicer::state() const
+{
+    return _state;
 }

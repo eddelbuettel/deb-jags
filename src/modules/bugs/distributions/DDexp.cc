@@ -18,6 +18,13 @@ static inline double SCALE(vector<double const *> const &par)
     return 1/(*par[1]);
 }
 
+static inline double RATE(vector<double const *> const &par)
+{
+    return *par[1];
+}
+
+namespace bugs {
+
 DDexp::DDexp()
     : RScalarDist("ddexp", 2, DIST_UNBOUNDED)
 {}
@@ -28,7 +35,8 @@ bool DDexp::checkParameterValue (vector<double const *> const &par) const
 }
 
 double 
-DDexp::d(double x, vector<double const *> const &par, bool dolog) const
+DDexp::d(double x, PDFType type,
+	 vector<double const *> const &par, bool dolog) const
 {
     double d = dexp(fabs(x - MU(par)), SCALE(par), dolog);
     if (dolog)
@@ -85,4 +93,18 @@ double DDexp::r(vector<double const *> const &par, RNG *rng) const
     else
 	ans += rexp(SCALE(par), rng);
     return ans;
+}
+
+
+double DDexp::KL(vector<double const *> const &par1,
+		 vector<double const *> const &par2) const
+{
+    //FIXME Shouldn't fabs be in namespace std??
+
+    double r = RATE(par2) / RATE(par2); 
+    double delta = RATE(par1) * fabs(MU(par2) - MU(par1));
+    
+    return r * (delta + exp(-delta)) - 1 - log(r);
+}
+
 }

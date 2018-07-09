@@ -1,16 +1,17 @@
 #include <config.h>
 #include <util/logical.h>
+#include <util/nainf.h>
+#include <module/ModuleError.h>
 #include "DSum.h"
 
 #include <cfloat>
 #include <cmath>
-#include <stdexcept>
 
 using std::vector;
 using std::fabs;
-using std::runtime_error;
-using std::logic_error;
 using std::sqrt;
+
+namespace bugs {
 
 DSum::DSum()
     : ArrayDist("dsum", 0)
@@ -22,10 +23,10 @@ bool DSum::isDiscreteValued(vector<bool> const &mask) const
     return allTrue(mask);
 }
 
-double DSum::logLikelihood(double const *x, unsigned int length,
-			   vector<double const *> const &par,
-			   vector<vector<unsigned int> > const &dims,
-			   double const *lower, double const *upper) const
+double DSum::logDensity(double const *x, unsigned int length, PDFType type,
+			vector<double const *> const &par,
+			vector<vector<unsigned int> > const &dims,
+			double const *lower, double const *upper) const
 {
     const double tol = sqrt(DBL_EPSILON);
     for (unsigned int i = 0; i < length; ++i) {
@@ -34,7 +35,7 @@ double DSum::logLikelihood(double const *x, unsigned int length,
 	    s -= par[j][i];
 	}
 	if (fabs(s) > tol) {
-	    throw runtime_error("Inconsistent arguments for dsum");
+	    throwDistError(this, "Inconsistent arguments for logDensity");
 	}
     }
     return 0;
@@ -117,4 +118,6 @@ void DSum::support(double *lower, double *upper, unsigned int length,
 vector<unsigned int> DSum::dim(vector<vector<unsigned int> > const &dims) const
 {
     return dims[0];
+}
+
 }

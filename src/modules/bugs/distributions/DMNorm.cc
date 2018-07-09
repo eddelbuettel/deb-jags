@@ -8,27 +8,27 @@
 
 #include <cmath>
 #include <vector>
-#include <stdexcept>
 
 #include <JRmath.h>
 
 using std::vector;
-using std::logic_error;
+
+namespace bugs {
 
 DMNorm::DMNorm()
   : ArrayDist("dmnorm", 2) 
 {}
 
-double DMNorm::logLikelihood(double const *x, unsigned int m,
-			     vector<double const *> const &parameters,
-			     vector<vector<unsigned int> > const &dims,
-			     double const *lower, double const *upper) const
+double DMNorm::logDensity(double const *x, unsigned int m, PDFType type,
+			  vector<double const *> const &parameters,
+			  vector<vector<unsigned int> > const &dims,
+			  double const *lower, double const *upper) const
 {
     double const * mu = parameters[0];
     double const * T = parameters[1];
 
-    double loglik = logdet(T, m)/2;
-    double * delta = new double[m];
+    double loglik = 0;
+    vector<double> delta(m);
     for (unsigned int i = 0; i < m; ++i) {
 	delta[i] = x[i] - mu[i];
 	loglik -= (delta[i] * T[i + i * m] * delta[i])/2;
@@ -36,9 +36,13 @@ double DMNorm::logLikelihood(double const *x, unsigned int m,
 	    loglik -= (delta[i] * T[i + j * m] * delta[j]);
 	}
     }
-    delete [] delta;
 
-    return loglik;
+    if (type == PDF_PRIOR) {
+	return loglik; //No need to calculate normalizing constant
+    }
+    else {
+	return loglik + logdet(T, m)/2;
+    }
 }
 
 void DMNorm::randomSample(double *x, unsigned int m,
@@ -123,22 +127,7 @@ bool
 DMNorm::checkParameterValue(vector<double const *> const &parameters,
 			    vector<vector<unsigned int> > const &dims) const
 {
-    /*
-      // We only use the lower triangle so symmetry check is rendundant 
-
-      unsigned int n = dims[0][0];
-      double const *T = parameters[1];
-      // Check symmetry
-      for (unsigned int i = 1; i < n; i++) {
-      for (unsigned int j = 0; j < i - 1; j++) {
-      if (fabs(T[i + j*n] - T[j + i*n]) > 16 * DBL_EPSILON)
-      return false;
-      }
-      }
-      // Don't bother checking positive definiteness
-    */
-    return true;
-
+    return check_symmetry(parameters[1], dims[0][0]);
 }
 
 
@@ -165,4 +154,6 @@ void DMNorm::typicalValue(double *x, unsigned int m,
 bool DMNorm::isSupportFixed(vector<bool> const &fixmask) const
 {
     return true;
+}
+
 }

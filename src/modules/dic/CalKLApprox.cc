@@ -3,11 +3,9 @@
 
 #include <graph/StochasticNode.h>
 #include <rng/RNG.h>
-
-#include <stdexcept>
+#include <module/ModuleError.h>
 
 using std::vector;
-using std::logic_error;
 
 static StochasticNode* mkRep(StochasticNode const *snode)
 {
@@ -23,7 +21,7 @@ namespace dic {
 	: _repnode(mkRep(snode)), _rngs(rngs), _nrep(nrep)
     {
 	if (snode->nchain() != rngs.size())
-	    throw logic_error("Incorrect number of rngs in CalKLApprox");
+	    throwLogicError("Incorrect number of rngs in CalKLApprox");
     }
 
     CalKLApprox::~CalKLApprox()
@@ -37,9 +35,11 @@ namespace dic {
 	for (unsigned int r = 0; r < _nrep; ++r) {
 	    _repnode->randomSample(_rngs[i], i);
 	    _repnode->randomSample(_rngs[j], j);
-	    div += _repnode->logDensity(i) + _repnode->logDensity(j);
+	    div += _repnode->logDensity(i, PDF_FULL) + 
+		_repnode->logDensity(j, PDF_FULL);
 	    _repnode->swapValue(i,j);
-	    div -= _repnode->logDensity(i) + _repnode->logDensity(j);
+	    div -= _repnode->logDensity(i, PDF_FULL) + 
+		_repnode->logDensity(j, PDF_FULL);
 	}
 	return div / _nrep;
     }

@@ -6,9 +6,9 @@
 #include <distribution/Distribution.h>
 #include <graph/DeterministicNode.h>
 #include <sampler/Linear.h>
+#include <module/ModuleError.h>
 
 #include <set>
-#include <stdexcept>
 #include <vector>
 #include <cmath>
 
@@ -17,8 +17,6 @@
 using std::vector;
 using std::set;
 using std::sqrt;
-using std::logic_error;
-using std::runtime_error;
 using std::string;
 using std::fabs;
 
@@ -95,7 +93,7 @@ ConjugateFMethod::~ConjugateFMethod()
 }
 
 
-#include <iostream> //debuggin
+//#include <iostream> //debuggin
 void ConjugateFMethod::update(RNG *rng)
 {
     /* There are three levels 
@@ -204,7 +202,7 @@ void ConjugateFMethod::update(RNG *rng)
 
     for(unsigned int r = 0; r <= MAX_RNORM; r++) {
 	if (r == MAX_RNORM) {
-	    throw runtime_error("Degenerate scale in Conjugate F sampler");
+	    throwRuntimeError("Degenerate scale in Conjugate F Sampler");
 	}
 	_scale = rnorm(mean_scale, 1/sqrt(precision_scale), rng);
 	if (fabs(_scale) > MIN_SCALE) {

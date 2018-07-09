@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * @short Generalizedgamma distribution
  * <pre>
@@ -13,8 +15,9 @@
 class DGenGamma : public RScalarDist {
  public:
   DGenGamma();
-
-  double d(double x, std::vector<double const *> const &parameters, 
+  std::string alias() const;
+  double d(double x, PDFType type,
+	   std::vector<double const *> const &parameters, 
 	   bool give_log) const;
   double p(double q, std::vector<double const *> const &parameters, bool lower,
 	   bool give_log) const;
@@ -25,7 +28,10 @@ class DGenGamma : public RScalarDist {
    * Checks that r > 0, mu > 0, beta > 0
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
-
+  double KL(std::vector<double const *> const &par1,
+	    std::vector<double const *> const &par2) const;
 };
+
+}
 
 #endif /* DGEN_GAMMA_H_ */

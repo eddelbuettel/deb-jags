@@ -3,6 +3,8 @@
 
 #include <distribution/ScalarDist.h>
 
+namespace bugs {
+
 /**
  * <pre>
  * x ~ dunif(a, b)
@@ -13,9 +15,9 @@
 class DUnif : public ScalarDist {
   public:
     DUnif();
-    double logLikelihood(double x,
-			 std::vector<double const *> const &parameters,
-			 double const *lower, double const *upper) const;
+    double logDensity(double x, PDFType type,
+		      std::vector<double const *> const &parameters,
+		      double const *lower, double const *upper) const;
     double randomSample(std::vector<double const *> const &parameters,
 			double const *lower, double const *upper,
 			RNG *rng) const;
@@ -29,6 +31,10 @@ class DUnif : public ScalarDist {
     bool checkParameterValue(std::vector<double const *> const &parameters)
 	const;
     bool isSupportFixed(std::vector<bool> const &fixmask) const;
+    double KL(std::vector<double const *> const &par1,
+	      std::vector<double const *> const &par2) const;
 };
+
+}
 
 #endif /* DUNIF_H_ */

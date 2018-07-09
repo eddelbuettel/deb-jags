@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * F distribution on n1, n2 degrees of freedom
  * <pre>
@@ -16,7 +18,8 @@ class DF : public RScalarDist {
  public:
   DF();
 
-  double d(double x, std::vector<double const *> const &parameters, 
+  double d(double x, PDFType type,
+	   std::vector<double const *> const &parameters, 
 	   bool log) const;
   double p(double x, std::vector<double const *> const &parameters, bool lower,
 	   bool log) const;
@@ -27,7 +30,8 @@ class DF : public RScalarDist {
    * Check that tau > 0 and n1 > 0 and n2 > 0
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
-
 };
+
+}
 
 #endif /* DF_H_ */

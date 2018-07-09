@@ -25,25 +25,35 @@ namespace dic {
     Monitor *PDMonitorFactory::getMonitor(string const &name,
 					  Range const &range,
 					  BUGSModel *model,
-					  string const &type)
+					  string const &type,
+					  string &msg)
     {
-	if (model->nchain() < 2)
-	    return 0;
-
-	if ((name != "pD" && name != "popt") || !isNULL(range))
-	    return 0;
-	
 	if (type != "mean")
 	    return 0;
+
+	if (name != "pD" && name != "popt")
+	    return 0;
+
+	if (!isNULL(range)) {
+	    msg = string("cannot monitor a subset of ") + name;
+	}
+	
+	if (model->nchain() < 2) {
+	    msg = string("at least two parallel chains needed to monitor ")
+		+ name;
+	    return 0;
+	}
 
 	vector<StochasticNode const *> observed_nodes;
 	vector<StochasticNode *> const &snodes = model->stochasticNodes();
 	for (unsigned int i = 0; i < snodes.size(); ++i) {
 	    if (snodes[i]->isObserved()) {
-		observed_nodes.push_back(snodes[i]);
-	    }
-	    if (!isSupportFixed(snodes[i])) {
-		return 0;
+		if (isSupportFixed(snodes[i])) {
+		    observed_nodes.push_back(snodes[i]);
+		}
+		else {
+		    return 0;
+		}
 	    }
 	}
 	if (observed_nodes.empty())

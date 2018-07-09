@@ -7,12 +7,10 @@
 #include <sampler/GraphView.h>
 #include <rng/TruncatedNormal.h>
 #include <rng/RNG.h>
-
-#include <stdexcept>
+#include <module/ModuleError.h>
 
 using std::vector;
 using std::string;
-using std::logic_error;
 
 #define CHILD(i) (_view->stochasticChildren()[i])
 
@@ -31,7 +29,7 @@ static BGLMOutcome getOutcome(StochasticNode const *snode)
     case GLM_BERNOULLI: case GLM_BINOMIAL:
 	lnode = dynamic_cast<LinkNode const*>(snode->parents()[0]);
 	if (!lnode) {
-	    throw logic_error("No link in Holmesheld");
+	    throwLogicError("No link in Holmesheld");
 	}
 	else if (lnode->linkName() == "probit") {
 	    return BGLM_PROBIT;
@@ -40,11 +38,13 @@ static BGLMOutcome getOutcome(StochasticNode const *snode)
 	    return BGLM_LOGIT;
 	}
 	else {
-	    throw logic_error("Invalid link in BinaryGLM");
+	    throwLogicError("Invalid link in BinaryGLM");
 	}
+	break;
     default:
-	throw logic_error("Invalid family in BinaryGLM");
+	throwLogicError("Invalid family in BinaryGLM");
     }
+    return BGLM_NORMAL; //-Wall
 }
 
 namespace glm {
@@ -113,11 +113,10 @@ namespace glm {
 		    _z[i] = rnormal(0, rng, getMean(i));
 		}
 		else {
-		    throw logic_error("Invalid child value in BinaryGLM");
+		    throwLogicError("Invalid child value in BinaryGLM");
 		}
 	    }
 	}
-
     }
 
 }

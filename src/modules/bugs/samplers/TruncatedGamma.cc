@@ -10,9 +10,9 @@
 #include <sampler/Linear.h>
 #include <sampler/GraphView.h>
 #include <util/nainf.h>
+#include <module/ModuleError.h>
 
 #include <set>
-#include <stdexcept>
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -22,8 +22,6 @@
 using std::vector;
 using std::set;
 using std::sqrt;
-using std::invalid_argument;
-using std::logic_error;
 using std::max;
 using std::sort;
 using std::string;
@@ -33,6 +31,8 @@ using std::string;
    Conjugate gamma method, except that Poisson distributions are not
    permitted.  
 */
+
+namespace bugs {
 
 static Node const * getParent(StochasticNode const *snode)
 {
@@ -46,8 +46,8 @@ static Node const * getParent(StochasticNode const *snode)
 	return snode->parents()[0];
 	break;
     default:
-        throw logic_error("Invalid distribution in TruncatedGamma sampler");
-	return 0;
+        throwLogicError("Invalid distribution in TruncatedGamma sampler");
+	return 0; //-Wall
     } 
 }
 
@@ -76,7 +76,7 @@ static double calShape(GraphView const *gv, unsigned int chain)
     gv->setValue(&xold, 1, chain);
     
     if (y1 <= 0 || y0 <= 0)
-	throw logic_error("Invalid scale function in TruncatedGamma");
+	throwLogicError("Invalid scale function in TruncatedGamma");
 
     return log(2.0)/(log(y1) - log(y0));
 }
@@ -222,7 +222,7 @@ void TruncatedGamma::update(unsigned int chain, RNG *rng) const
 	    mu += (log(Y) - m) * (log(Y) - m) / 2;
 	    break;
 	default:
-	    throw logic_error("Invalid distribution in TruncatedGamma");
+	    throwLogicError("Invalid distribution in TruncatedGamma");
 	}
     }
 
@@ -235,10 +235,10 @@ void TruncatedGamma::update(unsigned int chain, RNG *rng) const
     double lx = snode->parents()[0]->value(chain)[0];
     double ux = snode->parents()[1]->value(chain)[0];
     if (xold < lx || xold > ux) {
-	throw logic_error("Current value invalid TruncatedGamma method");
+	throwLogicError("Current value invalid TruncatedGamma method");
     }
     if (lx > ux) {
-	throw logic_error("Inconsistent prior in TruncatedGamma method");
+	throwLogicError("Inconsistent prior in TruncatedGamma method");
     }
 
     if (mu == 0) {
@@ -289,4 +289,6 @@ void TruncatedGamma::update(unsigned int chain, RNG *rng) const
 string TruncatedGamma::name() const
 {
     return "TruncatedGamma";
+}
+
 }

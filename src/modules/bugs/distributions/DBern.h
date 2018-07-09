@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * @short Bernoulli distribution
  * <pre>
@@ -13,9 +15,9 @@
 class DBern : public ScalarDist {
 public:
     DBern();
-    double logLikelihood(double x, 
-			 std::vector<double const *> const &parameters,
-			 double const *lbound, double const *ubound) const;
+    double logDensity(double x, PDFType type,
+		      std::vector<double const *> const &parameters,
+		      double const *lbound, double const *ubound) const;
     double randomSample(std::vector<double const *> const &parameters, 
 			double const *lbound, double const *ubound,
 			RNG *rng) const;
@@ -28,6 +30,10 @@ public:
     bool canBound() const;
     /** Bernoulli distribution is discrete valued */
     bool isDiscreteValued(std::vector<bool> const &mask) const;
+    double KL(std::vector<double const *> const &par1, 
+	      std::vector<double const *> const &par2) const;
 };
+
+}
 
 #endif /* DBERN_H_ */

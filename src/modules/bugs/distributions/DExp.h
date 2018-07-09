@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * @short Exponential distribution
  * <pre>
@@ -14,7 +16,8 @@ class DExp : public RScalarDist {
  public:
   DExp();
 
-  double d(double x, std::vector<double const *> const &parameters, bool give_log) const;
+  double d(double x, PDFType type,
+	   std::vector<double const *> const &parameters, bool give_log) const;
   double p(double q, std::vector<double const *> const &parameters, bool lower,
 	   bool give_log) const;
   double q(double p, std::vector<double const *> const &parameters, bool lower,
@@ -24,6 +27,10 @@ class DExp : public RScalarDist {
    * Checks that lambda > 0
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
+  double KL(std::vector<double const *> const &par1,
+	    std::vector<double const *> const &par2) const;
 };
+
+}
 
 #endif /* DEXP_H_ */

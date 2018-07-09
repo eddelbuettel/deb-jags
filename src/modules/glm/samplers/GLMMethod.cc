@@ -3,7 +3,6 @@
 
 #include <set>
 #include <vector>
-#include <stdexcept>
 #include <algorithm>
 #include <cmath>
 
@@ -17,12 +16,11 @@
 #include <graph/LinkNode.h>
 #include <distribution/Distribution.h>
 #include <rng/TruncatedNormal.h>
+#include <module/ModuleError.h>
 
 using std::string;
 using std::vector;
 using std::set;
-using std::runtime_error;
-using std::logic_error;
 using std::copy;
 using std::sqrt;
 
@@ -41,7 +39,7 @@ static void getIndices(set<StochasticNode const *> const &schildren,
     }
     
     if (indices.size() != schildren.size()) {
-	throw logic_error("Size mismatch in getIndices");
+	throwLogicError("Size mismatch in getIndices");
     }
 }
 
@@ -79,7 +77,7 @@ namespace glm {
 	unsigned int nrow = schildren.size();
 	unsigned int ncol = _view->length();
 	if (nrow != _x->nrow || ncol != _x->ncol) {
-	    throw logic_error("Dimension mismatch in GLMMethod::calDesign");
+	    throwLogicError("Dimension mismatch in GLMMethod::calDesign");
 	}
 
 	int c = 0; //column counter
@@ -180,8 +178,6 @@ namespace glm {
 	for (unsigned int i = 0; i < sub_views.size(); ++i) {
 	    _fixed[i] = checkLinear(sub_views[i], true, link);
 	}
-
-
     }
 
     GLMMethod::~GLMMethod()
@@ -343,7 +339,6 @@ namespace glm {
 	//   of the sampled nodes, as the origin
 
 	if (_init) {
-	    initAuxiliary(rng);
 	    calDesign();
 	    symbolic();
 	    _init = false;
@@ -358,8 +353,7 @@ namespace glm {
 	int ok = cholmod_factorize(A, _factor, glm_wk);
 	cholmod_free_sparse(&A, glm_wk);
 	if (!ok) {
-	    delete [] b;
-	    throw runtime_error("Cholesky decomposition failure in GLMMethod");
+	    throwRuntimeError("Cholesky decomposition failure in GLMMethod");
 	}
 
 	// Use the LDL' decomposition to generate a new sample
@@ -441,9 +435,8 @@ namespace glm {
 
 	if (_init) {
 	    if (_view->length() != _sub_views.size()) {
-		throw logic_error("updateLMGibbs can only act on scalar nodes");
+		throwLogicError("updateLMGibbs can only act on scalar nodes");
 	    }
-	    initAuxiliary(rng);
 	    calDesign();
 	    _init = false;
 	}
@@ -501,9 +494,7 @@ namespace glm {
 	    }
 	}
 
-
 	_view->setValue(theta,  _chain);
-
     }
 
     bool GLMMethod::isAdaptive() const
@@ -511,7 +502,11 @@ namespace glm {
 	return false;
     }
     
-    bool GLMMethod::adaptOff()
+    void GLMMethod::adaptOff()
+    {
+    }
+
+    bool GLMMethod::checkAdaptation() const
     {
 	return true;
     }
@@ -541,10 +536,6 @@ namespace glm {
 	}
     }
 
-    void GLMMethod::initAuxiliary(RNG *rng)
-    {
-    }
-    
     void GLMMethod::updateAuxiliary(cholmod_dense *b, cholmod_factor *N, RNG *rng)
     {
     }

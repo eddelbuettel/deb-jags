@@ -8,18 +8,16 @@
 #include <sampler/GraphView.h>
 #include <rng/TruncatedNormal.h>
 #include <rng/RNG.h>
+#include <module/ModuleError.h>
 
 extern "C" {
 #include <cs.h>
 }
 
-#include <stdexcept>
 #include <cmath>
 
 using std::vector;
 using std::string;
-using std::logic_error;
-using std::runtime_error;
 using std::sqrt;
 
 extern cholmod_common *glm_wk;
@@ -45,7 +43,7 @@ namespace glm {
     HolmesHeld::HolmesHeld(GraphView const *view,
 			   vector<GraphView const *> const &sub_views,
 			   unsigned int chain)
-	: BinaryGLM(view, sub_views, chain)
+	: BinaryGLM(view, sub_views, chain), _aux_init(true)
     {
     }
 
@@ -78,7 +76,7 @@ namespace glm {
 	cholmod_factor *f = cholmod_copy_factor(_factor, glm_wk);
 	cholmod_sparse *L = cholmod_factor_to_sparse(f, glm_wk);
 	if (!L->packed || !L->sorted) {
-	    throw logic_error("Cholesky factor is not packed or not sorted");
+	    throwLogicError("Cholesky factor is not packed or not sorted");
 	}
 	cholmod_free_factor(&f, glm_wk);
 
@@ -137,7 +135,7 @@ namespace glm {
 		double zr_prec = (1 - Hr) * tau_r;
 		
 		if (zr_prec <= 0) {
-		    throw runtime_error("Invalid precision in Holmes-Held update method.\nThis is a known bug and we are working on it.\nPlease bear with us");
+		    throwRuntimeError("Invalid precision in Holmes-Held update method.\nThis is a known bug and we are working on it.\nPlease bear with us");
 		}
 
 		double yr = schildren[r]->value(_chain)[0];
@@ -149,7 +147,7 @@ namespace glm {
 		    _z[r] = rnormal(0, rng, mu_r + zr_mean, 1/sqrt(zr_prec));
 		}
 		else {
-		    throw logic_error("Invalid child value in HolmesHeld");
+		    throwLogicError("Invalid child value in HolmesHeld");
 		}
 
 		//Add new contribution of row r back to b
@@ -171,8 +169,16 @@ namespace glm {
     
     void HolmesHeld::update(RNG *rng)
     {
-	updateLM(rng);
-	
+	if (_aux_init) {
+	    initAuxiliary(rng);
+	    _aux_init = false;
+	}
+
+	/*
+	  Update the auxiliary variables *before* calling
+	  updateLM. This ordering is important for models with a
+	  variable design matrix (e.g.  measurement error models).
+	*/
 	for (unsigned int r = 0; r < _tau.size(); ++r)
 	{
 	    if (_outcome[r] == BGLM_LOGIT) {
@@ -180,6 +186,8 @@ namespace glm {
 		_tau[r] = 1/sample_lambda(delta, rng);
 	    }
 	}
+
+	updateLM(rng);
     }
 
     string HolmesHeld::name() const

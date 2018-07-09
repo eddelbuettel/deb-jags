@@ -7,11 +7,11 @@
 #include <graph/StochasticNode.h>
 #include <sampler/Linear.h>
 #include <sampler/GraphView.h>
+#include <module/ModuleError.h>
 
 #include "lapack.h"
 
 #include <set>
-#include <stdexcept>
 #include <vector>
 #include <cmath>
 #include <string>
@@ -26,7 +26,6 @@ using std::string;
 using std::vector;
 using std::set;
 using std::sqrt;
-using std::invalid_argument;
 using std::string;
 
 static void calBeta(double *betas, GraphView const *gv,
@@ -90,6 +89,7 @@ static unsigned int sumChildrenLength(GraphView const *gv)
     return N;
 }
 
+namespace bugs {
 
 ConjugateMNormal::ConjugateMNormal(GraphView const *gv)
     : ConjugateMethod(gv), _betas(0), 
@@ -214,9 +214,8 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 	//Calculate largest possible size of working matrix C
 	unsigned int max_nrow_child = 0;
 	for (unsigned int j = 0; j < nchildren; ++j) {
-	    if (snode->length() > max_nrow_child) {
-		max_nrow_child = snode->length();
-	    }
+	    unsigned int nrow_j = stoch_children[j]->length();
+	    if (nrow_j > max_nrow_child) max_nrow_child = nrow_j;
 	}
 	double *C = new double[nrow * max_nrow_child];
 	double *delta = new double[max_nrow_child];
@@ -239,11 +238,11 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 	double const *beta_j = betas;
 	for (unsigned int j = 0; j < nchildren; ++j) {
 	    
-	    StochasticNode const *snode = stoch_children[j];
-	    double const *Y = snode->value(chain);
-	    double const *mu = snode->parents()[0]->value(chain);
-	    double const *tau = snode->parents()[1]->value(chain);
-	    int nrow_child = snode->length();
+	    StochasticNode const *schild = stoch_children[j];
+	    double const *Y = schild->value(chain);
+	    double const *mu = schild->parents()[0]->value(chain);
+	    double const *tau = schild->parents()[1]->value(chain);
+	    int nrow_child = schild->length();
 
 	    if (nrow_child == 1) {
 
@@ -298,8 +297,8 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 	delete [] Acopy;
 	delete [] A;
 	delete [] b;
-	throw NodeError(snode,
-			"unable to solve linear equations in conjugate multivariate normal method");
+	throwNodeError(snode,
+		       "unable to solve linear equations in ConjugateMNormal");
     }
 
     //Shift origin back to original scale
@@ -320,4 +319,6 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 string ConjugateMNormal::name() const
 {
     return "ConjugateMNormal";
+}
+
 }

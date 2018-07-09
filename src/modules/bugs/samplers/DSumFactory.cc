@@ -11,13 +11,13 @@
 #include "DiscreteDSum.h"
 #include "DMultiDSum.h"
 
-#include <stdexcept>
 #include <algorithm>
 
 using std::set;
 using std::vector;
-using std::runtime_error;
 using std::string;
+
+namespace bugs {
 
 static StochasticNode const *getDSumChild(StochasticNode *node)
 {
@@ -81,7 +81,7 @@ Sampler * DSumFactory::makeSampler(set<StochasticNode*> const &nodes,
 	return 0;
     }
     
-    GraphView *gv = new GraphView(parameters, graph);
+    GraphView *gv = new GraphView(parameters, graph, true);
     unsigned int nchain = parameters[0]->nchain();
     vector<SampleMethod*> methods(nchain, 0);
     for (unsigned int ch = 0; ch < nchain; ++ch) {
@@ -112,4 +112,6 @@ vector<Sampler*>  DSumFactory::makeSamplers(set<StochasticNode*> const &nodes,
 	return vector<Sampler*>(1, s);
     else 
 	return vector<Sampler*>();
+}
+
 }

@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * @short gamma distribution
  * <pre>
@@ -14,7 +16,8 @@ class DGamma : public RScalarDist {
  public:
   DGamma();
 
-  double d(double x, std::vector<double const *> const &parameters, bool give_log) const;
+  double d(double x, PDFType type,
+	   std::vector<double const *> const &parameters, bool give_log) const;
   double p(double q, std::vector<double const *> const &parameters, bool lower,
 	   bool give_log) const;
   double q(double p, std::vector<double const *> const &parameters, bool lower,
@@ -29,6 +32,10 @@ class DGamma : public RScalarDist {
    */
   double  typicalValue(std::vector<double const *> const &par,
 		       double const *lower, double const *upper) const;
+  double KL(std::vector<double const *> const &par1,
+	    std::vector<double const *> const &par2) const;
 };
+
+}
 
 #endif /* DGAMMA_H_ */

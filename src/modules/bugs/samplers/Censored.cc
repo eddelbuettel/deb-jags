@@ -6,17 +6,15 @@
 #include <sampler/GraphView.h>
 #include <graph/NodeError.h>
 #include <graph/StochasticNode.h>
+#include <module/ModuleError.h>
 
-#include <stdexcept>
 #include <vector>
 #include <cmath>
 
 using std::vector;
-using std::invalid_argument;
-using std::logic_error;
 using std::string;
 
-int indicator(GraphView const *gv, unsigned int ch)
+static int indicator(GraphView const *gv, unsigned int ch)
 {
     return static_cast<int>(gv->stochasticChildren()[0]->value(ch)[0]);
 }
@@ -26,6 +24,7 @@ static Node const *breaks(GraphView const *gv)
     return gv->stochasticChildren()[0]->parents()[1];
 }
 
+namespace bugs {
 
 Censored::Censored(GraphView const *gv)
     : ConjugateMethod(gv), 
@@ -35,7 +34,7 @@ Censored::Censored(GraphView const *gv)
     for (unsigned int ch = 0; ch < _snode->nchain(); ++ch) {
 	int y = indicator(gv, ch);
 	if (y < 0 || y > nbreaks) {
-	    throw NodeError(_snode, "Bad interval-censored node");
+	    throwNodeError(_snode, "Bad interval-censored node");
 	}
     }
 }
@@ -92,4 +91,6 @@ void Censored::update(unsigned int chain, RNG * rng) const
 string Censored::name() const
 {
     return "Censored";
+}
+
 }

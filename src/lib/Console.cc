@@ -307,6 +307,7 @@ bool Console::initialize()
 	return true;
     }
     try {
+	_out << "Initializing model" << endl;
 	_model->initialize(false);
     }
     CATCH_ERRORS;
@@ -386,18 +387,24 @@ bool Console::setMonitor(string const &name, Range const &range,
 	_err << "Can't set monitor. No model!" << endl;    
 	return false;
     }
-    if (_model->isAdapting()) {
-        _err << "Can't set monitor. Model is still adapting" << endl;
-        return false;
-    }
 
     try {
-	bool ok = _model->setMonitor(name, range, thin, type);
+
+	string msg;
+	bool ok = _model->setMonitor(name, range, thin, type, msg);
 	if (!ok) {
-	    _err << "Failed to set " << type << " monitor for node " << 
+	    _err << "Failed to set " << type << " monitor for " << 
 		name << print(range) << endl;
+	    if (!msg.empty()) {
+		_err << msg << endl;
+	    }
 	    return false;
 	}
+	if (_model->isAdapting()) {
+	    _out << "NOTE: Stopping adaptation" << endl;
+	    _model->adaptOff();
+	}
+	
     }
     CATCH_ERRORS
 
@@ -600,19 +607,38 @@ unsigned int Console::nchain() const
   }
 }
 
-bool Console::adaptOff(bool &status) 
+bool Console::checkAdaptation(bool &status) 
+{
+    if (_model == 0) {
+	_err << "Can't update. No model!" << endl;
+	return false;
+    }
+    if (!_model->isInitialized()) {
+	_err << "Model not initialized" << endl;
+	return false;
+    }
+    
+    try {
+	status =  _model->checkAdaptation();
+    }
+    CATCH_ERRORS
+
+    return true;
+}
+    
+bool Console::adaptOff(void) 
 {
   if (_model == 0) {
-    _err << "Can't update. No model!" << endl;
+    _err << "Cannot stop adaptation. No model!" << endl;
     return false;
   }
   if (!_model->isInitialized()) {
-    _err << "Model not initialized" << endl;
+    _err << "Cannot stop adaptation. Model not initialized" << endl;
     return false;
   }
 
   try {
-      status =  _model->adaptOff();
+      _model->adaptOff();
   }
   CATCH_ERRORS
 

@@ -37,12 +37,12 @@ host_triplet = @host@
 subdir = src/lib/distribution
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 \
-	$(top_srcdir)/m4/acx_lapack.m4 $(top_srcdir)/m4/acxx_blas.m4 \
-	$(top_srcdir)/m4/argz.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltdl.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/R.m4 $(top_srcdir)/m4/argz.m4 \
+	$(top_srcdir)/m4/ax_lapack.m4 $(top_srcdir)/m4/axx_blas.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltdl.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -54,7 +54,7 @@ libdist_la_LIBADD =
 am_libdist_la_OBJECTS = libdist_la-Distribution.lo \
 	libdist_la-ScalarDist.lo libdist_la-VectorDist.lo \
 	libdist_la-ArrayDist.lo libdist_la-DistPtr.lo \
-	libdist_la-DistTab.lo
+	libdist_la-DistTab.lo libdist_la-DistError.lo
 libdist_la_OBJECTS = $(am_libdist_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -115,6 +115,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JAGS_MAJOR = @JAGS_MAJOR@
+JAGS_MINOR = @JAGS_MINOR@
 LAPACK_LIBS = @LAPACK_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -226,7 +228,7 @@ top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libdist.la
 libdist_la_CPPFLAGS = -I$(top_srcdir)/src/include
 libdist_la_SOURCES = Distribution.cc ScalarDist.cc VectorDist.cc	\
-ArrayDist.cc DistPtr.cc DistTab.cc
+ArrayDist.cc DistPtr.cc DistTab.cc DistError.cc
 
 all: all-am
 
@@ -281,6 +283,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdist_la-ArrayDist.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdist_la-DistError.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdist_la-DistPtr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdist_la-DistTab.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdist_la-Distribution.Plo@am__quote@
@@ -349,6 +352,13 @@ libdist_la-DistTab.lo: DistTab.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DistTab.cc' object='libdist_la-DistTab.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libdist_la-DistTab.lo `test -f 'DistTab.cc' || echo '$(srcdir)/'`DistTab.cc
+
+libdist_la-DistError.lo: DistError.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libdist_la-DistError.lo -MD -MP -MF $(DEPDIR)/libdist_la-DistError.Tpo -c -o libdist_la-DistError.lo `test -f 'DistError.cc' || echo '$(srcdir)/'`DistError.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libdist_la-DistError.Tpo $(DEPDIR)/libdist_la-DistError.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='DistError.cc' object='libdist_la-DistError.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libdist_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libdist_la-DistError.lo `test -f 'DistError.cc' || echo '$(srcdir)/'`DistError.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

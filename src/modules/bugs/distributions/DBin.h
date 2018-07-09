@@ -3,6 +3,8 @@
 
 #include "RScalarDist.h"
 
+namespace bugs {
+
 /**
  * @short Binomial distribution
  * <pre>
@@ -13,8 +15,9 @@
 class DBin : public RScalarDist {
  public:
   DBin();
-
-  double d(double x, std::vector<double const *> const &parameters, 
+  std::string alias() const;
+  double d(double x, PDFType type,
+	   std::vector<double const *> const &parameters, 
 	   bool give_log) const;
   double p(double x, std::vector<double const *> const &parameters, bool lower,
 	   bool give_log) const;
@@ -32,6 +35,10 @@ class DBin : public RScalarDist {
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
   bool isSupportFixed(std::vector<bool> const &fixmask) const;
+  double KL(std::vector<double const *> const &par1, 
+	    std::vector<double const *> const &par2) const;
 };
+
+}
 
 #endif /* DBIN_H_ */

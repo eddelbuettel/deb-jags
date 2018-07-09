@@ -4,17 +4,16 @@
 #include <util/dim.h>
 #include <util/nainf.h>
 
-#include <stdexcept>
 #include <cmath>
 
 #include <JRmath.h>
 
 using std::vector;
-using std::length_error;
-using std::logic_error;
 
 #define PROB(par) (par[0])
 #define SIZE(par) (*par[1])
+
+namespace bugs {
 
 DMulti::DMulti()
   : VectorDist("dmulti", 2) 
@@ -27,8 +26,8 @@ bool DMulti::isDiscreteValued(vector<bool> const &mask) const
 
 bool DMulti::checkParameterLength(vector<unsigned int> const &len) const
 {
-    //Check that PROB is a vector and SIZE is a scalar
-    return len[0] > 1  && len[1] == 1;
+    //Check that SIZE is a scalar
+    return len[1] == 1;
 }
 
 bool DMulti::checkParameterDiscrete(vector<bool> const &mask) const
@@ -51,25 +50,53 @@ DMulti::checkParameterValue(vector<double const *> const &par,
     return true;
 }
 
-double DMulti::logLikelihood(double const *x, unsigned int length,
-			     vector<double const *> const &par,
-			     vector<unsigned int> const &len,
-			     double const *lower, double const *upper) const
+double DMulti::logDensity(double const *x, unsigned int length, PDFType type,
+			  vector<double const *> const &par,
+			  vector<unsigned int> const &len,
+			  double const *lower, double const *upper) const
 {
     double loglik = 0.0;
-    double sump = 0.0;
+    double S = 0;
     for (unsigned int i = 0; i < length; i++) {
-	if (x[i] != 0) {
+	if (x[i] < 0 || floor(x[i]) != x[i]) {
+	    return JAGS_NEGINF;
+	}
+	else if (x[i] != 0) {
 	    if (PROB(par)[i] == 0) {
 		return JAGS_NEGINF;
 	    }
 	    else {
-		loglik += x[i] * log(PROB(par)[i]) - lgamma(x[i] + 1);
+		loglik += x[i] * log(PROB(par)[i]);
 	    }
+	    S += x[i];
 	}
-	sump += PROB(par)[i];
     }
-    loglik += lgamma(SIZE(par) + 1) - SIZE(par) * log(sump);
+
+    //Check consistency between parameters and data
+    if (S != SIZE(par))
+	return JAGS_NEGINF;
+
+    if (type != PDF_PRIOR) {
+	//Terms depending on parameters only
+	double sump = 0.0;
+	for (unsigned int i = 0; i < length; ++i) {
+	    sump += PROB(par)[i];
+	}
+	loglik -= SIZE(par) * log(sump);
+    }
+
+    if (type != PDF_LIKELIHOOD) {
+	//Terms depending on sampled value only
+	for (unsigned int i = 0; i < length; ++i) {
+	    loglik -= lgammafn(x[i] + 1);
+	}
+    }
+
+    if (type == PDF_FULL) {
+	//If either data or parameters are fixed then this term is constant
+	//bearing in mind consistency check above.
+	loglik += lgammafn(SIZE(par) + 1);
+    }
 
     return loglik;
 }
@@ -88,7 +115,7 @@ void DMulti::randomSample(double *x, unsigned int length,
     //Normalize probability
     double sump = 0;
     for (unsigned int i = 0; i < length; ++i) {
-	sump += PROB(par)[i];
+	sump += prob[i];
     }
 
     for (unsigned int i = 0; i < length - 1; i++) {
@@ -161,3 +188,36 @@ unsigned int DMulti::df(vector<unsigned int> const &len) const
 {
     return len[0] - 1;
 } 
+
+double DMulti::KL(vector<double const *> const &par1,
+		  vector<double const *> const &par2,
+		  vector<unsigned int> const &lengths) const
+{
+    if (SIZE(par1) != SIZE(par2))
+	return JAGS_POSINF;
+
+    unsigned int ncat = lengths[0];
+    double y = 0, S1 = 0, S2 = 0;
+    for (unsigned int i = 0; i < ncat; ++i) {
+	double p1 = PROB(par1)[i];
+	double p2 = PROB(par2)[i];
+	
+	if (p1 == 0) {
+	    S2 += p2;
+	}
+	else if (p2 == 0) {
+	    return JAGS_POSINF;
+	}
+	else {
+	    y += p1 * (log(p1) - log(p2));
+	    S1 += p1;
+	    S2 += p2;
+	}
+	y /= S1;
+	y += log(S2) - log(S1);
+	y *= SIZE(par1);
+    }
+    return y;
+}
+
+}
