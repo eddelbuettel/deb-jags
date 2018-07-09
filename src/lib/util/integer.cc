@@ -28,8 +28,18 @@ int asInteger(double fval)
 
 int checkInteger(double fval, bool &flag)
 {
-    int ival = asInteger(fval);
-    flag = fabs(fval - ival) < eps;
-    return ival;
+    if (fval >= INT_MAX) {
+	flag = false;
+	return INT_MAX;
+    }
+    else if (fval <= INT_MIN) {
+	flag = false;
+	return INT_MIN;
+    }
+    else {
+	int ival = asInteger(fval);
+	flag = fabs(fval - ival) < eps;
+	return ival;
+    }
 }
 
