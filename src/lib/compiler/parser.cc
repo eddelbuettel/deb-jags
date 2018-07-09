@@ -62,7 +62,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 2 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:339  */
+#line 2 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:339  */
 
 #include <compiler/ParseTree.h>
 #include "remap.h"
@@ -197,7 +197,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 42 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:355  */
+#line 42 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:355  */
 
   /*
     We can't put any C++ class that requires a constructor in
@@ -534,8 +534,8 @@ static const yytype_uint16 yyrline[] =
      184,   200,   204,   208,   214,   219,   229,   234,   243,   244,
      245,   249,   253,   257,   261,   265,   269,   273,   277,   281,
      285,   289,   293,   297,   301,   305,   309,   313,   317,   321,
-     324,   325,   328,   329,   332,   333,   339,   344,   351,   352,
-     353,   354,   357,   358,   359,   360,   363,   366
+     324,   325,   328,   329,   332,   333,   339,   344,   354,   355,
+     356,   357,   360,   361,   362,   363,   366,   369
 };
 #endif
 
@@ -1470,31 +1470,31 @@ yyreduce:
   switch (yyn)
     {
         case 7:
-#line 112 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 112 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { _pvariables = (yyvsp[0].pvec); }
 #line 1476 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 113 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 113 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { _pvariables = (yyvsp[-1].pvec); }
 #line 1482 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 116 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 116 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
 #line 1488 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 117 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 117 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
 #line 1494 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 120 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 120 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[0].stringptr)); 
 }
@@ -1502,7 +1502,7 @@ yyreduce:
     break;
 
   case 12:
-#line 123 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 123 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
     setParameters((yyval.ptree), (yyvsp[-1].pvec));
@@ -1511,19 +1511,19 @@ yyreduce:
     break;
 
   case 13:
-#line 129 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 129 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
 #line 1517 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 130 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 130 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
 #line 1523 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 133 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 133 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     ParseTree *p = new ParseTree(jags::P_RELATIONS, yylineno);
     setParameters(p, (yyvsp[-1].pvec));
@@ -1533,7 +1533,7 @@ yyreduce:
     break;
 
   case 16:
-#line 140 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 140 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { 
     ParseTree *p = new ParseTree(jags::P_RELATIONS, yylineno);
     setParameters(p, (yyvsp[-1].pvec));
@@ -1543,7 +1543,7 @@ yyreduce:
     break;
 
   case 17:
-#line 147 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 147 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_RELATIONS, yylineno);
     setParameters((yyval.ptree), (yyvsp[-1].pvec));
@@ -1552,19 +1552,19 @@ yyreduce:
     break;
 
   case 18:
-#line 153 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 153 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
 #line 1558 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 154 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 154 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec)=(yyvsp[-1].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
 #line 1564 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 164 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 164 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FOR, yylineno);
     setParameters((yyval.ptree), (yyvsp[-1].ptree), (yyvsp[0].ptree));
@@ -1573,7 +1573,7 @@ yyreduce:
     break;
 
   case 26:
-#line 170 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 170 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_COUNTER, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
     setParameters((yyval.ptree), (yyvsp[-1].ptree));
@@ -1582,7 +1582,7 @@ yyreduce:
     break;
 
   case 29:
-#line 180 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 180 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_DETRMREL, yylineno);
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1591,7 +1591,7 @@ yyreduce:
     break;
 
   case 30:
-#line 184 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 184 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
 
   /* 
@@ -1610,7 +1610,7 @@ yyreduce:
     break;
 
   case 31:
-#line 200 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 200 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno); 
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1619,7 +1619,7 @@ yyreduce:
     break;
 
   case 32:
-#line 204 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 204 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno); 
     setParameters((yyval.ptree), (yyvsp[-3].ptree), (yyvsp[-1].ptree), (yyvsp[0].ptree));
@@ -1628,7 +1628,7 @@ yyreduce:
     break;
 
   case 33:
-#line 208 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 208 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno);
     setParameters((yyval.ptree), (yyvsp[-3].ptree), (yyvsp[-1].ptree), (yyvsp[0].ptree));
@@ -1637,7 +1637,7 @@ yyreduce:
     break;
 
   case 34:
-#line 214 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 214 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   (yyval.pvec) = new std::vector<ParseTree*>;
   (yyval.pvec)->push_back((yyvsp[-2].ptree));
@@ -1647,7 +1647,7 @@ yyreduce:
     break;
 
   case 35:
-#line 219 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 219 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   //  This creates a shift-reduce conflict because in the expression
   //  A*B*C, (A*B) is a valid expression. By default, bison shifts,
@@ -1660,7 +1660,7 @@ yyreduce:
     break;
 
   case 36:
-#line 229 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 229 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   (yyval.pvec) = new std::vector<ParseTree*>;
   (yyval.pvec)->push_back((yyvsp[-2].ptree));
@@ -1670,7 +1670,7 @@ yyreduce:
     break;
 
   case 37:
-#line 234 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 234 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   //  This creates a shift-reduce conflict. By default, bison shifts,
   //  which is what we want. The warning is suppressed with the %expect
@@ -1682,13 +1682,13 @@ yyreduce:
     break;
 
   case 39:
-#line 244 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 244 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = new ParseTree(jags::P_VALUE, yylineno); (yyval.ptree)->setValue((yyvsp[0].val));}
 #line 1688 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 245 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 245 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_LENGTH, yylineno);
     setParameters((yyval.ptree),(yyvsp[-1].ptree));
@@ -1697,7 +1697,7 @@ yyreduce:
     break;
 
   case 41:
-#line 249 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 249 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_DIM, yylineno);
     setParameters((yyval.ptree),(yyvsp[-1].ptree));
@@ -1706,7 +1706,7 @@ yyreduce:
     break;
 
   case 42:
-#line 253 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 253 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
@@ -1715,7 +1715,7 @@ yyreduce:
     break;
 
   case 43:
-#line 257 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 257 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("*");
     setParameters((yyval.ptree), (yyvsp[0].pvec));
@@ -1724,7 +1724,7 @@ yyreduce:
     break;
 
   case 44:
-#line 261 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 261 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("/");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1733,7 +1733,7 @@ yyreduce:
     break;
 
   case 45:
-#line 265 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 265 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("+");
     setParameters((yyval.ptree), (yyvsp[0].pvec));
@@ -1742,7 +1742,7 @@ yyreduce:
     break;
 
   case 46:
-#line 269 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 269 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("-");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1751,7 +1751,7 @@ yyreduce:
     break;
 
   case 47:
-#line 273 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 273 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("NEG");
     setParameters((yyval.ptree), (yyvsp[0].ptree));
@@ -1760,7 +1760,7 @@ yyreduce:
     break;
 
   case 48:
-#line 277 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 277 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName(":");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1769,7 +1769,7 @@ yyreduce:
     break;
 
   case 49:
-#line 281 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 281 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName(">");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1778,7 +1778,7 @@ yyreduce:
     break;
 
   case 50:
-#line 285 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 285 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName(">=");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1787,7 +1787,7 @@ yyreduce:
     break;
 
   case 51:
-#line 289 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 289 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("<");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1796,7 +1796,7 @@ yyreduce:
     break;
 
   case 52:
-#line 293 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 293 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("<=");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1805,7 +1805,7 @@ yyreduce:
     break;
 
   case 53:
-#line 297 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 297 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("==");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1814,7 +1814,7 @@ yyreduce:
     break;
 
   case 54:
-#line 301 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 301 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("!=");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1823,7 +1823,7 @@ yyreduce:
     break;
 
   case 55:
-#line 305 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 305 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("&&");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1832,7 +1832,7 @@ yyreduce:
     break;
 
   case 56:
-#line 309 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 309 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("||");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1841,7 +1841,7 @@ yyreduce:
     break;
 
   case 57:
-#line 313 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 313 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("^");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1850,7 +1850,7 @@ yyreduce:
     break;
 
   case 58:
-#line 317 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 317 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); setName((yyval.ptree), (yyvsp[-1].stringptr));
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
@@ -1859,43 +1859,43 @@ yyreduce:
     break;
 
   case 59:
-#line 321 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 321 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.ptree) = (yyvsp[-1].ptree); }
 #line 1865 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 324 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 324 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
 #line 1871 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 325 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 325 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
 #line 1877 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 328 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 328 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
 #line 1883 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 329 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 329 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     { (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
 #line 1889 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 332 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 332 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = new ParseTree(jags::P_RANGE, yylineno);}
 #line 1895 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 333 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 333 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     (yyval.ptree) = new ParseTree(jags::P_RANGE, yylineno); 
     setParameters((yyval.ptree),(yyvsp[0].ptree));
@@ -1904,7 +1904,7 @@ yyreduce:
     break;
 
   case 66:
-#line 340 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 340 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new ParseTree(jags::P_DENSITY, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
@@ -1913,7 +1913,7 @@ yyreduce:
     break;
 
   case 67:
-#line 345 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 345 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
     //BUGS has a dflat() distribution with no parameters
     (yyval.ptree) = new ParseTree(jags::P_DENSITY, yylineno); setName((yyval.ptree), (yyvsp[-2].stringptr));
@@ -1922,55 +1922,55 @@ yyreduce:
     break;
 
   case 68:
-#line 351 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 354 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Truncated((yyvsp[-3].ptree),(yyvsp[-1].ptree));}
 #line 1928 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 352 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 355 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Truncated(0,(yyvsp[-1].ptree));}
 #line 1934 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 353 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 356 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Truncated((yyvsp[-2].ptree),0);}
 #line 1940 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 354 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 357 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Truncated(0,0);}
 #line 1946 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 357 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 360 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Interval((yyvsp[-3].ptree),(yyvsp[-1].ptree));}
 #line 1952 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 358 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 361 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Interval(0,(yyvsp[-1].ptree));}
 #line 1958 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 359 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 362 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Interval((yyvsp[-2].ptree),0);}
 #line 1964 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 360 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 363 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {(yyval.ptree) = Interval(0,0);}
 #line 1970 "parser.cc" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 363 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 366 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[0].stringptr));
 }
@@ -1978,7 +1978,7 @@ yyreduce:
     break;
 
   case 77:
-#line 366 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1646  */
+#line 369 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1646  */
     {
   (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
@@ -2215,7 +2215,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 372 "../../../../../mcmc-jags/src/lib/compiler/parser.yy" /* yacc.c:1906  */
+#line 375 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1906  */
 
 
 static std::string error_buf;

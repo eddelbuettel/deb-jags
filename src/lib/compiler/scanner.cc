@@ -613,9 +613,9 @@ goto find_rule; \
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 1 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 /* -*-C++-*- */
-#line 3 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 3 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 /* Note the use of trailing context in the rules for the functions,
    allowing function names to be used as variable names.  This occurs
    in the "otree" example where "mean" is used as a variable name.
@@ -812,7 +812,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 28 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 28 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 
 #line 818 "scanner.cc"
 
@@ -938,17 +938,17 @@ do_action:	/* This label is used only to access EOF actions. */
 	{ /* beginning of action switch */
 case 1:
 YY_RULE_SETUP
-#line 29 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 29 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return VAR;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 30 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 30 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return DATA;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 31 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 31 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return MODEL;
 	YY_BREAK
 case 4:
@@ -956,7 +956,7 @@ case 4:
 (yy_c_buf_p) = yy_cp = yy_bp + 6;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 32 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 32 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return LENGTH;
 	YY_BREAK
 case 5:
@@ -964,7 +964,7 @@ case 5:
 (yy_c_buf_p) = yy_cp = yy_bp + 3;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 33 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 33 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return DIM;
 	YY_BREAK
 case 6:
@@ -972,7 +972,7 @@ case 6:
 (yy_c_buf_p) = yy_cp = yy_bp + 3;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 34 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 34 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return FOR;
 	YY_BREAK
 case 7:
@@ -980,147 +980,147 @@ case 7:
 (yy_c_buf_p) = yy_cp = yy_bp + 2;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 35 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 35 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return IN;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 36 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 36 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return IN;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 37 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 37 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return ';';
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 38 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 38 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return ',';
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 39 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 39 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return ':';
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 40 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 40 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '[';
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 41 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 41 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return ']';
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 42 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 42 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '(';
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 43 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 43 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return ')';
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 44 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 44 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '{';
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 45 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 45 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '}';
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 46 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 46 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return LE;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 47 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 47 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return LT;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 48 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 48 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return GE;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 49 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 49 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return GT;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 50 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 50 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return AND;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 51 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 51 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return OR;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 52 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 52 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return NE;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 53 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 53 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return NOT;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 54 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 54 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return EQ;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 55 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 55 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '=';
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 56 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 56 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '~';
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 57 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 57 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return ARROW;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 58 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 58 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '+';
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 59 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 59 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '-';
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 60 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 60 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '^';
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 61 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 61 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '^';
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 62 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 62 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '*';
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 63 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 63 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return '/';
 	YY_BREAK
 case 36:
@@ -1128,7 +1128,7 @@ case 36:
 (yy_c_buf_p) = yy_cp = yy_bp + 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 65 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 65 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return 'T';
 	YY_BREAK
 case 37:
@@ -1136,12 +1136,12 @@ case 37:
 (yy_c_buf_p) = yy_cp = yy_bp + 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 66 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 66 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 return 'I';
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 68 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 68 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
     /* Special operators, e.g. %*% for matrix multiplication */
     yylval.stringptr = new std::string(yytext);
@@ -1150,62 +1150,62 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 74 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 74 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 BEGIN(COMMENT);
 	YY_BREAK
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 75 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 75 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 ; /* Eat up anything that's not a '*' */
 	YY_BREAK
 case 41:
 /* rule 41 can match eol */
 YY_RULE_SETUP
-#line 76 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 76 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 ; /* Eat up '*'s not followed by a '/'  */
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 77 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 77 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 BEGIN(INITIAL);
 	YY_BREAK
 case 43:
 /* rule 43 can match eol */
 YY_RULE_SETUP
-#line 79 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 79 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 /* Eat whitespace */
 	YY_BREAK
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 80 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 80 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 /* Eat comments */
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 83 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 83 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
   yylval.val = atof(yytext); return DOUBLE;
 }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 86 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 86 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
   yylval.val = atof(yytext); return DOUBLE;
 }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 89 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 89 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
   yylval.val = atof(yytext); return DOUBLE;
 }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 93 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 93 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
   yylval.stringptr = new std::string(yytext);
   return FUNC;
@@ -1213,7 +1213,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 98 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 98 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
   yylval.stringptr = new std::string(yytext);
   return NAME;
@@ -1221,19 +1221,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
-#line 103 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 103 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 yyterminate();
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 105 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 105 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
   throw std::logic_error("Coding error in file (UTF-8 replacement char U+FFFD found by parser)");
 }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 109 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 109 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 {
   /* Default rule for unmatched input.
      We return a BADCHAR which is not matched by any grammar rule,
@@ -1244,7 +1244,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 117 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 117 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
 #line 1251 "scanner.cc"
@@ -2184,7 +2184,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 117 "../../../../../mcmc-jags/src/lib/compiler/scanner.ll"
+#line 117 "../../../../../../jags-4_patched/src/lib/compiler/scanner.ll"
 
 
 
