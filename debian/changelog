@@ -1,3 +1,12 @@
+jags (4.3.0-2) unstable; urgency=medium
+
+  * debian/control: Adding 'mercurial' to Build-Depends (Closes: #903176)
+
+  * debian/patches/skip_include_graphics: Do not include a figure for
+    which the figure file is missing
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sun, 08 Jul 2018 21:28:15 -0500
+
 jags (4.3.0-1) unstable; urgency=medium
 
   * New upstream release

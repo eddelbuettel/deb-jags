@@ -13,7 +13,7 @@ override_dh_auto_build:
         ## and override current time with time in changelog for indentical pdf docs
         ## also see #https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=778462 for the chmod
         #(cd doc/manual && faketime -f "$(DEB_DATE_RFC_3339)" make docs && ls)
-	#(cd doc/manual && make docs)
+	(cd doc/manual && make docs)
 
 override_dh_auto_install:
 	dh_auto_install
