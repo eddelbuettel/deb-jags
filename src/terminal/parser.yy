@@ -2,9 +2,14 @@
 %{
 #include <config.h>
 
+#ifdef Win32
+#include <windows.h>   /* For getCurrentDirectory */
+#include <io.h>        /* For chdir */
+#else
+#include <unistd.h>    /* For getcwd, chdir */
+#endif
 
 //#include <limits.h>
-//#include <unistd.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -127,7 +132,7 @@
 %token <intval> UNLOAD
 %token <intval> SAMPLER
 %token <intval> SAMPLERS
-%token <intval> RNG
+%token <intval> RNGTOK
 %token <intval> FACTORY;
 %token <intval> FACTORIES;
 
@@ -479,7 +484,7 @@ list_factories: LIST FACTORIES ',' TYPE '(' SAMPLER ')'
     listFactories(SAMPLER_FACTORY);
 }
 |
-LIST FACTORIES ',' TYPE '(' RNG ')'
+LIST FACTORIES ',' TYPE '(' RNGTOK ')'
 {
     listFactories(RNG_FACTORY);
 }
@@ -497,7 +502,7 @@ set_factory: SET FACTORY STRING NAME ',' TYPE '(' SAMPLER ')'
     delete $4;
 }
 |
-SET FACTORY NAME NAME ',' TYPE '(' RNG ')'
+SET FACTORY NAME NAME ',' TYPE '(' RNGTOK ')'
 {
     setFactory(*$3, RNG_FACTORY, *$4);
     delete $3;
@@ -1241,8 +1246,18 @@ int main (int argc, char **argv)
 
 static bool getWorkingDirectory(std::string &name)
 {
-    char buf[PATH_MAX];
-    if (getcwd(buf, PATH_MAX)) {
+    char buf[FILENAME_MAX];
+#ifdef Win32
+    if (getCurrentDirectory(FILENAME_MAX, buf)) {
+	name = buf;
+	return true;
+    }
+    else {
+	name = "Error in getCurrentDirectory";
+	return false;
+    }
+#else
+    if (getcwd(buf, FILENAME_MAX)) {
 	name = buf;
 	return true;
     }
@@ -1263,6 +1278,7 @@ static bool getWorkingDirectory(std::string &name)
 	}
 	return false;
     }
+#endif
 }
 
 static void dumpSamplers(std::string const &file)
