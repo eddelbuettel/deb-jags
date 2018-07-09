@@ -1,0 +1,10 @@
+MountDir=/tmp
+Workgroup=WORKGROUP
+Plugin=samba-2.0.7.plugin
+HideIPCShares=1
+Browser=gmc
+ShowDebugInfo=1
+ShowTooltips=1
+UserName=user
+Password=xxxxx
+NumberOfMounts=0

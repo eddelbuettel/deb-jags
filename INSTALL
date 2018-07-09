@@ -1,0 +1,47 @@
+
+Basic Installation
+==================
+
+How to install this software:
+
+  1. If you start from the dir where this file is...
+
+  3. Type './configure'
+
+  2. Type 'make' 
+
+  3. Type 'make install' (as root)
+
+  4. Type './upgrade' (as user)
+     If you've got a preveous version of Jags installed 
+     you should run upgrade.
+
+  5. Type 'jags' to run the program. Now config-files will 
+     be copied to your home-dir. You now need to open the 
+     preferences dialog and set the preferences your way. 
+     
+Note: When you've updated the preferences please collapse 
+      the root-tree before you do anything else.
+
+Note: If're you're upgrading your plugins won't update 
+      automaticly. Please run the upgrade-script found 
+      in the same directory as this file.
+
+Requirements
+============
+
++ Gtk+ 1.2.* development-package (http://www.gtk.org)
+
++ Sh-compatible shell, grep, cut, awk and other unix tools
+
++ Samba-client and nmblookup, included in the samba 
+  distribution (http://www.samba.org) and maybe smbmount.
+
++ A filebrowser, for example gmc or kfm or maybe xterm...
+
+You also need to know one workgroup on your network.
+
+/Sumpan
+dansun-8@student.luth.se
+http://sumpan.campus.luth.se
+http://sumpan.campus.luth.se/software/jags/

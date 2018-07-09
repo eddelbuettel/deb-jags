@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# (C) Daniel Sundberg 2000
+# This is free software and you may do whatever 
+# you want to with this according to the GPL.
+#
+# This program requires nmblookup, findsmb, 
+# grep, cut & sh.
+#
+# Gets your masterbrowser in workgroup $1.
+#
+if [ -z "$1" ]; then
+    echo "Usage: fetch_master_browser [WORKGROUP]"
+else 
+    nmb_result=$(nmblookup -M "$1")
+    ip_addr_row=$(echo "$nmb_result" | grep "<1d>")
+    if [ -n "$ip_addr_row" ]; then
+	ip_addr=$(echo "$ip_addr_row" | cut -d ' ' -f 1)
+	if [ -n "$ip_addr" ]; then
+	    fsmb_out=$(findsmb $ip_addr)
+	    if [ -n "$fsmb_out" ]; then
+		grep_out=$(echo "$fsmb_out" | grep [+*])
+                if [ -n "$grep_out" ];then
+		    echo "$grep_out" | cut -b 17-30
+		else 
+		    echo "Netbios name for $ip_addr not found"
+		fi
+	    else
+		echo "Netbios name for $ip_addr not found"
+	    fi
+	else
+	    echo "Could parse master browser ip"
+	fi
+    else 
+	echo "Masterbrowser ip not found"
+    fi
+fi
