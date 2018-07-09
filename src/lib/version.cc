@@ -4,7 +4,7 @@ extern "C" {
     
     const char * jags_version()
     {
-	const char * version = "3.0.0";
+	const char * version = "3.1.0";
 	return version;
     }
 
