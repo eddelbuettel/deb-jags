@@ -1,7 +1,7 @@
 #ifndef IWLS_H_
 #define IWLS_H_
 
-#include "GLMMethod.h"
+#include "GLMBlock.h"
 
 namespace jags {
 
@@ -23,8 +23,7 @@ namespace glm {
      * on an asymptotic approximation that does not hold for random
      * effects models.
      */
-    class IWLS : public GLMMethod {
-	bool _init;
+    class IWLS : public GLMBlock {
         double logPTransition(std::vector<double> const &xorig,
                               std::vector<double> const &x,
                               double *b, cholmod_sparse *A);

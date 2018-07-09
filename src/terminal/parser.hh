@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -60,42 +60,46 @@ extern int zzdebug;
     COMPILE = 270,
     INITIALIZE = 271,
     ADAPT = 272,
-    UPDATE = 273,
-    BY = 274,
-    MONITORS = 275,
-    MONITOR = 276,
-    TYPE = 277,
-    SET = 278,
-    CLEAR = 279,
-    THIN = 280,
-    CODA = 281,
-    STEM = 282,
-    EXIT = 283,
-    NCHAINS = 284,
-    CHAIN = 285,
-    LOAD = 286,
-    UNLOAD = 287,
-    SAMPLER = 288,
-    SAMPLERS = 289,
-    RNGTOK = 290,
-    FACTORY = 291,
-    FACTORIES = 292,
-    SEED = 293,
-    LIST = 294,
-    STRUCTURE = 295,
-    DIM = 296,
-    NA = 297,
-    R_NULL = 298,
-    DIMNAMES = 299,
-    ITER = 300,
-    ARROW = 301,
-    ENDDATA = 302,
-    ASINTEGER = 303,
-    DIRECTORY = 304,
-    CD = 305,
-    PWD = 306,
-    RUN = 307,
-    ENDSCRIPT = 308
+    AUTOADAPT = 273,
+    FORCEADAPT = 274,
+    UPDATE = 275,
+    BY = 276,
+    MONITORS = 277,
+    MONITOR = 278,
+    TYPE = 279,
+    SET = 280,
+    CLEAR = 281,
+    THIN = 282,
+    CODA = 283,
+    STEM = 284,
+    EXIT = 285,
+    NCHAINS = 286,
+    CHAIN = 287,
+    LOAD = 288,
+    UNLOAD = 289,
+    SAMPLER = 290,
+    SAMPLERS = 291,
+    RNGTOK = 292,
+    FACTORY = 293,
+    FACTORIES = 294,
+    MODULES = 295,
+    SEED = 296,
+    LIST = 297,
+    STRUCTURE = 298,
+    DIM = 299,
+    NA = 300,
+    R_NULL = 301,
+    DIMNAMES = 302,
+    ITER = 303,
+    ARROW = 304,
+    ENDDATA = 305,
+    ASINTEGER = 306,
+    DOTDATA = 307,
+    DIRECTORY = 308,
+    CD = 309,
+    PWD = 310,
+    RUN = 311,
+    ENDSCRIPT = 312
   };
 #endif
 /* Tokens.  */
@@ -114,49 +118,53 @@ extern int zzdebug;
 #define COMPILE 270
 #define INITIALIZE 271
 #define ADAPT 272
-#define UPDATE 273
-#define BY 274
-#define MONITORS 275
-#define MONITOR 276
-#define TYPE 277
-#define SET 278
-#define CLEAR 279
-#define THIN 280
-#define CODA 281
-#define STEM 282
-#define EXIT 283
-#define NCHAINS 284
-#define CHAIN 285
-#define LOAD 286
-#define UNLOAD 287
-#define SAMPLER 288
-#define SAMPLERS 289
-#define RNGTOK 290
-#define FACTORY 291
-#define FACTORIES 292
-#define SEED 293
-#define LIST 294
-#define STRUCTURE 295
-#define DIM 296
-#define NA 297
-#define R_NULL 298
-#define DIMNAMES 299
-#define ITER 300
-#define ARROW 301
-#define ENDDATA 302
-#define ASINTEGER 303
-#define DIRECTORY 304
-#define CD 305
-#define PWD 306
-#define RUN 307
-#define ENDSCRIPT 308
+#define AUTOADAPT 273
+#define FORCEADAPT 274
+#define UPDATE 275
+#define BY 276
+#define MONITORS 277
+#define MONITOR 278
+#define TYPE 279
+#define SET 280
+#define CLEAR 281
+#define THIN 282
+#define CODA 283
+#define STEM 284
+#define EXIT 285
+#define NCHAINS 286
+#define CHAIN 287
+#define LOAD 288
+#define UNLOAD 289
+#define SAMPLER 290
+#define SAMPLERS 291
+#define RNGTOK 292
+#define FACTORY 293
+#define FACTORIES 294
+#define MODULES 295
+#define SEED 296
+#define LIST 297
+#define STRUCTURE 298
+#define DIM 299
+#define NA 300
+#define R_NULL 301
+#define DIMNAMES 302
+#define ITER 303
+#define ARROW 304
+#define ENDDATA 305
+#define ASINTEGER 306
+#define DOTDATA 307
+#define DIRECTORY 308
+#define CD 309
+#define PWD 310
+#define RUN 311
+#define ENDSCRIPT 312
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
+
 union YYSTYPE
 {
-#line 92 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1909  */
+#line 99 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1909  */
 
   int intval;
   double val;
@@ -166,8 +174,10 @@ union YYSTYPE
   std::vector<double> *vec;
   std::vector<long> *ivec;
 
-#line 170 "parser.hh" /* yacc.c:1909  */
+#line 178 "parser.hh" /* yacc.c:1909  */
 };
+
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif

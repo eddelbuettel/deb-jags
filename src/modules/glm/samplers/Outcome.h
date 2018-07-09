@@ -24,6 +24,8 @@ namespace glm {
     class Outcome  {
       protected:
 	double const &_lp;
+	unsigned int _length;
+	double const *_vmean;
       public:
 	/**
 	 * Constructor
@@ -35,6 +37,9 @@ namespace glm {
 	 * to use
 	 */
 	Outcome(StochasticNode const *snode, unsigned int chain);
+	/**
+	 * Virtual destructor
+	 */
 	virtual ~Outcome();
 	/**
 	 * Returns the value of the linear predictor, which is the
@@ -70,7 +75,25 @@ namespace glm {
 	 * @param var  Variance of the linear predictor.
 	 * @param rng  Random number generator.
 	 */
-	//virtual void update(double mean, double var, RNG *rng);
+	virtual void update(double mean, double var, RNG *rng);
+	/**
+	 * Returns true if the contribution to the canonical parameter
+	 * "b" is fixed at any given iteration. The default returns false.
+	 */
+	virtual bool fixedb() const;
+	/**
+	 * Returns true if the contribution to the canonical parameter
+	 * "A" is fixed at any given iteration. The default returns false.
+	 */
+	virtual bool fixedA() const;
+	/**
+	 * Returns the length of the node represented by the Outcome
+	 */
+	unsigned int length() const;
+	virtual double const *vmean() const;
+	virtual double const *vprecision() const;
+	virtual double const *vvalue() const;
+
     };
 
 }}
