@@ -1,8 +1,9 @@
-#include <Module.h>
+#include <module/Module.h>
 #include <RngStreamFactory.h>
 
 using std::vector;
 
+namespace jags {
 namespace lecuyer {
 
     class LecuyerModule : public Module {
@@ -28,6 +29,6 @@ namespace lecuyer {
 	}
     }
     
-}
+}}
 
-lecuyer::LecuyerModule _lecuyer_module;
+jags::lecuyer::LecuyerModule _lecuyer_module;

@@ -5,29 +5,31 @@
 
 #include <vector>
 
+namespace jags {
+
 class StochasticNode;
+struct RNG;
 
 namespace dic {
 
-    class CalKL;
-
     class PDTrace : public Monitor {
-	std::vector<CalKL *> _calkl;
-	std::vector<double> _values;
+	std::vector<StochasticNode const *> _snodes;
+	std::vector<RNG *> _rngs;
+	unsigned int _nrep;
 	unsigned int _nchain;
-	unsigned int _n;
+	std::vector<double> _values;
+
     public:
 	PDTrace(std::vector<StochasticNode const *> const &snodes,
-		std::vector<CalKL *> const &calkl);
+		std::vector<RNG*> const &rngs, unsigned int nrep);
 	~PDTrace();
 	std::vector<unsigned int> dim() const;
 	std::vector<double> const &value(unsigned int chain) const;
-	void reserve(unsigned int niter);
 	bool poolChains() const;
 	bool poolIterations() const;
 	void update();
     };
 
-}
+}}
 
 #endif /* PD_TRACE_H_ */

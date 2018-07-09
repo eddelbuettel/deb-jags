@@ -3,6 +3,10 @@
 
 #include <sampler/SingletonFactory.h>
 
+namespace jags {
+
+    class Graph;
+
 namespace bugs {
 
 /**
@@ -25,6 +29,6 @@ public:
     std::string name() const;
 };
 
-}
+}}
 
 #endif /* CONJUGATE_FACTORY_H_ */

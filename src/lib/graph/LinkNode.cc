@@ -8,17 +8,19 @@
 #include <string>
 #include <math.h>
 
-class GraphMarks;
-
 using std::vector;
 using std::string;
 using std::set;
 using std::logic_error;
 using std::runtime_error;
 
-LinkNode::LinkNode(LinkFunction const *function, 
+namespace jags {
+
+class GraphMarks;
+
+LinkNode::LinkNode(LinkFunction const *function, unsigned int nchain,
 		   vector<Node const *> const &parents)
-    : LogicalNode(vector<unsigned int>(1,1), parents, function), 
+    : LogicalNode(vector<unsigned int>(1,1), nchain, parents, function), 
       _func(function)
 {
     if (!isScalar(parents[0]->dim())) {
@@ -26,7 +28,7 @@ LinkNode::LinkNode(LinkFunction const *function,
     }
 
     // Initialize if fully observed 
-    if (isObserved()) {
+    if (isFixed()) {
 	for (unsigned int ch = 0; ch < _nchain; ++ch) {
 	    deterministicSample(ch);
 	}
@@ -42,13 +44,15 @@ bool LinkNode::checkParentValues(unsigned int chain) const
 {
     return true;
 }
-   
+
+    /*
 DeterministicNode *
 LinkNode::clone(vector<Node const *> const &parents) const
 {
     return new LinkNode(_func, parents);
 }
-
+    */
+    
 double LinkNode::eta(unsigned int chain) const
 {
     return *_parameters[chain][0];
@@ -63,3 +67,5 @@ string const &LinkNode::linkName() const
 {
     return _func->linkName();
 }
+
+} //namespace jags

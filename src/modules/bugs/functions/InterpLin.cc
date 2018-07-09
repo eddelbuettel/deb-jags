@@ -6,13 +6,14 @@
 
 using std::vector;
 
+namespace jags {
 namespace bugs {
 
-    InterpLin::InterpLin() : VectorFunction("interp.lin", 3)
+    InterpLin::InterpLin() : ScalarVectorFunction("interp.lin", 3)
     {}
     
-    void InterpLin::evaluate(double *value, vector<double const *> const &args,
-			     vector<unsigned int> const &lengths) const
+    double InterpLin::scalarEval(vector<double const *> const &args,
+				 vector<unsigned int> const &lengths) const
     {
 	double const *x = args[1];
 	double const *y = args[2];
@@ -20,9 +21,9 @@ namespace bugs {
 	unsigned int N = lengths[1];
     
 	if (xnew < x[0])
-	    value[0] = y[0];
+	    return y[0];
 	else if (xnew >= x[N-1])
-	    value[0] = y[N-1];
+	    return y[N-1];
 	else {
 	    unsigned int i = 0;
 	    for (; i < N-1; ++i) {
@@ -33,10 +34,10 @@ namespace bugs {
 	    if (i == N-1) {
 		/* This shouldn't happen, but we must guard against an
 		   attempt to access an illegal element of x or y */
-		value[0] = JAGS_NAN;
+		return JAGS_NAN;
 	    }
 	    else {
-		value[0] = y[i] + 
+		return y[i] + 
 		    (xnew - x[i]) * (y[i+1] - y[i]) / (x[i+1] - x[i]);
 	    }
 	}
@@ -45,7 +46,7 @@ namespace bugs {
     bool InterpLin::checkParameterLength(vector<unsigned int> const &lengths)
 	const
     {
-	return (lengths[0] == 1) && (lengths[1] == lengths[2]);
+	return lengths[0] == 1 && lengths[1] != 0 && lengths[2] == lengths[1];
     }
 
     bool 
@@ -54,13 +55,10 @@ namespace bugs {
     {
         unsigned int N = lengths[1];
 	for (unsigned int i = 1; i < N; ++i) {
-	    if (args[1][i] < args[1][i-1])
+	    if (args[1][i] <= args[1][i-1])
 		return false;
 	}
-	if (args[0][0] < args[1][0] || args[0][0] > args[1][N-1])
-	    return false;
-
 	return true;
     }
 
-}
+}}

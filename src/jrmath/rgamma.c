@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000--2008 The R Development Core Team
+ *  Copyright (C) 2000--2008 The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@
 
 #define repeat for(;;)
 
-double rgamma(double a, double scale, RNG *rng)
+double rgamma(double a, double scale, JRNG *rng)
 {
 /* Constants : */
     const static double sqrt32 = 5.656854;

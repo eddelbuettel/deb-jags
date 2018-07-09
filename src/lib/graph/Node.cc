@@ -7,12 +7,14 @@
 #include <stdexcept>
 #include <algorithm>
 
-using std::set;
 using std::string;
 using std::vector;
 using std::logic_error;
 using std::copy;
 using std::find;
+using std::list;
+
+namespace jags {
 
 class DeterminsticNode;
 class StochasticNode;
@@ -20,7 +22,6 @@ class StochasticNode;
 Node::Node(vector<unsigned int> const &dim, unsigned int nchain)
     : _parents(0), _stoch_children(0), _dtrm_children(0), 
       _dim(getUnique(dim)), _length(product(dim)), _nchain(nchain), _data(0)
-      
 {
     if (nchain==0)
 	throw logic_error("Node must have at least one chain");
@@ -31,19 +32,18 @@ Node::Node(vector<unsigned int> const &dim, unsigned int nchain)
 	_data[i] = JAGS_NA;
     }
 
-    _dtrm_children = new set<DeterministicNode*>;
-    _stoch_children = new set<StochasticNode*>;
+    _dtrm_children = new list<DeterministicNode*>;
+    _stoch_children = new list<StochasticNode*>;
 }
 
-Node::Node(vector<unsigned int> const &dim, 
+Node::Node(vector<unsigned int> const &dim, unsigned int nchain,
 	   vector<Node const *> const &parents)
     : _parents(parents), _stoch_children(0), _dtrm_children(0), 
       _dim(getUnique(dim)), _length(product(dim)),
-      _nchain(countChains(parents)), _data(0)
+      _nchain(nchain), _data(0)
 {
-    if (nchain() == 0) {
-	throw logic_error("Cannot calculate number of chains in Node constructor");
-    }
+    if (nchain==0)
+	throw logic_error("Node must have at least one chain");
 
     unsigned int N = _length * _nchain;
     _data = new double[N];
@@ -51,8 +51,8 @@ Node::Node(vector<unsigned int> const &dim,
 	_data[i] = JAGS_NA;
     }
   
-    _stoch_children = new set<StochasticNode*>;
-    _dtrm_children = new set<DeterministicNode*>;
+    _stoch_children = new list<StochasticNode*>;
+    _dtrm_children = new list<DeterministicNode*>;
 }
 
 Node::~Node()
@@ -67,12 +67,12 @@ vector <Node const *> const &Node::parents() const
     return _parents;
 }
 
-set<StochasticNode*> const *Node::stochasticChildren() 
+list<StochasticNode*> const *Node::stochasticChildren() 
 {
     return _stoch_children;
 }
 
-set<DeterministicNode*> const *Node::deterministicChildren() 
+list<DeterministicNode*> const *Node::deterministicChildren() 
 {
     return _dtrm_children;
 }
@@ -145,18 +145,6 @@ void Node::swapValue(unsigned int chain1, unsigned int chain2)
     }
 }
 
-/*
-bool Node::isDiscreteValued() const
-{
-    return _isdiscrete;
-}
-
-void Node::setDiscreteValued()
-{
-    _isdiscrete = true;
-}
-*/
-
 double const *Node::value(unsigned int chain) const
 {
     return _data + chain * _length;
@@ -174,23 +162,46 @@ unsigned int Node::length() const
 
 void Node::addChild(DeterministicNode *node) const
 {
-    _dtrm_children->insert(node);
+    _dtrm_children->push_back(node);
 }
 
 void Node::addChild(StochasticNode *node) const
 {
-    _stoch_children->insert(node);
+    _stoch_children->push_back(node);
 }
 
 void Node::removeChild(DeterministicNode *node) const
 {
-    _dtrm_children->erase(node);
+    /* 
+       Removes the given node from the list of deterministic children.
+       
+       When Model::~Model is called, all nodes are deleted in reverse
+       order of construction. In this case, the element of _dtrm_node
+       to remove is the last one. For efficiency, we therefore search
+       for the element of _dtrm_node to remove starting at the
+       end. (NB Searching from the beginning results in quadratic
+       complexity in the size of _dtrm_node, which can cause real
+       efficiency problems when deleting a model)
+    */
+    
+    list<DeterministicNode*>::reverse_iterator p =
+	find(_dtrm_children->rbegin(), _dtrm_children->rend(), node);
+    if (p != _dtrm_children->rend()) {
+	//The erase function only accepts iterators. Some shennanigans
+	//are required to convert the reverse iterator correctly.
+	_dtrm_children->erase((++p).base());
+    }
 }
 
 void Node::removeChild(StochasticNode *node) const
 {
-    _stoch_children->erase(node);
-}
+    /* See comments in removeChild for DeterministicNodes */
     
+    list<StochasticNode*>::reverse_iterator p = 
+	find(_stoch_children->rbegin(), _stoch_children->rend(), node);
+    if (p != _stoch_children->rend()) {
+	_stoch_children->erase((++p).base());
+    }
+}
 
-
+} //namespace jags

@@ -12,11 +12,15 @@
 #include <string>
 #include <stdexcept>
 #include <cmath>
+#include <set>
 
 using std::vector;
 using std::string;
 using std::runtime_error;
 using std::logic_error;
+using std::set;
+
+namespace jags {
 
 static vector<Node const *> mkParents(vector<Node const *> const &parameters,
                                       Node const *lower, Node const *upper)
@@ -32,15 +36,32 @@ static vector<Node const *> mkParents(vector<Node const *> const &parameters,
     return parents;
 }
 
+    static bool mkDiscrete(Distribution const *dist,
+			   vector<Node const *> const &parameters)
+    {
+	//Determine whether node is discrete-valued
+	vector<bool> mask(parameters.size());
+	for (unsigned int i = 0; i < parameters.size(); ++i) {
+	    mask[i] = parameters[i]->isDiscreteValued();
+	}
+	if (!dist->checkParameterDiscrete(mask)) {
+	    throw DistError(dist, 
+			    "Failed check for discrete-valued parameters");
+	}
+	return(dist->isDiscreteValued(mask));
+    }
+
 StochasticNode::StochasticNode(vector<unsigned int> const &dim,
+			       unsigned int nchain,
 			       Distribution const *dist,
 			       vector<Node const *> const &parameters,
-			       Node const *lower=0, Node const *upper=0)
-    : Node(dim, mkParents(parameters, lower, upper)), 
-      _dist(dist), _lower(lower), _upper(upper), _observed(false), 
-      _discrete(false), _parameters(nchain())
+			       Node const *lower, Node const *upper)
+    : Node(dim, nchain, mkParents(parameters, lower, upper)), 
+      _dist(dist), _lower(lower), _upper(upper), 
+      _observed(false), 
+      _discrete(mkDiscrete(dist, parameters)), _parameters(nchain)
 {
-    if (!_dist->checkNPar(parameters.size())) {
+    if (!checkNPar(dist, parameters.size())) {
 	throw DistError(_dist, "Incorrect number of parameters");
     }
 
@@ -54,35 +75,28 @@ StochasticNode::StochasticNode(vector<unsigned int> const &dim,
 	throw DistError(_dist, "Distribution cannot be bounded");
     }
 
-    //check discreteness of parents
-    vector<bool> mask(parameters.size());
-    for (unsigned int i = 0; i < parameters.size(); ++i) {
-	mask[i] = parameters[i]->isDiscreteValued();
-    }
-    if (!_dist->checkParameterDiscrete(mask)) {
-	throw DistError(_dist, "Failed check for discrete-valued parameters");
-    }
-    _discrete = _dist->isDiscreteValued(mask);
-
     //Set up parameter vectors 
-    for (unsigned int n = 0; n < nchain(); ++n) {
+    for (unsigned int n = 0; n < nchain; ++n) {
 	_parameters[n].reserve(parameters.size());
 	for (unsigned int i = 0; i < parameters.size(); ++i) {
 	    _parameters[n].push_back(parameters[i]->value(n));
 	}
     }
 
+    //Insert the current node as a child in all its parents
+    //taking care to avoid repeats
+    set<Node const*> pset;
     for (unsigned int i = 0; i < parents().size(); ++i) {
-	parents()[i]->addChild(this);
+	Node const *p = parents()[i];
+	if (pset.insert(p).second) {
+	    p->addChild(this);
+	}
     }
 
 }
 
 StochasticNode::~StochasticNode()
 {
-    for (unsigned int i = 0; i < parents().size(); ++i) {
-	parents()[i]->removeChild(this);
-    }
 }
 
 Distribution const *StochasticNode::distribution() const
@@ -90,32 +104,27 @@ Distribution const *StochasticNode::distribution() const
     return _dist;
 }
 
-bool StochasticNode::isRandomVariable() const
-{
-    return true;
-}
-
 bool StochasticNode::isDiscreteValued() const
 {
     return _discrete;
 }
 
-bool StochasticNode::isObserved() const
+bool StochasticNode::isFixed() const
 {
     return _observed;
 }
 
-void StochasticNode::setObserved() 
+RVStatus StochasticNode::randomVariableStatus() const
 {
-    _observed = true;
-} 
+    return _observed ? RV_TRUE_OBSERVED : RV_TRUE_UNOBSERVED;    
+}	
 
 string StochasticNode::deparse(vector<string> const &parnames) const
 {
     unsigned int npar = parnames.size();
     if (_upper) --npar;
     if (_lower) --npar;
-    if (!_dist->checkNPar(npar)) {
+    if (!checkNPar(_dist, npar)) {
 	//We might be deparsing after throwing a NodeError, so we 
 	//don't want to throw another exception.
 	return _dist->name() + "(deparse error)";
@@ -156,7 +165,7 @@ Node const *StochasticNode::upperBound() const
     return _upper;
 }
 
-
+/*
 StochasticNode * 
 StochasticNode::clone(vector<Node const *> const &parents) const
 {
@@ -174,7 +183,8 @@ StochasticNode::clone(vector<Node const *> const &parents) const
     
     return clone(param, lower, upper);
 }
-
+*/
+    
 double const *StochasticNode::lowerLimit(unsigned int chain) const
 {
     return _lower ? _lower->value(chain) : 0;
@@ -188,9 +198,9 @@ double const *StochasticNode::upperLimit(unsigned int chain) const
 
 bool isSupportFixed(StochasticNode const *node)
 {
-    if (node->lowerBound() && !node->lowerBound()->isObserved())
+    if (node->lowerBound() && !node->lowerBound()->isFixed())
 	return false;
-    if (node->upperBound() && !node->upperBound()->isObserved())
+    if (node->upperBound() && !node->upperBound()->isFixed())
 	return false;
     
     vector<Node const *> parents = node->parents();
@@ -200,15 +210,9 @@ bool isSupportFixed(StochasticNode const *node)
 	parents.pop_back();
     vector<bool> fixmask(parents.size());
     for (unsigned int i = 0; i < parents.size(); ++i) {
-	fixmask[i] = parents[i]->isObserved();
+	fixmask[i] = parents[i]->isFixed();
     }
     return node->distribution()->isSupportFixed(fixmask);
-}
-
-vector<double const*> const &StochasticNode::parameters(unsigned int chain) const
-{
-    //FIXME: only required in DIC module
-    return _parameters[chain];
 }
 
 void StochasticNode::support(double *lower, double *upper, unsigned int length,
@@ -246,3 +250,20 @@ bool isBounded(StochasticNode const *node)
 {
     return node->lowerBound() || node->upperBound();
 }
+
+    void StochasticNode::setData(double const *value, unsigned int length)
+    {
+	for (unsigned int n = 0; n < _nchain; ++n) {
+	    setValue(value, length, n);
+	}
+	_observed = true;
+    }
+
+    void StochasticNode::unlinkParents()
+    {
+	for (unsigned int i = 0; i < parents().size(); ++i) {
+	    parents()[i]->removeChild(this);
+	}
+    }
+    
+} //namespace jags

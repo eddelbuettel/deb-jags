@@ -6,7 +6,7 @@
 #include <graph/LogicalNode.h>
 #include <graph/StochasticNode.h>
 #include <sampler/Linear.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <rng/TruncatedNormal.h>
 #include <module/ModuleError.h>
 
@@ -21,14 +21,17 @@
 using std::vector;
 using std::set;
 using std::sqrt;
-using std::string;
 
-static void calBeta(double *beta, GraphView const *gv, unsigned int chain)
+namespace jags {
+namespace bugs {
+
+static void calBeta(double *beta, SingletonGraphView const *gv, 
+		    unsigned int chain)
 {
-    StochasticNode *snode = gv->nodes()[0];
+    StochasticNode *snode = gv->node();
 
     const double xold = *snode->value(chain);
-    vector<StochasticNode const*> const &stoch_children = 
+    vector<StochasticNode *> const &stoch_children = 
 	gv->stochasticChildren();
 
     double xnew = xold + 1;
@@ -59,15 +62,13 @@ static void calBeta(double *beta, GraphView const *gv, unsigned int chain)
     }
 }
 
-namespace bugs {
-
-ConjugateNormal::ConjugateNormal(GraphView const *gv)
+ConjugateNormal::ConjugateNormal(SingletonGraphView const *gv)
     : ConjugateMethod(gv), _betas(0), _length_betas(0)
 {
     if (!gv->deterministicChildren().empty()) {
 
 	//Need to allocate vector of coefficients
-	vector<StochasticNode const *> const &children = 
+	vector<StochasticNode *> const &children = 
 	    gv->stochasticChildren();
 	for (unsigned int i = 0; i < children.size(); ++i) {
 	    _length_betas += children[i]->length();
@@ -102,8 +103,8 @@ bool ConjugateNormal::canSample(StochasticNode *snode, Graph const &graph)
 	return false;
     }
 
-    GraphView gv(snode, graph);
-    vector<StochasticNode const*> const &schild = gv.stochasticChildren();
+    SingletonGraphView gv(snode, graph);
+    vector<StochasticNode *> const &schild = gv.stochasticChildren();
 
     // Check stochastic children
     for (unsigned int i = 0; i < schild.size(); ++i) {
@@ -127,16 +128,16 @@ bool ConjugateNormal::canSample(StochasticNode *snode, Graph const &graph)
 
 void ConjugateNormal::update(unsigned int chain, RNG *rng) const
 {
-    vector<StochasticNode const*> const &stoch_children = 
+    vector<StochasticNode *> const &stoch_children = 
 	_gv->stochasticChildren();
     unsigned int nchildren = stoch_children.size();
-    StochasticNode *snode = _gv->nodes()[0];
+    StochasticNode *snode = _gv->node();
 
     /* For convenience in the following computations, we shift the
        origin to xold, the previous value of the node */
 
     const double xold = *snode->value(chain);
-    double A, B;
+    double A=0, B=0; //-Wall
     if (_target_dist == NORM) {
 	const double priormean = *snode->parents()[0]->value(chain) - xold; 
 	const double priorprec = *snode->parents()[1]->value(chain); 
@@ -260,9 +261,4 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
     _gv->setValue(&xnew, 1, chain);
 }
 
-string ConjugateNormal::name() const
-{
-    return "ConjugateNormal";
-}
-
-}
+}}

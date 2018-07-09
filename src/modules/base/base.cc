@@ -1,4 +1,4 @@
-#include <Module.h>
+#include <module/Module.h>
 
 //Functions
 #include <functions/Add.h>
@@ -15,6 +15,7 @@
 #include <functions/NotEqual.h>
 #include <functions/Or.h>
 #include <functions/Pow.h>
+#include <functions/Seq.h>
 #include <functions/Subtract.h>
 //Samplers
 #include <samplers/SliceFactory.h>
@@ -27,6 +28,7 @@
 
 using std::vector;
 
+namespace jags {
 namespace base {
 
     class BaseModule : public Module {
@@ -54,6 +56,7 @@ namespace base {
 	insert(new NotEqual);
 	insert(new Or);
 	insert(new Pow);
+	insert(new Seq);
 	insert(new Subtract);
 
 	insert(new SliceFactory);
@@ -88,6 +91,6 @@ namespace base {
 	}
     }
 
-}
+}}
 
-base::BaseModule _base_module;
+jags::base::BaseModule _base_module;

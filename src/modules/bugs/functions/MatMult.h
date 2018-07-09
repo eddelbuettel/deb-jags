@@ -3,6 +3,7 @@
 
 #include <function/ArrayFunction.h>
 
+namespace jags {
 namespace bugs {
 
     class MatMult : public ArrayFunction
@@ -13,12 +14,14 @@ namespace bugs {
 		      std::vector<std::vector<unsigned int> > const &dims) 
 	    const;
 	std::vector<unsigned int> 
-	    dim(std::vector<std::vector<unsigned int> > const &dims) const;
+	    dim(std::vector<std::vector<unsigned int> > const &dims,
+		std::vector<double const *> const &values) const;
 	bool checkParameterDim(std::vector <std::vector<unsigned int> > const &dims) const;
 	bool isScale(std::vector<bool> const &mask, 
 		     std::vector<bool> const &fix) const;
+	bool isDiscreteValued(std::vector<bool> const &mask) const;
     };
 
-}
+}}
 
 #endif /* MAT_MULT_H_ */

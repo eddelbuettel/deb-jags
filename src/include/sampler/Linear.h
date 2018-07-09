@@ -3,7 +3,43 @@
 
 #include<vector>
 
+namespace jags {
+
 class GraphView;
+class SingletonGraphView;
+class Graph;
+class StochasticNode;
+
+/**
+ * Helper function to check additivity. The function returns true if
+ * all deterministic descendants within the given SingletonGraphView
+ * are additive functions of the sampled node.
+ *
+ * @param gv GraphView to be tested.
+ *
+ * @param fixed Boolean flag. If true, the function checks for 
+ * additive functions with a fixed intercept.
+ *
+ * @see Node#isClosed
+ */
+bool checkAdditive(SingletonGraphView const *gv, bool fixed);
+
+/**
+ * Helper function to check additivity. The function returns true if
+ * all deterministic descendants of the nodes within the graph are
+ * additive functions.
+ *
+ * @param snodes Vector of nodes to be tested.
+ *
+ * @param graph Enclosing graph for gv
+ *
+ * @param fixed Boolean flag. If true, the function checks for 
+ * additive functions with a fixed intercept.
+ *
+ * @see Node#isClosed
+ */
+bool checkAdditive(std::vector<StochasticNode*> const &snodes,
+		   Graph const &graph, bool fixed);
 
 /**
  * Helper function to check linearity. The function returns true if
@@ -52,5 +88,7 @@ bool checkScale(GraphView const *gv, bool fixed);
  * @see Node#isClosed
  */
 bool checkPower(GraphView const *gv, bool fixed);
+
+} /* namespace jags */
 
 #endif /* LINEAR_H_ */

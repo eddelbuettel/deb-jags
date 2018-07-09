@@ -4,8 +4,8 @@
 #include "DiscreteSlicer.h"
 #include "SliceFactory.h"
 
-#include <sampler/ParallelSampler.h>
-#include <sampler/GraphView.h>
+#include <sampler/MutableSampler.h>
+#include <sampler/SingletonGraphView.h>
 #include <graph/StochasticNode.h>
 
 #include <vector>
@@ -13,6 +13,7 @@
 using std::vector;
 using std::string;
 
+namespace jags {
 namespace base {
 
     bool 
@@ -30,9 +31,9 @@ namespace base {
 				       Graph const &graph) const
     {
 	unsigned int nchain = snode->nchain();
-	vector<SampleMethod*> methods(nchain, 0);
-	//Fixme: use snode and graph in constructor...
-	GraphView *gv = new GraphView(snode, graph);
+	vector<MutableSampleMethod*> methods(nchain, 0);
+
+	SingletonGraphView *gv = new SingletonGraphView(snode, graph);
 
 	bool discrete = snode->isDiscreteValued();
 	for (unsigned int ch = 0; ch < nchain; ++ch) {
@@ -44,11 +45,13 @@ namespace base {
 	    }
 	}
 
-	return new ParallelSampler(gv, methods);
+	string name = discrete ? "base::DiscreteSlicer" : "base::RealSlicer";
+	return new MutableSampler(gv, methods, name);
     }
 
     string SliceFactory::name() const
     {
 	return "base::Slice";
     }
-}
+
+}}

@@ -1,10 +1,14 @@
-#include <Module.h>
+#include <module/Module.h>
 
 #include <distributions/DNormMix.h>
+#include <distributions/DBetaBin.h>
 #include <samplers/MixSamplerFactory.h>
+#include <samplers/DirichletCatFactory.h>
+#include <samplers/LDAFactory.h>
 
 using std::vector;
 
+namespace jags {
 namespace mix {
 
     class MIXModule : public Module {
@@ -16,8 +20,11 @@ namespace mix {
     MIXModule::MIXModule() 
 	: Module("mix") {
 
+	insert(new DBetaBin);
 	insert(new DNormMix);
 	insert(new MixSamplerFactory);
+	insert(new DirichletCatFactory);
+	insert(new LDAFactory);
     }
 
     MIXModule::~MIXModule() {
@@ -33,6 +40,6 @@ namespace mix {
 	}
     }
 
-}
+}}
 
-mix::MIXModule _mix_module;
+jags::mix::MIXModule _mix_module;

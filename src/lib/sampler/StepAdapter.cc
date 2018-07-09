@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 using std::min;
 using std::log;
@@ -18,6 +19,8 @@ using std::logic_error;
    is 10%.
 */
 #define INITIAL_N 10
+
+namespace jags {
 
 StepAdapter::StepAdapter(double step, double prob)
     : _prob(prob), _lstep(log(step)), _p_over_target(false), _n(INITIAL_N)
@@ -52,3 +55,5 @@ double StepAdapter::logitDeviation(double p) const
 
     return logit_target - logit_p;
 }
+
+} //namespace jags

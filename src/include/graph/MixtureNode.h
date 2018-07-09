@@ -5,14 +5,17 @@
 #include <map>
 #include <vector>
 
-class Node;
+namespace jags {
 
-/**
- * A MixMap is an STL map object.  The key represents an integer-valued
- * index, and the value is the corresponding Node from which a
- * MixtureNode will copy its values when its indices take that value.
- */
-typedef std::map<std::vector<int> , Node const *>  MixMap;
+    class Node;
+    class MixTab;
+
+    /** 
+     * A MixMap is an STL map that associates an index value (a vector
+     * of unsigned integers) with a node.  
+     */
+    typedef std::map<std::vector<int>, Node const *> MixMap;
+
 
 /**
  * @short Node for mixture models.
@@ -30,9 +33,11 @@ typedef std::map<std::vector<int> , Node const *>  MixMap;
  * x[1], ... x[M].
  */
 class MixtureNode : public DeterministicNode {
-    MixMap const &_map;
+    MixTab const *_table;
     unsigned int _Nindex;
     bool _discrete;
+    std::vector<Node const *> _active_parents;
+    void updateActive(unsigned int chain);
 public:
     /**
      * Constructs a MixtureNode. 
@@ -40,26 +45,31 @@ public:
      * @param index Vector of index nodes. These must be discrete-valued,
      *  scalar, and unobserved.
      *
-     * @param mixmap STL map object which associates a possible value
-     * of the index nodes with a single parent. Each possible index
-     * value, denoted by a vector of integers, must have the correct
-     * size (matching the size of the index parameter), and the
-     * corresponding parents must all have the same dimension.
+     * @param nchain Number of chains
+     *
+     * @param map a MixMap object which associates each possible value
+     * of the index nodes with a single parent. 
      */
     MixtureNode(std::vector<Node const *> const &index,
-		std::map<std::vector<int>, Node const *> const &mixmap);
+		unsigned int nchain, MixMap const &mixmap);
     ~MixtureNode();
     /**
-     * Calculates the value of the mixture node by looking up the
-     * parent node corresponding to the current value of the index
-     * nodes (in the map supplied to the constructor). The mixture node
-     * copies its value from that parent.
+     * Copies the value of the active parent
      */
     void deterministicSample(unsigned int chain);
+    /**
+     * Returns a pointer to the currently active parent (i.e. the one
+     * determined by the current index values) in the given chain.
+     */
+    Node const *activeParent(unsigned int chain) const;
     /**
      * Returns the number of index nodes.
      */
     unsigned int index_size() const;
+    /**
+     * Returns a pointer to the MixTab
+     */
+    MixTab const *mixTab() const;
     /**
      * A MixtureNode is discrete valued if all of its possible
      * parents are discrete
@@ -91,11 +101,13 @@ public:
      * of its BUGS-language definition.
      */
     std::string deparse(std::vector<std::string> const &parents) const;
-    DeterministicNode *clone(std::vector<Node const *> const &parents) const;
+    //DeterministicNode *clone(std::vector<Node const *> const &parents) const;
     
 };
 
 bool isMixture(Node const *);
 MixtureNode const * asMixture(Node const *);
+
+} /* namespace jags */
 
 #endif /* MIXTURE_NODE_H_ */

@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000 The R Development Core Team
+ *  Copyright (C) 2000 The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 #include "nmath.h"
 
-double rF(double n1, double n2, RNG *rng)
+double rF(double n1, double n2, JRNG *rng)
 {
     double v1, v2;
     if (ISNAN(n1) || ISNAN(n2) || n1 <= 0. || n2 <= 0.)

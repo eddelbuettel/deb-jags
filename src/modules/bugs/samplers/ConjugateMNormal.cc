@@ -6,7 +6,7 @@
 #include <graph/LogicalNode.h>
 #include <graph/StochasticNode.h>
 #include <sampler/Linear.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <module/ModuleError.h>
 
 #include "lapack.h"
@@ -17,7 +17,6 @@
 #include <string>
 
 #include "ConjugateMNormal.h"
-#include "ConjugateSampler.h"
 #include "DMNorm.h"
 
 #include <JRmath.h>
@@ -28,10 +27,13 @@ using std::set;
 using std::sqrt;
 using std::string;
 
-static void calBeta(double *betas, GraphView const *gv,
+namespace jags {
+namespace bugs {
+
+static void calBeta(double *betas, SingletonGraphView const *gv,
                     unsigned int chain)
 {
-    StochasticNode *snode = gv->nodes()[0];
+    StochasticNode *snode = gv->node();
     double const *xold = snode->value(chain);
     unsigned int nrow = snode->length();
 
@@ -40,7 +42,7 @@ static void calBeta(double *betas, GraphView const *gv,
 	xnew[i] = xold[i];
     }
 
-    vector<StochasticNode const*> const &stoch_children = 
+    vector<StochasticNode *> const &stoch_children = 
         gv->stochasticChildren();
 
     unsigned long nchildren = stoch_children.size();
@@ -77,9 +79,9 @@ static void calBeta(double *betas, GraphView const *gv,
     delete [] xnew;
 }
 
-static unsigned int sumChildrenLength(GraphView const *gv)
+static unsigned int sumChildrenLength(SingletonGraphView const *gv)
 {
-    vector<StochasticNode const *> const &children = 
+    vector<StochasticNode *> const &children = 
 	gv->stochasticChildren(); 
 
     unsigned int N = 0;
@@ -89,9 +91,7 @@ static unsigned int sumChildrenLength(GraphView const *gv)
     return N;
 }
 
-namespace bugs {
-
-ConjugateMNormal::ConjugateMNormal(GraphView const *gv)
+ConjugateMNormal::ConjugateMNormal(SingletonGraphView const *gv)
     : ConjugateMethod(gv), _betas(0), 
       _length_betas(sumChildrenLength(gv) * gv->length())
 {
@@ -115,8 +115,8 @@ bool ConjugateMNormal::canSample(StochasticNode *snode, Graph const &graph)
     if (isBounded(snode))
 	return false;
 
-    GraphView gv(snode, graph);
-    vector<StochasticNode const*> const &schild = gv.stochasticChildren();
+    SingletonGraphView gv(snode, graph);
+    vector<StochasticNode *> const &schild = gv.stochasticChildren();
 
     // Check stochastic children
     for (unsigned int i = 0; i < schild.size(); ++i) {
@@ -140,11 +140,11 @@ bool ConjugateMNormal::canSample(StochasticNode *snode, Graph const &graph)
 
 void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 {
-    vector<StochasticNode const*> const &stoch_children = 
+    vector<StochasticNode *> const &stoch_children = 
           _gv->stochasticChildren();
     unsigned int nchildren = stoch_children.size();
     
-    StochasticNode *snode = _gv->nodes()[0];
+    StochasticNode *snode = _gv->node();
     double const *xold = snode->value(chain);
     double const *priormean = snode->parents()[0]->value(chain); 
     double const *priorprec = snode->parents()[1]->value(chain);
@@ -316,9 +316,4 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
     delete [] xnew;
 }
 
-string ConjugateMNormal::name() const
-{
-    return "ConjugateMNormal";
-}
-
-}
+}}

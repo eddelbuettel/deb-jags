@@ -1,8 +1,9 @@
 #ifndef FUNC_INPROD_H_
 #define FUNC_INPROD_H_
 
-#include <function/VectorFunction.h>
+#include <function/ScalarVectorFunction.h>
 
+namespace jags {
 namespace bugs {
 
     /**
@@ -13,12 +14,12 @@ namespace bugs {
      * y <- inprod(a[],b[])
      * </pre>
      */
-    class InProd : public VectorFunction
+    class InProd : public ScalarVectorFunction
     {
     public:
 	InProd ();
-	void evaluate(double *value, std::vector <double const *> const &args,
-		      std::vector<unsigned int> const &lengths) const;
+	double scalarEval(std::vector <double const *> const &args,
+			  std::vector<unsigned int> const &lengths) const;
 	bool checkParameterLength (std::vector<unsigned int> const &len) const;
 	bool isDiscreteValued(std::vector<bool> const &mask) const;
 	bool isScale(std::vector<bool> const &mask,
@@ -27,6 +28,6 @@ namespace bugs {
 			std::vector<bool> const &fix) const;
     };
 
-}
+}}
 
 #endif /* FUNC_INPROD_H_ */

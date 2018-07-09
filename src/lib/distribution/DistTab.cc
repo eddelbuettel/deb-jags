@@ -8,6 +8,8 @@ using std::string;
 using std::binary_function;
 using std::find_if;
 
+namespace jags {
+
 typedef std::list<DistPtr> DistList;
 
 // Adaptable binary predicate for find_if algorithm 
@@ -44,6 +46,13 @@ struct isDistAlias: public binary_function<DistPtr, string, bool>
     }
 };
 
+  DistTab::DistTab()
+    : _dlist(), _nulldist()
+  {
+    //Required by Solaris Studio, which won't create a default constructor
+    //with -std=c++11
+  }
+
 void DistTab::insert (DistPtr const &dist)
 {
     DistList::const_iterator p = std::find(_dlist.begin(), _dlist.end(), dist);
@@ -68,3 +77,4 @@ void DistTab::erase(DistPtr const &dist)
     _dlist.remove(dist);
 }
 
+} //namespace jags

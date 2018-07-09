@@ -3,6 +3,7 @@
 
 #include "GLMFactory.h"
 
+namespace jags {
 namespace glm {
 
     /**
@@ -10,20 +11,18 @@ namespace glm {
      */
     class LinearFactory : public GLMFactory
     {
-	bool _gibbs;
     public:
 	LinearFactory();
 	/**
 	 * Checks that the outcome is from the normal family with identity
-	 * link (i.e. lnode is NULL)
+	 * link
 	 */
-	bool checkOutcome(StochasticNode const *snode,
-			  LinkNode const *lnode) const;
+	bool checkOutcome(StochasticNode const *snode) const;
 	/**
 	 * Returns a newly allocated object of class Linear
 	 */
 	GLMMethod *newMethod(GraphView const *view, 
-			     std::vector<GraphView const *> const &sub_views,
+			     std::vector<SingletonGraphView const *> const &sub_views,
 			     unsigned int chain) const;
 	/**
 	 * Checks that the candidate node is not bounded. This is
@@ -33,6 +32,6 @@ namespace glm {
 	bool canSample(StochasticNode const *snode) const;
     };
 
-}
+}}
 
 #endif /* LINEAR_FACTORY_H_ */

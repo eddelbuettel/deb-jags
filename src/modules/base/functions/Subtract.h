@@ -3,6 +3,7 @@
 
 #include "Infix.h"
 
+namespace jags {
 namespace base {
 
 /**
@@ -20,12 +21,14 @@ public:
     Subtract ();
     double evaluate(std::vector<double const *> const &args) const;
     bool isDiscreteValued(std::vector<bool> const &mask) const;
+    bool isAdditive(std::vector<bool> const &mask, 
+		    std::vector<bool> const &fix) const;
     bool isScale(std::vector<bool> const &mask, 
 		 std::vector<bool> const &fix) const;
     bool isLinear(std::vector<bool> const &mask, 
 		  std::vector<bool> const &fix) const;
 };
 
-}
+}}
 
 #endif /* FUNC_SUBTRACT_H_ */

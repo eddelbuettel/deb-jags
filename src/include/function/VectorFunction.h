@@ -3,10 +3,12 @@
 
 #include <function/Function.h>
 
+namespace jags {
+
 /**
  * @short Vector-valued function with vector arguments
  *
- * VectorFunc represents vector-valued functions whose parameters are
+ * VectorFunction represents vector-valued functions whose parameters are
  * also vectors.
  */
 class VectorFunction : public Function
@@ -26,26 +28,38 @@ public:
 			  std::vector <double const *> const &args,
 			  std::vector <unsigned int> const &lengths) const = 0;
     /**
-     * Calculates the length of the return value based on the lengths of
-     * the arguments. The argument must return true when passed to
-     * checkParameterLength. The default member function assumes that 
-     * the VectorFunction returns a scalar value.
+     * Calculates the length of the return value based on the arguments.
+     *
+     * @param arglengths Vector of argument lengths. This must return
+     * true when passed to checkParameterLength
+     *
+     * @param argvalues Vector of pointers to argument values. 
+     *
      */
     virtual unsigned int 
-	length(std::vector <unsigned int> const &arglengths) const;
+	length(std::vector <unsigned int> const &arglengths,
+	       std::vector <double const *> const &argvalues) const = 0;
     /**
      * Checks that the lengths of all the arguments are consistent. 
-     * The default implementation returns true.
+     * The default implementation returns true if all the arguments
+     * have non-zero length.
+     *
+     * This should be overridden by any sub-class that either has
+     * additional restrictions on the lengths of the arguments, or may
+     * allow zero-length arguments.
      */
     virtual bool 
 	checkParameterLength(std::vector<unsigned int> const &args) const;
     /**
      * Checks that the values of the arguments are in the domain of
-     * the function. The default implementation returns true.
+     * the function. The default implementation always returns true
+     * (i.e. assumes there are no restrictions on parameters).
      */
     virtual bool 
 	checkParameterValue(std::vector<double const *> const &args,
-			    std::vector<unsigned int> const &lengths) const; 
+			    std::vector<unsigned int> const &lengths) const;  
 };
+
+} /* namespace jags */
 
 #endif /* VECTOR_FUNCTION_H_ */

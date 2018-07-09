@@ -1,9 +1,8 @@
-#include <Module.h>
+#include <module/Module.h>
 #include <distribution/DistTab.h>
 
 #include <distributions/DBern.h>
 #include <distributions/DBeta.h>
-#include <distributions/DBetaBin.h>
 #include <distributions/DBin.h>
 #include <distributions/DCat.h>
 #include <distributions/DChisqr.h>
@@ -22,6 +21,7 @@
 #include <distributions/DNegBin.h>
 #include <distributions/DNChisqr.h>
 #include <distributions/DNorm.h>
+#include <distributions/DNT.h>
 #include <distributions/DPar.h>
 #include <distributions/DPois.h>
 #include <distributions/DRound.h>
@@ -31,6 +31,7 @@
 #include <distributions/DWish.h>
 #include <distributions/DHyper.h>
 #include <distributions/DSum.h>
+#include <distributions/SumDist.h>
 
 #include <functions/Abs.h>
 #include <functions/ArcCos.h>
@@ -40,6 +41,7 @@
 #include <functions/ArcTan.h>
 #include <functions/ArcTanh.h>
 #include <functions/CLogLog.h>
+#include <functions/Combine.h>
 #include <functions/Cos.h>
 #include <functions/Cosh.h>
 #include <functions/DIntervalFunc.h>
@@ -67,6 +69,7 @@
 #include <functions/Probit.h>
 #include <functions/Prod.h>
 #include <functions/Rank.h>
+#include <functions/Rep.h>
 #include <functions/Round.h>
 #include <functions/SD.h>
 #include <functions/Sin.h>
@@ -80,24 +83,25 @@
 #include <functions/Transpose.h>
 #include <functions/Trunc.h>
 
-#include <functions/DFunction.h>
-#include <functions/PFunction.h>
-#include <functions/QFunction.h>
+#include <function/DFunction.h>
+#include <function/PFunction.h>
+#include <function/QFunction.h>
 
 #include <samplers/ConjugateFactory.h>
 #include <samplers/DSumFactory.h>
 #include <samplers/MNormalFactory.h>
 #include <samplers/DirichletFactory.h>
+#include <samplers/SumFactory.h>
 
 using std::vector;
 
+namespace jags {
 namespace bugs {
 
     class BUGSModule : public Module {
     public:
 	BUGSModule();
 	~BUGSModule();
-	void Rinsert(RScalarDist *dist);
     };
 
     BUGSModule::BUGSModule() 
@@ -106,32 +110,31 @@ namespace bugs {
 
 	//Load distributions
 	insert(new DBern);
-	Rinsert(new DBeta);
-	Rinsert(new DBetaBin);
-	Rinsert(new DBin);
+	insert(new DBeta);
+	insert(new DBin);
 	insert(new DCat);
-	Rinsert(new DChisqr);
-	Rinsert(new DDexp);
+	insert(new DChisqr);
+	insert(new DDexp);
 	insert(new DDirch);
-	Rinsert(new DExp);
-	Rinsert(new DF);
-	Rinsert(new DGamma);
-	Rinsert(new DGenGamma);
-	Rinsert(new DLnorm);
-	Rinsert(new DLogis);
+	insert(new DExp);
+	insert(new DF);
+	insert(new DGamma);
+	insert(new DGenGamma);
+	insert(new DLnorm);
+	insert(new DLogis);
 	insert(new DMNorm);
 	insert(new DMT);
 	insert(new DMulti);
-	Rinsert(new DNChisqr);
-	Rinsert(new DNegBin);
-	Rinsert(new DNorm);
-	Rinsert(new DPar);
-	Rinsert(new DPois);
-	Rinsert(new DT);
+	insert(new DNChisqr);
+	insert(new DNegBin);
+	insert(new DNorm);
+	insert(new DPar);
+	insert(new DPois);
+	insert(new DT);
 	insert(new DUnif);
-	Rinsert(new DWeib);
+	insert(new DWeib);
 	insert(new DWish);
-	Rinsert(new DHyper);
+	insert(new DHyper);
 
 	//Load functions
 	insert(new Abs);
@@ -141,6 +144,7 @@ namespace bugs {
 	insert(new ArcSinh);
 	insert(new ArcTan);
 	insert(new ArcTanh);
+	insert(new Combine);
 	insert(new Cos);
 	insert(new Cosh);
 	insert(new CLogLog);
@@ -166,6 +170,7 @@ namespace bugs {
 	insert(new Probit);
 	insert(new Prod);
 	insert(new Rank);
+	insert(new Rep);
 	insert(new Round);
 	insert(new SD);
 	insert(new Sin);
@@ -183,13 +188,15 @@ namespace bugs {
 	insert(new DSum, new DSumFunc);
 	insert(new DInterval, new DIntervalFunc);
 	insert(new DRound, new DRoundFunc);
-
+	insert(new SumDist, new Sum);
+	
 	//Load sampler factories
 	insert(new MNormalFactory);
 	insert(new DirichletFactory);
 	insert(new ConjugateFactory);
 	//insert(new REFactory);
 	insert(new DSumFactory);
+	insert(new SumFactory);
     }
 
     BUGSModule::~BUGSModule() {
@@ -210,14 +217,8 @@ namespace bugs {
 	}
     }
 
-    void BUGSModule::Rinsert(RScalarDist *dist)
-    {
-	insert(dist);    
-	insert(new DFunction(dist));
-	insert(new PFunction(dist));
-	insert(new QFunction(dist));
-    }
 
-}
 
-bugs::BUGSModule _bugs_module;
+}}
+
+jags::bugs::BUGSModule _bugs_module;

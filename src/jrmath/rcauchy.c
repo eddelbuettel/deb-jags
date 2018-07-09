@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000--2008 The R Development Core Team
+ *  Copyright (C) 2000--2008 The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 
 #include "nmath.h"
 
-double rcauchy(double location, double scale, RNG *rng)
+double rcauchy(double location, double scale, JRNG *rng)
 {
     if (ISNAN(location) || !R_FINITE(scale) || scale < 0)
 	ML_ERR_return_NAN;

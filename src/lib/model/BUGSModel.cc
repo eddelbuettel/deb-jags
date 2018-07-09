@@ -27,6 +27,8 @@ using std::logic_error;
 using std::runtime_error;
 using std::map;
 
+namespace jags {
+
 /* 
    Nodes accessible to the user in a BUGSModel are identified
    by a variable name and range of indices 
@@ -52,30 +54,6 @@ BUGSModel::~BUGSModel()
 SymTab &BUGSModel::symtab()
 {
     return _symtab;
-}
-
-Node *BUGSModel::getNode(string const &name, Range const &target_range)
-{
-    NodeArray *array = _symtab.getVariable(name);
-    if (!array) {
-	return 0;
-    }
-    Range range = target_range;
-    if (isNULL(range)) {
-	range = array->range();
-    }
-    else if (array->range().ndim(false) != target_range.ndim(false)) {
-	return 0; //Dimension mismatch
-    }
-    else if (!array->range().contains(target_range)) {
-	return 0; //Indices out of range
-    }
-    unsigned int NNode = graph().size();
-    Node *node = array->getSubset(range, *this);
-    if (graph().size() != NNode) {
-	addExtraNode(node); // Node was newly allocated
-    }
-    return node;
 }
 
 void BUGSModel::coda(vector<NodeId> const &node_ids, string const &stem,
@@ -253,3 +231,5 @@ void BUGSModel::samplerNames(vector<vector<string> > &sampler_names) const
 	sampler_names.push_back(names);
     }    
 }
+
+} //namespace jags

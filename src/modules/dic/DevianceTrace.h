@@ -3,6 +3,8 @@
 
 #include <model/Monitor.h>
 
+namespace jags {
+
 class StochasticNode;
 
 namespace dic {
@@ -15,12 +17,11 @@ namespace dic {
 	std::vector<unsigned int> dim() const;
 	std::vector<double> const &value(unsigned int chain) const;
 	void update();
-	void reserve(unsigned int niter);
 	SArray dump() const;
 	bool poolChains() const;
 	bool poolIterations() const;
     };
 
-}
+}}
 
 #endif /* DEVIANCE_TRACE_H_ */

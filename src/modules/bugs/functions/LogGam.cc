@@ -5,6 +5,7 @@
 
 using std::vector;
 
+namespace jags {
 namespace bugs {
 
     LogGam::LogGam ()
@@ -17,9 +18,9 @@ namespace bugs {
 	return lgammafn (*args[0]);
     }
 
-    bool LogGam::checkScalarValue(vector<double const *> const &args) const
+    bool LogGam::checkParameterValue(vector<double const *> const &args) const
     {
 	return *args[0] > 0;
     }
 
-}
+}}

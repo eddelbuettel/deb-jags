@@ -1,8 +1,9 @@
 #ifndef DT_H_
 #define DT_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -33,6 +34,6 @@ class DT : public RScalarDist {
 
 };
 
-}
+}}
 
 #endif /* DT_H_ */

@@ -2,7 +2,7 @@
 
 /* -*- C -*-
  *  Mathlib : A C Library of Special Functions
- *  Copyright (C) 1998-2003  The R Development Core Team
+ *  Copyright (C) 1998-2013  The R Core Team
  *  Copyright (C) 2004       The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,8 @@
  *  GNU Lesser General Public License for more details.
  *
  *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ *  along with this program; if not, a copy is available at
+ *  http://www.r-project.org/Licenses/
  *
 
  * Rmath.h  should contain ALL headers from R's C code in `src/nmath'
@@ -26,58 +26,34 @@
    ``#include <Rmath.h> ''
 
    and nothing else.
+
+   It is part of the API and supports 'standalone Rmath'.
+
 */
 #ifndef RMATH_H
 #define RMATH_H
 
-#ifdef  __cplusplus
-extern "C" {
+/* Note that on some systems we need to include math.h before the
+   defines below. */
+#ifndef NO_C_HEADERS
+# define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
+# include <math.h>
 #endif
 
-/*-- Mathlib as part of R --  define this for standalone : */
-/* #undef MATHLIB_STANDALONE */
-
-#define R_VERSION_STRING "2.3.0"
-
-#ifndef HAVE_LOG1P
-# define HAVE_LOG1P 1
-#endif
-
-#ifndef HAVE_EXPM1
-# define HAVE_EXPM1 1
-#endif
-
-#ifndef HAVE_WORKING_LOG1P
-# define HAVE_WORKING_LOG1P 1
-#endif
-
-#ifndef HAVE_WORKING_LOG
-# define HAVE_WORKING_LOG 1
-#endif
-
-#include <errno.h>
-#include <limits.h>
-#include <float.h>
-#include <math.h>
-
-#if defined(HAVE_LOG1P) && !defined(HAVE_WORKING_LOG1P)
-/* remap to avoid problems with getting the right entry point */
-double  Rlog1p(double);
-#define log1p Rlog1p
-#endif
-
-#include <stdlib.h>
+#define R_VERSION_STRING "3.1.1"
 
 	/* Undo SGI Madness */
 
-#ifdef ftrunc
-# undef ftrunc
-#endif
-#ifdef qexp
-# undef qexp
-#endif
-#ifdef qgamma
-# undef qgamma
+#ifdef __sgi
+# ifdef ftrunc
+#  undef ftrunc
+# endif
+# ifdef qexp
+#  undef qexp
+# endif
+# ifdef qgamma
+#  undef qgamma
+# endif
 #endif
 
 
@@ -172,33 +148,42 @@ double  Rlog1p(double);
 #endif
 
 
+#ifndef M_LN_2PI
+#define M_LN_2PI	1.837877066409345483560659472811	/* log(2*pi) */
+#endif
+
 #ifndef M_LN_SQRT_PI
-#define M_LN_SQRT_PI	0.572364942924700087071713675677	/* log(sqrt(pi)) */
+#define M_LN_SQRT_PI	0.572364942924700087071713675677	/* log(sqrt(pi))
+								   == log(pi)/2 */
 #endif
 
 #ifndef M_LN_SQRT_2PI
-#define M_LN_SQRT_2PI	0.918938533204672741780329736406	/* log(sqrt(2*pi)) */
+#define M_LN_SQRT_2PI	0.918938533204672741780329736406	/* log(sqrt(2*pi))
+								 == log(2*pi)/2 */
 #endif
 
 #ifndef M_LN_SQRT_PId2
-#define M_LN_SQRT_PId2	0.225791352644727432363097614947	/* log(sqrt(pi/2)) */
+#define M_LN_SQRT_PId2	0.225791352644727432363097614947	/* log(sqrt(pi/2))
+								   == log(pi/2)/2 */
 #endif
 
 
-#ifdef MATHLIB_STANDALONE
+# ifndef R_EXT_BOOLEAN_H_
+/* "copy-paste" R_ext/Boolean.h if not already included: */
+ #define R_EXT_BOOLEAN_H_
  #undef FALSE
  #undef TRUE
  typedef enum { FALSE = 0, TRUE } Rboolean;
-#else
-# include <R_ext/Boolean.h>
-#endif
+# endif
 
-
-#ifndef MATHLIB_STANDALONE
 #define bessel_i	jags_bessel_i
 #define bessel_j	jags_bessel_j
 #define bessel_k	jags_bessel_k
 #define bessel_y	jags_bessel_y
+#define bessel_i_ex	jags_bessel_i_ex
+#define bessel_j_ex	jags_bessel_j_ex
+#define bessel_k_ex	jags_bessel_k_ex
+#define bessel_y_ex	jags_bessel_y_ex
 #define beta		jags_beta
 #define choose		jags_choose
 #define dbeta		jags_dbeta
@@ -215,6 +200,7 @@ double  Rlog1p(double);
 #define dlogis		jags_dlogis
 #define dnbeta		jags_dnbeta
 #define dnbinom		jags_dnbinom
+#define dnbinom_mu	jags_dnbinom_mu
 #define dnchisq		jags_dnchisq
 #define dnf		jags_dnf
 #define dnorm4		jags_dnorm4
@@ -259,6 +245,7 @@ double  Rlog1p(double);
 #define plogis		jags_plogis
 #define pnbeta		jags_pnbeta
 #define pnbinom		jags_pnbinom
+#define pnbinom_mu     	jags_pnbinom_mu
 #define pnchisq		jags_pnchisq
 #define pnf		jags_pnf
 #define pnorm5		jags_pnorm5
@@ -287,6 +274,7 @@ double  Rlog1p(double);
 #define qlogis		jags_qlogis
 #define qnbeta		jags_qnbeta
 #define qnbinom		jags_qnbinom
+#define qnbinom_mu     	jags_qnbinom_mu
 #define qnchisq		jags_qnchisq
 #define qnf		jags_qnf
 #define qnorm5		jags_qnorm5
@@ -325,44 +313,37 @@ double  Rlog1p(double);
 #define sign		jags_sign
 #define tetragamma	jags_tetragamma
 #define trigamma	jags_trigamma
+
+#define dnorm dnorm4
+#define pnorm pnorm5
+#define qnorm qnorm5
+
+#ifdef  __cplusplus
+namespace jags {
+    struct RNG;
+}
+typedef jags::RNG JRNG;
+extern "C" {
+#else
+typedef struct JRNG JRNG;
 #endif
-
-#define	rround	fround
-#define	prec	fprec
-#undef trunc
-#define	trunc	ftrunc
-
-
-/* log(1 - exp(x))  in stable form: */
-#define R_Log1_Exp(x)   ((x) > -M_LN2 ? log(-expm1(x)) : log1p(-exp(x)))
-
 	/* R's versions with !R_FINITE checks */
 
-#if defined(MATHLIB_STANDALONE) && defined(HAVE_WORKING_LOG)
-#define R_log log
-#else
-double R_log(double x);
-#endif
-double R_pow(double x, double y);
-double R_pow_di(double, int);
+double JR_pow(double x, double y);
+double JR_pow_di(double, int);
 
 	/* Random Number Generators */
 
-typedef struct RNG RNG;
-double	norm_rand(RNG*);
-double	unif_rand(RNG*);
-double	exp_rand(RNG*);
+double	norm_rand(JRNG*);
+double	unif_rand(JRNG*);
+double	exp_rand(JRNG*);
 
 	/* Normal Distribution */
-
-#define pnorm pnorm5
-#define qnorm qnorm5
-#define dnorm dnorm4
 
 double	dnorm(double, double, double, int);
 double	pnorm(double, double, double, int, int);
 double	qnorm(double, double, double, int, int);
-double	rnorm(double, double, RNG*); 
+double	rnorm(double, double, JRNG*);
 void	pnorm_both(double, double *, double *, int, int);/* both tails */
 
 	/* Uniform Distribution */
@@ -370,16 +351,17 @@ void	pnorm_both(double, double *, double *, int, int);/* both tails */
 double	dunif(double, double, double, int);
 double	punif(double, double, double, int, int);
 double	qunif(double, double, double, int, int);
-double	runif(double, double, RNG*);
+double	runif(double, double, JRNG*);
 
 	/* Gamma Distribution */
 
 double	dgamma(double, double, double, int);
 double	pgamma(double, double, double, int, int);
 double	qgamma(double, double, double, int, int);
-double	rgamma(double, double, RNG*);
+double	rgamma(double, double, JRNG*);
 
 double  log1pmx(double);
+double  log1pexp(double); // <-- ../nmath/plogis.c
 double  lgamma1p(double);
 double  logspace_add(double, double);
 double  logspace_sub(double, double);
@@ -389,119 +371,125 @@ double  logspace_sub(double, double);
 double	dbeta(double, double, double, int);
 double	pbeta(double, double, double, int, int);
 double	qbeta(double, double, double, int, int);
-double	rbeta(double, double, RNG*);
+double	rbeta(double, double, JRNG*);
 
 	/* Lognormal Distribution */
 
 double	dlnorm(double, double, double, int);
 double	plnorm(double, double, double, int, int);
 double	qlnorm(double, double, double, int, int);
-double	rlnorm(double, double, RNG*);
+double	rlnorm(double, double, JRNG*);
 
 	/* Chi-squared Distribution */
 
 double	dchisq(double, double, int);
 double	pchisq(double, double, int, int);
 double	qchisq(double, double, int, int);
-double	rchisq(double, RNG*); 
+double	rchisq(double, JRNG*);
 
 	/* Non-central Chi-squared Distribution */
 
 double	dnchisq(double, double, double, int);
 double	pnchisq(double, double, double, int, int);
 double	qnchisq(double, double, double, int, int);
-double	rnchisq(double, double, RNG*);
+double	rnchisq(double, double, JRNG*);
 
 	/* F Distibution */
 
 double	dF(double, double, double, int);
 double	pF(double, double, double, int, int);
 double	qF(double, double, double, int, int);
-double	rF(double, double, RNG*); 
+double	rF(double, double, JRNG*);
 
 	/* Student t Distibution */
 
 double	dt(double, double, int);
 double	pt(double, double, int, int);
 double	qt(double, double, int, int);
-double	rt(double, RNG*);
+double	rt(double, JRNG*);
 
 	/* Binomial Distribution */
 
 double	dbinom(double, double, double, int);
 double	pbinom(double, double, double, int, int);
 double	qbinom(double, double, double, int, int);
-double	rbinom(double, double, RNG*);
+double	rbinom(double, double, JRNG*);
 
 	/* Multnomial Distribution */
 
-void	rmultinom(int, double*, int, int*, RNG*);
+void	rmultinom(int, double*, int, int*, JRNG*);
 
 	/* Cauchy Distribution */
 
 double	dcauchy(double, double, double, int);
 double	pcauchy(double, double, double, int, int);
 double	qcauchy(double, double, double, int, int);
-double	rcauchy(double, double, RNG*);
+double	rcauchy(double, double, JRNG*);
 
 	/* Exponential Distribution */
 
 double	dexp(double, double, int);
 double	pexp(double, double, int, int);
 double	qexp(double, double, int, int);
-double	rexp(double, RNG*);
+double	rexp(double, JRNG*);
 
 	/* Geometric Distribution */
 
 double	dgeom(double, double, int);
 double	pgeom(double, double, int, int);
 double	qgeom(double, double, int, int);
-double	rgeom(double, RNG*);
+double	rgeom(double, JRNG*);
 
 	/* Hypergeometric Distibution */
 
 double	dhyper(double, double, double, double, int);
 double	phyper(double, double, double, double, int, int);
 double	qhyper(double, double, double, double, int, int);
-double	rhyper(double, double, double, RNG*);
+double	rhyper(double, double, double, JRNG*);
 
 	/* Negative Binomial Distribution */
 
 double	dnbinom(double, double, double, int);
 double	pnbinom(double, double, double, int, int);
 double	qnbinom(double, double, double, int, int);
-double	rnbinom(double, double, RNG*);
+double	rnbinom(double, double, JRNG*);
+
+double	dnbinom_mu(double, double, double, int);
+double	pnbinom_mu(double, double, double, int, int);
+double	qnbinom_mu(double, double, double, int, int);
+double	rnbinom_mu(double, double, JRNG*);
 
 	/* Poisson Distribution */
 
 double	dpois(double, double, int);
 double	ppois(double, double, int, int);
 double	qpois(double, double, int, int);
-double	rpois(double, RNG*);
+double	rpois(double, JRNG*);
 
 	/* Weibull Distribution */
 
 double	dweibull(double, double, double, int);
 double	pweibull(double, double, double, int, int);
 double	qweibull(double, double, double, int, int);
-double	rweibull(double, double, RNG*);
+double	rweibull(double, double, JRNG*);
 
 	/* Logistic Distribution */
 
 double	dlogis(double, double, double, int);
 double	plogis(double, double, double, int, int);
 double	qlogis(double, double, double, int, int);
-double	rlogis(double, double, RNG*);
+double	rlogis(double, double, JRNG*);
 
 	/* Non-central Beta Distribution */
 
 double	dnbeta(double, double, double, double, int);
 double	pnbeta(double, double, double, double, int, int);
 double	qnbeta(double, double, double, double, int, int);
-double	rnbeta(double, double, double, RNG*);
+double	rnbeta(double, double, double, JRNG*);
 
 	/* Non-central F Distribution */
 
+double  dnf(double, double, double, double, int);
 double	pnf(double, double, double, double, int, int);
 double	qnf(double, double, double, double, int, int);
 
@@ -521,20 +509,19 @@ double	qtukey(double, double, double, double, int, int);
 double dwilcox(double, double, double, int);
 double pwilcox(double, double, double, int, int);
 double qwilcox(double, double, double, int, int);
-double rwilcox(double, double, RNG*); 
+double rwilcox(double, double, JRNG*);
 
 	/* Wilcoxon Signed Rank Distribution */
 
 double dsignrank(double, double, int);
 double psignrank(double, double, int, int);
 double qsignrank(double, double, int, int);
-double rsignrank(double, RNG*);
+double rsignrank(double, JRNG*);
 
 	/* Gamma and Related Functions */
 double	gammafn(double);
 double	lgammafn(double);
-double  lgammafn_sign(double, int*);
-
+double	lgammafn_sign(double, int*);
 void    dpsifn(double, int, int, int, double*, int*, int*);
 double	psigamma(double, double);
 double	digamma(double);
@@ -554,17 +541,15 @@ double	bessel_i(double, double, double);
 double	bessel_j(double, double);
 double	bessel_k(double, double, double);
 double	bessel_y(double, double);
+double	bessel_i_ex(double, double, double, double *);
+double	bessel_j_ex(double, double, double *);
+double	bessel_k_ex(double, double, double, double *);
+double	bessel_y_ex(double, double, double *);
 
 
 	/* General Support Functions */
 
-double 	pythag(double, double);
-#ifndef HAVE_EXPM1
-double  expm1(double); /* = exp(x)-1 {care for small x} */
-#endif
-#ifndef HAVE_LOG1P
-double  log1p(double); /* = log(1+x) {care for small x} */
-#endif
+//double 	pythag(double, double);
 int	imax2(int, int);
 int	imin2(int, int);
 double	fmax2(double, double);
@@ -578,6 +563,18 @@ double	ftrunc(double);
 double  log1pmx(double); /* Accurate log(1+x) - x, {care for small x} */
 double  lgamma1p(double);/* accurate log(gamma(x+1)), small x (0 < x < 0.5) */
 
+/* More accurate cos(pi*x), sin(pi*x), tan(pi*x)
+
+   In future these declarations could clash with system headers if
+   someone had already included math.h with
+   __STDC_WANT_IEC_60559_TYPES_EXT__ defined.
+   We can add a check for that via the value of
+   __STDC_IEC_60559_FUNCS__ (>= 201ymmL, exact value not yet known).
+*/
+double cospi(double);
+double sinpi(double);
+double tanpi(double);
+
 /* Compute the log of a sum or difference from logs of terms, i.e.,
  *
  *     log (exp (logx) + exp (logy))
@@ -589,58 +586,45 @@ double  logspace_add(double logx, double logy);
 double  logspace_sub(double logx, double logy);
 
 
-
-
 /* ----------------- Private part of the header file ------------------- */
 
 	/* old-R Compatibility */
 
-#define snorm	norm_rand
-#define sunif	unif_rand
-#define sexp	exp_rand
+#ifdef OLD_RMATH_COMPAT
+# define snorm	norm_rand
+# define sunif	unif_rand
+# define sexp	exp_rand
+#endif
 
-#ifdef MATHLIB_PRIVATE
-#define d1mach		jags_d1mach
-#define i1mach          jags_i1mach
-#define gamma_cody	jags_gamma_cody
-
-double	gamma_cody(double); /* used in arithmetic.c */
-
-#endif /* MATHLIB_PRIVATE */
-
-double  jags_d1mach(int); /* used in port.c in package stats */
-int     jags_i1mach(int); /* used in port.c in package stats */
-
-#ifdef MATHLIB_STANDALONE
-#ifndef MATHLIB_PRIVATE_H
-
+#if !defined(MATHLIB_PRIVATE_H) /* defined by nmath.h */
 /* If isnan is a macro, as C99 specifies, the C++
    math header will undefine it. This happens on OS X */
-#ifdef __cplusplus
-  int R_isnancpp(double); /* in mlutils.c */
-#  define ISNAN(x)     R_isnancpp(x)
-#else
+# ifdef __cplusplus
+  int JR_isnancpp(double); /* in mlutils.c */
+#  define ISNAN(x)     JR_isnancpp(x)
+# else
 #  define ISNAN(x)     (isnan(x)!=0)
-#endif
-
-
-/* We don't have config information available to do anything else */
-#define R_FINITE(x)    R_finite(x)
-int R_finite(double);
-
-#ifdef WIN32  /* not Win32 as no config information */
-# define NA_REAL (*_imp__NA_REAL)
-# define R_NegInf (*_imp__R_NegInf)
-# define R_PosInf (*_imp__R_PosInf)
-# define N01_kind (*_imp__N01_kind)
 # endif
 
-#endif /* not MATHLIB_PRIVATE_H */
-#endif /* MATHLIB_STANDALONE */
+# define R_FINITE(x)    JR_finite(x)
+int JR_finite(double);
 
-#ifndef R_EXT_PRINT_H_
-void REprintf(char const*, ...);
-#endif
+# ifdef _WIN32  /* not Win32 as no config information */
+#  ifdef RMATH_DLL
+#   define R_EXTERN extern __declspec(dllimport)
+#  else
+#   define R_EXTERN extern
+#  endif
+R_EXTERN double NA_REAL;
+R_EXTERN double R_PosInf;
+R_EXTERN double R_NegInf;
+R_EXTERN int N01_kind;
+#  undef R_EXTERN
+#else
+extern int N01_kind;
+# endif
+
+#endif /* MATHLIB_PRIVATE_H */
 
 #ifdef  __cplusplus
 }

@@ -7,7 +7,7 @@
 
 #include <compiler/ParseTree.h>
 #include "remap.h"
-#include "parser.h"
+#include "parser.hh"
 
 #include <stdexcept>
 
@@ -72,11 +72,11 @@ BRACKET		[ \t]*\(
 }
 
 "/*"           BEGIN(COMMENT);
-<COMMENT>[^*]*          /* Eat up anything that's not a '*'   */
-<COMMENT>"*"+[^*/n]*    /* Eat up '*'s not followed by a '/'  */
+<COMMENT>[^*]*          ; /* Eat up anything that's not a '*' */
+<COMMENT>"*"+[^*/]*     ; /* Eat up '*'s not followed by a '/'  */
 <COMMENT>"*"+"/"        BEGIN(INITIAL);
 
-[ \t\r\n]+              /* Eat whitespace */
+[ \t\r\n\f]+            /* Eat whitespace */
 "#".*\n                 /* Eat comments */
 
 

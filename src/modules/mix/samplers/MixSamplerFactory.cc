@@ -5,12 +5,11 @@
 #include <graph/Graph.h>
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
-#include <sampler/ParallelSampler.h>
-#include <sampler/GraphView.h>
-
-#include <set>
+#include <sampler/MutableSampler.h>
+#include <sampler/SingletonGraphView.h>
 
 using std::set;
+using std::list;
 using std::vector;
 using std::string;
 
@@ -18,15 +17,18 @@ using std::string;
 #define MAX_TEMP 100
 #define NREP 5
 
+namespace jags {
+
 /* 
- * Returns a pointer to a newly allocated GraphView if snode has a
- * stochastic child with distribution "dnormmix", otherwise a null
- * pointer.
+ * Returns a pointer to a newly allocated SingletonGraphView if snode
+ * has a stochastic child with distribution "dnormmix", otherwise a
+ * null pointer.
  */
-static GraphView * isCandidate(StochasticNode *snode, Graph const &graph)
+static SingletonGraphView * isCandidate(StochasticNode *snode, 
+					Graph const &graph)
 {
-    GraphView *gv = new GraphView(snode, graph);
-    vector<StochasticNode const*> const &schildren = gv->stochasticChildren();
+    SingletonGraphView *gv = new SingletonGraphView(snode, graph);
+    vector<StochasticNode *> const &schildren = gv->stochasticChildren();
     for (unsigned int i = 0; i < schildren.size(); ++i) {
 	if (schildren[i]->distribution()->name() == "dnormmix") {
 	    return gv;
@@ -39,11 +41,12 @@ static GraphView * isCandidate(StochasticNode *snode, Graph const &graph)
 /*
  * Used to aggregate nodes with common stochastic children.
  */
-static void aggregate(GraphView const *gv, vector<StochasticNode *> &nodes,
+static void aggregate(SingletonGraphView const *gv, 
+		      vector<StochasticNode *> &nodes,
 		      set<StochasticNode const*> &common_children)
 {
     bool agg = nodes.empty();
-    vector<StochasticNode const *> const &schildren = gv->stochasticChildren();
+    vector<StochasticNode *> const &schildren = gv->stochasticChildren();
     for (unsigned int i = 0; i < schildren.size(); ++i) {
 	if (common_children.count(schildren[i])) {
 	    agg = true;
@@ -54,21 +57,22 @@ static void aggregate(GraphView const *gv, vector<StochasticNode *> &nodes,
 	for (unsigned int i = 0; i < schildren.size(); ++i) {
 	    common_children.insert(schildren[i]);
 	}
-	nodes.push_back(gv->nodes()[0]);
+	nodes.push_back(gv->node());
     }
     
 }
 
 namespace mix {
 
-    Sampler * MixSamplerFactory::makeSampler(set<StochasticNode*> const &nodes, 
-					     Graph const &graph) const
+    Sampler * 
+    MixSamplerFactory::makeSampler(list<StochasticNode*> const &nodes, 
+				   Graph const &graph) const
     {
-	vector<GraphView*> gvec;
-	for (set<StochasticNode*>::const_iterator p = nodes.begin();
+	vector<SingletonGraphView*> gvec;
+	for (list<StochasticNode*>::const_iterator p = nodes.begin();
 	     p != nodes.end(); ++p)
 	{
-	    GraphView *gv = isCandidate(*p, graph);
+	    SingletonGraphView *gv = isCandidate(*p, graph);
 	    if (gv) {
 		gvec.push_back(gv);
 	    }
@@ -86,11 +90,11 @@ namespace mix {
 	if (NormMix::canSample(sample_nodes)) {
 	    GraphView *gv = new GraphView(sample_nodes, graph, true);
 	    unsigned int nchain = sample_nodes[0]->nchain();
-	    vector<SampleMethod*> methods(nchain,0);	    
+	    vector<MutableSampleMethod*> methods(nchain,0);	    
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
 		methods[ch] = new NormMix(gv, ch, NLEVEL, MAX_TEMP, NREP);
 	    }
-	    return new ParallelSampler(gv, methods);		
+	    return new MutableSampler(gv, methods, "mix::NormMix");		
 	}
 	else {
 	    return 0;
@@ -103,7 +107,7 @@ namespace mix {
     }
 
     vector<Sampler*>  
-    MixSamplerFactory::makeSamplers(set<StochasticNode*> const &nodes, 
+    MixSamplerFactory::makeSamplers(list<StochasticNode*> const &nodes, 
 				    Graph const &graph) const
     {
 	Sampler *s = makeSampler(nodes, graph);
@@ -112,4 +116,5 @@ namespace mix {
 	else 
 	    return vector<Sampler*>();
     }
-}
+
+}}

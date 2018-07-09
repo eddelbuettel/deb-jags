@@ -3,11 +3,12 @@
 
 #include <sampler/SingletonFactory.h>
 
+namespace jags {
 namespace base {
 
-/**
- * @short Factory object for finite samplers
- */
+    /**
+     * @short Factory object for finite samplers
+     */
     class FiniteFactory : public SingletonFactory {
     public:
 	bool canSample(StochasticNode *snode, Graph const &graph) const;
@@ -16,6 +17,6 @@ namespace base {
 	std::string name() const;
     };
 
-}
+}}
 
 #endif /* FINITE_FACTORY_H_ */

@@ -4,7 +4,10 @@
 #include "GLMMethod.h"
 #include <sampler/SamplerFactory.h>
 
-class LinkNode;
+namespace jags {
+
+    class LinkNode;
+    class SingletonGraphView;
 
 namespace glm {
 
@@ -20,8 +23,9 @@ namespace glm {
     class GLMFactory : public SamplerFactory
     {
 	std::string _name;
-	GraphView * makeView(StochasticNode *snode, Graph const &graph) const;
-	bool checkDescendants(GraphView const *view) const;
+	SingletonGraphView * makeView(StochasticNode *snode, 
+				      Graph const &graph) const;
+	bool checkDescendants(SingletonGraphView const *view) const;
     public:
 	GLMFactory(std::string const &name);
 	virtual ~GLMFactory();
@@ -29,44 +33,39 @@ namespace glm {
 	 * Creates a newly-allocated Sampler for the set of candidate nodes,
 	 * or a NULL pointer. Sub-classes of GLMFactory only have to
 	 * implement the abstract member function newMethod.
-	 * the 
 	 */
-	Sampler * makeSampler(std::set<StochasticNode*> const &nodes, 
+	Sampler * makeSampler(std::list<StochasticNode*> const &free_nodes, 
 			      Graph const &graph) const;
 	/**
 	 * Wraps GLMFactory#makeSampler and returns a single
 	 * newly-allocated sampler in a vector.
 	 */
 	std::vector<Sampler*> 
-	    makeSamplers(std::set<StochasticNode*> const &nodes, 
+	    makeSamplers(std::list<StochasticNode*> const &free_nodes, 
 			 Graph const &graph) const;
 	/**
 	 * Checks that an outcome variable in a GLM has the correct
 	 * family and link function.
 	 *
 	 * @param snode Stochastic node representing an outcome variable
-	 *
-	 * @param lnode LinkNode representing a link function. The identity
-	 * link is represented by a NULL pointer.
 	 */
-	virtual bool checkOutcome(StochasticNode const *snode,
-				  LinkNode const *lnode) const = 0;
+	virtual bool checkOutcome(StochasticNode const *snode) const = 0;
 	/**
 	 * Function for returning a newly allocated GLMMethod.  This
 	 * is called by GLMFactory#makeSampler
 	 *
 	 * @param view Pointer to a GraphView object for all sampled nodes.
 	 *
-	 * @param sub_views Vector of pointers to GraphView objects with
-	 * length equal to the number of sampled nodes. Each sub-view
-	 * corresponds to a single sampled node.
+	 * @param sub_views Vector of pointers to SingletonGraphView
+	 * objects with length equal to the number of sampled
+	 * nodes. Each sub-view corresponds to a single sampled node.
 	 *
 	 * @param chain Number of the chain (starting from 0) to which
 	 * the sampling method will be applied.
 	 */
 	virtual GLMMethod *
 	    newMethod(GraphView const *view,
-		      std::vector<GraphView const *> const &sub_views, 
+		      std::vector<SingletonGraphView const *> const &sub_views, 
 		      unsigned int chain) const = 0;
 	/**
 	 * Virtual function for checking that that a candidate
@@ -114,6 +113,6 @@ namespace glm {
 	virtual bool fixedDesign() const;
     };
 
-}
+}}
 
 #endif /* GLM_FACTORY_H_ */

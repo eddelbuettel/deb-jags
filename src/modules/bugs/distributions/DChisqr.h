@@ -1,8 +1,9 @@
 #ifndef DCHISQ_H_
 #define DCHISQ_H_
 
-#include "RScalarDist.h"
+#include <distribution/RScalarDist.h>
 
+namespace jags {
 namespace bugs {
 
 /**
@@ -29,10 +30,10 @@ class DChisqr : public RScalarDist {
    */
   bool checkParameterValue(std::vector<double const *> const &parameters) const;
   std::string alias() const;
-  double KL(std::vector<double const *> const &par1,
-	    std::vector<double const *> const &par2) const;
+  double KL(std::vector<double const *> const &par0,
+	    std::vector<double const *> const &par1) const;
 };
 
-}
+}}
 
 #endif /* DCHISQ_H_ */

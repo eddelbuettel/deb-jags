@@ -2,7 +2,6 @@
 #define COMPILER_H_
 
 #include <compiler/LogicalFactory.h>
-#include <compiler/ConstantFactory.h>
 #include <compiler/MixtureFactory.h>
 #include <compiler/CounterTab.h>
 #include <compiler/ObsFuncTab.h>
@@ -15,14 +14,19 @@
 #include <string>
 #include <utility>
 #include <list>
+#include <utility>
+#include <set>
+
+namespace jags {
 
 class ParseTree;
 class SymTab;
 class FuncTab;
 class DistTab;
 class NodeAlias;
-
+class SimpleRange;
 class Compiler;
+
 typedef void (Compiler::*CompilerMemFn) (ParseTree const *);
 
 /**
@@ -34,21 +38,22 @@ class Compiler {
   std::map<std::string, SArray> const &_data_table;
   std::map<std::string, std::vector<bool> > _constant_mask;
   unsigned int _n_resolved, _n_relations;
-  bool *_is_resolved;
-  bool _strict_resolution;
+  std::vector<bool> _is_resolved;
+  unsigned int _resolution_level;
   int _index_expression;
   std::vector<Node*> _index_nodes;
-  ConstantFactory _constantfactory;
   LogicalFactory _logicalfactory;
   MixtureFactory _mixfactory1;
   MixtureFactory _mixfactory2;
-  std::map<std::string, std::vector<std::vector<int> > > _node_array_ranges;
-
+  std::map<std::string, std::vector<int> > _node_array_bounds;
+  std::map<std::pair<std::string, Range>, std::set<int> > _umap;
+  std::set<std::string> _lhs_vars;
+  
   Node *getArraySubset(ParseTree const *t);
   Range VariableSubsetRange(ParseTree const *var);
   Range CounterRange(ParseTree const *var);
   Node* VarGetNode(ParseTree const *var);
-  Range getRange(ParseTree const *var,  Range const &default_range);
+  Range getRange(ParseTree const *var,  SimpleRange const &default_range);
 
   void traverseTree(ParseTree const *relations, CompilerMemFn fun,
 		    bool resetcounter=true);
@@ -64,8 +69,13 @@ class Compiler {
 			  std::vector<Node const *> &parents);
   Node * constFromTable(ParseTree const *p);
   void addDevianceNode();
+  Node *getConstant(double value, unsigned int nchain, bool observed);
+  Node *getConstant(std::vector<unsigned int> const &dim, 
+		    std::vector<double> const &value,
+		    unsigned int nchain, bool observed);
+  void getLHSVars(ParseTree const *rel);
 public:
-  bool indexExpression(ParseTree const *t, int &value);
+  bool indexExpression(ParseTree const *t, std::vector<int> &value);
   BUGSModel &model() const;
   Node * getParameter(ParseTree const *t);
   /**
@@ -120,6 +130,8 @@ public:
   MixtureFactory &mixtureFactory1();
   MixtureFactory &mixtureFactory2();
 };
+
+} /* namespace jags */
 
 #endif /* COMPILER_H_ */
 

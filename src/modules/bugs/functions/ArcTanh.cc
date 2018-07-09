@@ -7,6 +7,7 @@ using std::vector;
 using std::log;
 using std::string;
 
+namespace jags {
 namespace bugs {
 
     ArcTanh::ArcTanh ()
@@ -28,7 +29,7 @@ namespace bugs {
         
     bool ArcTanh::checkParameterValue(vector<double const *> const &args) const
     {
-	return *args[0] > -1 && *args[0] <  1;
+	return *args[0] >= -1 && *args[0] <=  1;
     }
 
-}
+}}

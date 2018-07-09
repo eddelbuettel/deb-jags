@@ -4,6 +4,7 @@
 
 using std::vector;
 
+namespace jags {
 namespace base {
 
     Subtract::Subtract () : Infix ("-")
@@ -20,6 +21,18 @@ namespace base {
     {
 	return allTrue(mask);
     }
+
+    bool Subtract::isAdditive(vector<bool> const &mask,
+			      vector<bool> const &fix) const
+    {
+	if (!mask[0] || mask[1]) return false;
+	if (fix.empty()) {
+	    return true;
+	}
+	else {
+	    return (!fix[0] && fix[1]);
+	}
+    }
     
     bool 
     Subtract::isScale(vector<bool> const &mask, vector<bool> const &fix) const
@@ -32,4 +45,5 @@ namespace base {
     {
 	return true;
     }
-}
+
+}}

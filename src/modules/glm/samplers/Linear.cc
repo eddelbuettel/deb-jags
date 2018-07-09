@@ -2,17 +2,19 @@
 
 #include "Linear.h"
 #include <graph/StochasticNode.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 
 using std::vector;
 using std::string;
 
+namespace jags {
 namespace glm {
 
     Linear::Linear(GraphView const *view, 
-		   vector<GraphView const *> const &sub_views,
+		   vector<SingletonGraphView const *> const &sub_views,
+		   vector<Outcome*> const &outcomes,
 		   unsigned int chain, bool gibbs)
-	: GLMMethod(view, sub_views, chain, false), _gibbs(gibbs)
+	: GLMMethod(view, sub_views, outcomes, chain, false), _gibbs(gibbs)
     {
     }
 
@@ -26,14 +28,6 @@ namespace glm {
 	return _view->stochasticChildren()[i]->value(_chain)[0];
     }
     
-    string Linear::name() const
-    {
-	if (_gibbs)
-	    return "LinearGibbs";
-	else
-	    return "Linear";
-    }
-
     void Linear::update(RNG *rng)
     {
 	if (_gibbs) 
@@ -41,4 +35,5 @@ namespace glm {
 	else
 	    updateLM(rng);
     }
-}
+
+}}

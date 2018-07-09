@@ -1,14 +1,14 @@
 #include <config.h>
-
 #include "ConjugateGamma.h"
 
 #include <graph/LogicalNode.h>
 #include <graph/StochasticNode.h>
 #include <graph/MixtureNode.h>
 #include <graph/NodeError.h>
+#include <graph/Graph.h>
 #include <sarray/SArray.h>
 #include <sampler/Linear.h>
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <module/ModuleError.h>
 
 #include <set>
@@ -25,6 +25,7 @@ using std::max;
 using std::sort;
 using std::string;
 
+namespace jags {
 namespace bugs {
 
 static double 
@@ -47,11 +48,11 @@ getScale(StochasticNode const *snode, ConjugateDist d, unsigned int chain)
 }
 
 
-static void calCoef(double *coef, GraphView const *gv,
+static void calCoef(double *coef, SingletonGraphView const *gv,
 		    vector<ConjugateDist> const &child_dist, unsigned int chain)
 {   
-    const double xold = gv->nodes()[0]->value(chain)[0];
-    vector<StochasticNode const*> const &stoch_children =
+    const double xold = gv->node()->value(chain)[0];
+    vector<StochasticNode *> const &stoch_children =
         gv->stochasticChildren();
     unsigned long nchildren = stoch_children.size();
     
@@ -67,7 +68,7 @@ static void calCoef(double *coef, GraphView const *gv,
 }
 
 
-ConjugateGamma::ConjugateGamma(GraphView const *gv)
+ConjugateGamma::ConjugateGamma(SingletonGraphView const *gv)
     : ConjugateMethod(gv), _coef(0)
 {
     if(!gv->deterministicChildren().empty() && checkScale(gv, true)) 
@@ -97,10 +98,10 @@ bool ConjugateGamma::canSample(StochasticNode *snode, Graph const &graph)
 	return false;
     }
 
-    GraphView gv(vector<StochasticNode*>(1,snode), graph);
+    SingletonGraphView gv(snode, graph);
 
     // Check stochastic children
-    vector<StochasticNode const*> const &stoch_nodes = 
+    vector<StochasticNode *> const &stoch_nodes = 
 	gv.stochasticChildren();
     for (unsigned int i = 0; i < stoch_nodes.size(); ++i) {
 	if (isBounded(stoch_nodes[i])) {
@@ -129,15 +130,16 @@ bool ConjugateGamma::canSample(StochasticNode *snode, Graph const &graph)
 
 void ConjugateGamma::update(unsigned int chain, RNG *rng) const
 {
-    vector<StochasticNode const*> const &stoch_children = 
+    vector<StochasticNode *> const &stoch_children = 
 	_gv->stochasticChildren();
     unsigned int nchildren = stoch_children.size();
 
-    double r; // shape
-    double mu; // 1/scale
+    //Need to initialize these for -Wall
+    double r=0; // shape
+    double mu=0; // 1/scale
 
     //Prior
-    vector<Node const *> const &param = _gv->nodes()[0]->parents();
+    vector<Node const *> const &param = _gv->node()->parents();
     switch(_target_dist) {
     case GAMMA:
 	r = *param[0]->value(chain);
@@ -149,7 +151,7 @@ void ConjugateGamma::update(unsigned int chain, RNG *rng) const
 	break;
     case CHISQ:
 	r = *param[0]->value(chain)/2;
-	mu = 1/2;
+	mu = 0.5; //FIXME: This was wrong in 3.x.y. Needs testing
 	break;
     default:
 	throwLogicError("invalid distribution in ConjugateGamma method");
@@ -217,14 +219,14 @@ void ConjugateGamma::update(unsigned int chain, RNG *rng) const
 
     // Sample from the posterior
     double xnew;
-    if (isBounded(_gv->nodes()[0])) {
+    if (isBounded(_gv->node())) {
 	// Use inversion to get random sample
 	double lower = 0;
-	Node const *lb = _gv->nodes()[0]->lowerBound();
+	Node const *lb = _gv->node()->lowerBound();
 	if (lb) {
 	    lower = max(lower, *lb->value(chain));
 	}
-	Node const *ub = _gv->nodes()[0]->upperBound();
+	Node const *ub = _gv->node()->upperBound();
 	double plower = lb ? pgamma(lower,             r, 1/mu, 1, 0) : 0;
 	double pupper = ub ? pgamma(*ub->value(chain), r, 1/mu, 1, 0) : 1;
 	double p = runif(plower, pupper, rng);
@@ -236,9 +238,4 @@ void ConjugateGamma::update(unsigned int chain, RNG *rng) const
     _gv->setValue(&xnew, 1, chain);  
 }
 
-string ConjugateGamma::name() const
-{
-    return "ConjugateGamma";
-}
-
-}
+}}

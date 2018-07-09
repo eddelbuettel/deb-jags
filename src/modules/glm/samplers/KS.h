@@ -1,9 +1,11 @@
 #ifndef KS_H_
 #define KS_H_
 
-class RNG;
+namespace jags {
 
-namespace glm {
+    struct RNG;
+    
+    namespace glm {
     /**
      * Utility function used by the HolmesHeld and AlbertChib sampling
      * methods in binary logistic regression models.
@@ -26,6 +28,7 @@ namespace glm {
      * @param rng Random number generator used for sampling
      */
     double sample_lambda(double Z, RNG *rng);
-}
+
+}}
 
 #endif /* KS_H_ */

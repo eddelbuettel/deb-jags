@@ -8,6 +8,8 @@ using std::vector;
 using std::string;
 using std::copy;
 
+namespace jags {
+
 static vector<Node const *> toNode(vector<StochasticNode const *> const &nodes)
 {
     vector<Node const *> ans(nodes.size());
@@ -48,13 +50,6 @@ namespace dic {
 	}
     }
 
-    void DevianceTrace::reserve(unsigned int niter)
-    {
-	for (unsigned int ch = 0; ch < _values.size(); ++ch) {
-	    _values[ch].reserve(_values[ch].size() + niter);
-	}
-    }
-
     bool DevianceTrace::poolChains() const
     {
 	return false;
@@ -65,4 +60,4 @@ namespace dic {
 	return false;
     }
 
-}
+}}

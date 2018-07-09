@@ -5,11 +5,13 @@
 #include <string>
 #include <set>
 
+namespace jags {
+
 class StochasticNode;
 class DeterministicNode;
 class Node;
 class Graph;
-class RNG;
+struct RNG;
 
 /**
  * @short Interface to a graph for Samplers.
@@ -32,20 +34,19 @@ class RNG;
  * are the children of S in the graph where all deterministic nodes
  * have been marginalized out.
  *
- * A vector of nodes in an acyclic Graph is in "forward sampling
- * order" if node B always appears after node A when there is a path
- * from A to B. Note that forward sampling order is not uniquely
- * determined.
+ * A vector of nodes in an acyclic Graph is in topological order if
+ * node B always appears after node A when there is a path from A to
+ * B. Note that topological order is not uniquely determined.
  */
 class GraphView {
   unsigned int _length;
   std::vector<StochasticNode *> _nodes;
-  std::vector<StochasticNode const *> _stoch_children;
+  std::vector<StochasticNode *> _stoch_children;
   std::vector<DeterministicNode*> _determ_children;
   bool _multilevel;
   void classifyChildren(std::vector<StochasticNode *> const &nodes,
 			Graph const &graph,
-			std::vector<StochasticNode const*> &stoch_nodes,
+			std::vector<StochasticNode *> &stoch_nodes,
 			std::vector<DeterministicNode*> &dtrm_nodes, 
 			bool allow_multilevel);
 public:
@@ -67,10 +68,6 @@ public:
    */
   GraphView(std::vector<StochasticNode *> const &nodes, Graph const &graph,
 	    bool allow_multilevel=false);
-  /**
-   * Constructs a GraphView for a single node
-   */
-  GraphView(StochasticNode * node, Graph const &graph);
   /**
    * Returns the vector of sampled nodes.
    */
@@ -98,10 +95,10 @@ public:
   /**
    * Returns the marginal stochastic children of the sampled nodes.
    */
-  std::vector<StochasticNode const*> const &stochasticChildren() const;
+  std::vector<StochasticNode *> const &stochasticChildren() const;
   /**
    * Returns the immediate deterministic descendendants of the sampled
-   * nodes, in forward sampling order
+   * nodes, in topological order
    */
   std::vector<DeterministicNode*> const &deterministicChildren() const;
   /**
@@ -137,8 +134,20 @@ public:
    * to give the log full conditional density
    */
   double logLikelihood(unsigned int chain) const;
+  /**
+   * Checks that the log density is finite for all sampled nodes and
+   * all stochastic children. If any log density value is negative
+   * infinite a NodeError exception is thrown.
+   *
+   * This utility function should be called by the constructor of any
+   * sample method that needs to ensure the graph is in a valid state
+   * before sampling.
+   */
+  void checkFinite(unsigned int chain) const;
 };
 
-unsigned int nchain(GraphView const *updater);
+unsigned int nchain(GraphView const *gv);
+
+} /* namespace jags */
 
 #endif /* GRAPH_VIEW_H_ */

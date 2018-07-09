@@ -1,9 +1,11 @@
 #include <config.h>
+#include <util/dim.h>
 
 #include "Transpose.h"
 
 using std::vector;
 
+namespace jags {
 namespace bugs {
 
     Transpose::Transpose()
@@ -24,7 +26,8 @@ namespace bugs {
     }
 
     vector<unsigned int> 
-    Transpose::dim (vector <vector<unsigned int> > const &dims) const
+    Transpose::dim (vector <vector<unsigned int> > const &dims,
+		    vector <double const *> const &values) const
     {
 	vector<unsigned int> ans(2);
 	ans[0] = dims[0].size() == 2 ? dims[0][1] : 1;
@@ -36,13 +39,23 @@ namespace bugs {
     Transpose::checkParameterDim (vector <vector<unsigned int> > const &dims) 
 	const
     {
-	return dims[0].size() == 1 || dims[0].size() == 2;
+	return isScalar(dims[0]) || isVector(dims[0]) || isMatrix(dims[0]);
     }
 
+    bool Transpose::isAdditive(vector<bool> const &mask,
+			       vector<bool> const &isfixed) const
+    {
+	return true;
+    }
+    
     bool Transpose::isScale(vector<bool> const &mask,
 		            vector<bool> const &isfixed) const
     {
 	return true;
     }
-    
-}
+
+    bool Transpose::isDiscreteValued(std::vector<bool> const &mask) const
+    {
+	return mask[0];
+    }
+}}

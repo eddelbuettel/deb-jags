@@ -3,6 +3,7 @@
 
 #include "GLMMethod.h"
 
+namespace jags {
 namespace glm {
 
     /**
@@ -21,7 +22,8 @@ namespace glm {
 	 * joint posterior
 	 */
 	Linear(GraphView const *view,
-	       std::vector<GraphView const *> const &sub_views,
+	       std::vector<SingletonGraphView const *> const &sub_views,
+	       std::vector<Outcome *> const &outcomes,
 	       unsigned int chain, bool gibbs);
 	/**
 	 * Returns the precision of the outcome variable with index i
@@ -36,13 +38,8 @@ namespace glm {
 	 * on the value of the parameter "gibbs" in the constructor.
 	 */
 	void update(RNG *rng);
-	/**
-	 * Returns "Linear" or "LinearGibbs" depending on the value of the
-	 * parameter "gibbs" in the constructor
-	 */
-	std::string name() const;
     };
     
-}
+}}
 
 #endif /* LINEAR_H_ */

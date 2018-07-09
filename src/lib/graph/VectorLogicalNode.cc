@@ -16,29 +16,43 @@ using std::string;
 using std::set;
 using std::logic_error;
 
+namespace jags {
+
 static unsigned int valueLength(VectorFunction const *func, 
 				vector<Node const *> const &parents)
 {
     /* 
        Calculates length of vector logical node as a function of its
-       parameters.
+       parents.
     */
     
-    vector<unsigned int> parameter_lengths(parents.size());
-    for (unsigned int j = 0; j < parents.size(); ++j) {
-	parameter_lengths[j] = parents[j]->length();
+    unsigned long N = parents.size();
+    vector<unsigned int> lengths(N);
+    vector<bool> fixed(N), discrete(N);
+    vector<double const *> values(N);
+    for (unsigned int j = 0; j < N; ++j) {
+	lengths[j] = parents[j]->length();
+	fixed[j] = parents[j]->isFixed();
+	values[j] = parents[j]->value(0);
+	discrete[j] = parents[j]->isDiscreteValued();
     }
     
     if (!func) {
 	throw logic_error("NULL function in VectorLogicalNode constructor");
     }
-    if (!func->checkNPar(parents.size())) {
+    if (!checkNPar(func, N)) {
 	throw FuncError(func, "Incorrect number of parameters");
     }
-    if (!func->checkParameterLength(parameter_lengths)) {
+    if (!func->checkParameterLength(lengths)) {
 	throw FuncError(func, "Non-conforming parameters");
     }
-    return func->length(parameter_lengths);
+    if (!func->checkParameterFixed(fixed)) {
+	throw FuncError(func, "Expected parameters with fixed values");
+    }
+    if (!func->checkParameterDiscrete(discrete)) {
+	throw FuncError(func, "Failed check for discrete-valued parameters");
+    }
+    return func->length(lengths, values);
 }
 
 static vector<unsigned int> const &
@@ -51,13 +65,14 @@ parameterLengths(vector<Node const *> const &parameters) {
     return getUnique(lengths);
 }
 
-VectorLogicalNode::VectorLogicalNode(VectorFunction const *function, 
+VectorLogicalNode::VectorLogicalNode(VectorFunction const *function,
+				     unsigned int nchain,
 				     vector<Node const *> const &parameters)
-    : LogicalNode(vector<unsigned int>(1,valueLength(function, parameters)), 
-		  parameters, function),
+    : LogicalNode(vector<unsigned int>(1,valueLength(function, parameters)),
+		  nchain, parameters, function),
       _func(function), _lengths(parameterLengths(parameters))
 {
-    if (isObserved()) {
+    if (isFixed()) {
 	for (unsigned int ch = 0; ch < _nchain; ++ch) {
 	    deterministicSample(ch);
 	}
@@ -74,8 +89,12 @@ bool VectorLogicalNode::checkParentValues(unsigned int chain) const
     return _func->checkParameterValue(_parameters[chain], _lengths);
 }
 
+    /*
 DeterministicNode *
 VectorLogicalNode::clone(vector<Node const*> const &parents) const
 {
     return new VectorLogicalNode(_func, parents);
 }
+    */
+    
+} //namespace jags

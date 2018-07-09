@@ -1,6 +1,6 @@
 #include <config.h>
 #include <graph/ScalarLogicalNode.h>
-#include <function/FuncError.h>
+#include <graph/NodeError.h>
 #include <function/ScalarFunction.h>
 #include <graph/GraphMarks.h>
 #include <graph/Graph.h>
@@ -16,22 +16,32 @@ using std::string;
 using std::set;
 using std::logic_error;
 
-ScalarLogicalNode::ScalarLogicalNode(ScalarFunction const *function, 
+namespace jags {
+
+ScalarLogicalNode::ScalarLogicalNode(ScalarFunction const *function,
+				     unsigned int nchain,
 				     vector<Node const *> const &parameters)
-    : LogicalNode(vector<unsigned int>(1,1), parameters, function),
+    : LogicalNode(vector<unsigned int>(1,1), nchain, parameters, function),
       _func(function)
 {
     if (!function) {
 	throw logic_error("NULL function in ScalarLogicalNode constructor");
     }
     for (unsigned int j = 0; j < parameters.size(); ++j) {
-	if (!isScalar(parameters[j]->dim())) {
-	    throw FuncError(function, "Invalid parameter dims");
+	if (isFlat(parameters[j]->dim())) {
+	    string msg("Invalid zero-length parameter to function ");
+	    msg.append(function->name());
+	    throw NodeError(parameters[j], msg);
+	}
+	else if (!isScalar(parameters[j]->dim())) {
+	    string msg("Invalid non-scalar parameter to function ");
+	    msg.append(function->name());
+	    throw NodeError(parameters[j], msg);
 	}
     }
 
-    if (isObserved()) {
-	for (unsigned int ch = 0; ch < _nchain; ++ch) {
+    if (isFixed()) {
+	for (unsigned int ch = 0; ch < nchain; ++ch) {
 	    deterministicSample(ch);
 	}
     }
@@ -47,10 +57,12 @@ bool ScalarLogicalNode::checkParentValues(unsigned int chain) const
     return _func->checkParameterValue(_parameters[chain]);
 }
 
+    /*
 DeterministicNode *
 ScalarLogicalNode::clone(vector<Node const*> const &parents) const
 {
     return new ScalarLogicalNode(_func, parents);
 }
-
-
+    */
+    
+} //namespace jags

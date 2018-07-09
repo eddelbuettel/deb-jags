@@ -3,10 +3,12 @@
 
 #include <function/Function.h>
 
+namespace jags {
+
 /**
  * @short Scalar-valued Function with scalar arguments
  *
- * ScalarFunc represents scalar-valued functions whose parameters are
+ * ScalarFunction represents scalar-valued functions whose parameters are
  * also scalars. 
  */
 class ScalarFunction : public Function
@@ -41,5 +43,7 @@ public:
     bool isPower(std::vector<bool> const &mask,
 		 std::vector<bool> const &isfixed) const;
 };
+
+} /* namespace jags */
 
 #endif /* SCALAR_FUNCTION_H_ */

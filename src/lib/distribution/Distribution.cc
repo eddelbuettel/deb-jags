@@ -5,6 +5,8 @@
 using std::vector;
 using std::string;
 
+namespace jags {
+
 Distribution::Distribution(string const &name, unsigned int npar)
     : _name(name), _npar(npar)
 {
@@ -24,9 +26,11 @@ string Distribution::alias() const
     return "";
 }
 
-bool Distribution::checkNPar (unsigned int npar) const
+
+
+unsigned int Distribution::npar () const
 {
-  return _npar == 0 ||  npar == _npar;
+  return _npar;
 }
 
 bool Distribution::isLocationParameter(unsigned int i) const
@@ -53,3 +57,5 @@ bool Distribution::checkParameterDiscrete(vector<bool> const &mask) const
 {
     return true;
 }
+
+} //namespace jags

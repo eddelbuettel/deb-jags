@@ -80,9 +80,6 @@
 /* Define to 1 if the system has the type `error_t'. */
 #undef HAVE_ERROR_T
 
-/* Define to 1 if you have the `expm1' function. */
-#undef HAVE_EXPM1
-
 /* Define to 1 if you have the <ieeefp.h> header file. */
 #undef HAVE_IEEEFP_H
 
@@ -100,12 +97,6 @@
 
 /* Define if libdlloader will be built on this platform */
 #undef HAVE_LIBDLLOADER
-
-/* Define to 1 if you have the `m' library (-lm). */
-#undef HAVE_LIBM
-
-/* Define to 1 if you have the `log1p' function. */
-#undef HAVE_LOG1P
 
 /* Define this if a modern libltdl is already installed */
 #undef HAVE_LTDL
@@ -167,12 +158,6 @@
 /* Define if isfinite() is correct for -Inf/NaN/Inf. */
 #undef HAVE_WORKING_ISFINITE
 
-/* Define if log() is correct for 0/-1. */
-#undef HAVE_WORKING_LOG
-
-/* Define if log1p() exists and is accurate enough. */
-#undef HAVE_WORKING_LOG1P
-
 /* Define if you have IEEE 754 floating point arithmetic. */
 #undef IEEE_754
 
@@ -201,9 +186,6 @@
 
 /* Define to the shared library suffix, say, ".dylib". */
 #undef LT_SHARED_EXT
-
-/* Define if you have standalone R math library */
-#undef MATHLIB_STANDALONE
 
 /* Define if dlsym() requires a leading underscore in symbol names. */
 #undef NEED_USCORE

@@ -1,6 +1,6 @@
 #include "ConjugateMethod.h"
 
-#include <sampler/GraphView.h>
+#include <sampler/SingletonGraphView.h>
 #include <graph/StochasticNode.h>
 #include <distribution/Distribution.h>
 #include <module/ModuleError.h>
@@ -12,6 +12,7 @@ using std::vector;
 using std::map;
 using std::string;
 
+namespace jags {
 namespace bugs {
 
 ConjugateDist getDist(StochasticNode const *snode)
@@ -51,26 +52,21 @@ ConjugateDist getDist(StochasticNode const *snode)
 }
 
 
-vector<ConjugateDist> getChildDist(GraphView const *gv)
+static vector<ConjugateDist> getChildDist(SingletonGraphView const *gv)
 {
     vector<ConjugateDist> ans;
-    vector<StochasticNode const *> const &child = gv->stochasticChildren();
+    vector<StochasticNode *> const &child = gv->stochasticChildren();
     for (unsigned int i = 0; i < child.size(); ++i) {
 	ans.push_back(getDist(child[i]));
     }
     return ans;
 }
 
-ConjugateMethod::ConjugateMethod(GraphView const *gv)
-    : _target_dist(getDist(gv->nodes()[0])),
+ConjugateMethod::ConjugateMethod(SingletonGraphView const *gv)
+    : _target_dist(getDist(gv->node())),
       _child_dist(getChildDist(gv)),
       _gv(gv)
 {
-    if (gv->nodes().size() > 1)
-	throwLogicError("Multiple sample nodes in ConjugateMethod");
 }
 
-ConjugateMethod::~ConjugateMethod()
-{}
-
-}
+}}

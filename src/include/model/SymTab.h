@@ -8,6 +8,8 @@
 #include <vector>
 #include <map>
 
+namespace jags {
+
 /**
  * @short Associates a NodeArray object with a BUGS-language name
  *
@@ -24,7 +26,9 @@ class SymTab
 public:
   /**
    * Constructs an empty symbol table
+   *
    * @param model Model to which newly allocated nodes are added.
+   *
    */
   SymTab(Model *model);
   ~SymTab();
@@ -47,8 +51,8 @@ public:
    */
   void insertNode(Node *node, std::string const &name, Range const &range);
   /**
-   * Creates constant nodes in all the NodeArrays in symbol table
-   * with values from the given data table.
+   * Creates constant nodes in all the arrays of the symbol table
+   * taking values from the given data table.
    *
    * @param data_table Data table from which values will be read.
    *
@@ -56,7 +60,7 @@ public:
    */
   void writeData(std::map<std::string, SArray> const &data_table);
   /**
-   * Write values from the data table to the NodeArrays in the symbol
+   * Write values from the data table to the arrays in the symbol
    * table with the same name. Unlike the writeData function, the
    * Nodes are not permanently set to the supplied values, and values
    * are only written to the given chain.
@@ -101,10 +105,8 @@ public:
    * If the node name is not found, an empty string is returned
    */
   std::string getName(Node const *node) const;
-  /**
-   * Returns the number of chains that the symbol table can hold
-   */
-  unsigned int nchain() const;
 };
+
+} /* namespace jags */
 
 #endif /* SYMTAB_H_ */

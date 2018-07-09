@@ -3,8 +3,10 @@
 
 #include <sampler/Slicer.h>
 
-class StochasticNode;
-class GraphView;
+namespace jags {
+
+    class StochasticNode;
+    class SingletonGraphView;
 
 namespace base {
 
@@ -13,7 +15,7 @@ namespace base {
  */
     class RealSlicer : public Slicer 
     {
-	GraphView const *_gv;
+	SingletonGraphView const *_gv;
 	unsigned int _chain;
     public:
 	/**
@@ -25,18 +27,17 @@ namespace base {
 	 * parameter
 	 * @param nburn Length of burnin
 	 */
-	RealSlicer(GraphView const *gv, unsigned int chain,
+	RealSlicer(SingletonGraphView const *gv, unsigned int chain,
 		   double width = 1, long maxwidth = 10);
 	double value() const;
 	void setValue(double value);
 	void getLimits(double *lower, double *upper) const;
 	void update(RNG *rng);
-	std::string name() const;
 	static bool canSample(StochasticNode const *node);
 	double logDensity() const;
     };
 
-}
+}}
 
 #endif /* REAL_SLICER_H_ */
 

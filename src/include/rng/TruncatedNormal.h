@@ -1,7 +1,9 @@
 #ifndef TRUNCATED_NORMAL_H_
 #define TRUNCATED_NORMAL_H_
 
-class RNG;
+namespace jags {
+
+struct RNG;
 
 /**
  * Draws a random sample from a left-truncated normal distribution.
@@ -34,5 +36,7 @@ double rnormal(double right, RNG *rng, double mu = 0, double sigma = 1);
  */
 double inormal(double left, double right, RNG *rng, 
 	       double mu = 0, double sigma = 1);
+
+} /* namespace jags */
 
 #endif /* TRUNCATED_NORMAL_H_ */

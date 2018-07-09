@@ -6,6 +6,8 @@
 
 #include <function/FunctionPtr.h>
 
+namespace jags {
+
 /**
  * @short Look-up table for Function objects
  *
@@ -19,6 +21,10 @@ class FuncTab
     std::list<FunctionPtr> _flist;
     FunctionPtr const _nullfun;
 public:
+    /**
+     * Constructs a new empty FuncTab
+     */
+    FuncTab();
     /**
      * Inserts a function into the table. 
      */
@@ -44,5 +50,7 @@ public:
      */
     void erase(FunctionPtr const &func);
 };
+
+} /* namespace jags */
 
 #endif /* FUNC_TAB_H_ */

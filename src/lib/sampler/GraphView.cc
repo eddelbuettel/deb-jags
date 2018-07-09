@@ -8,19 +8,20 @@
 
 #include <stdexcept>
 #include <set>
+#include <list>
 #include <string>
 #include <cmath>
 #include <algorithm>
 
 using std::vector;
 using std::set;
+using std::list;
 using std::runtime_error;
 using std::logic_error;
 using std::string;
-using std::reverse;
 using std::copy;
 
-static unsigned int sumLength(vector<StochasticNode *> const &nodes)
+static unsigned int sumLength(vector<jags::StochasticNode *> const &nodes)
 {
     //Adds up the length of a vector of stochastic nodes
     unsigned int n = 0;
@@ -30,20 +31,22 @@ static unsigned int sumLength(vector<StochasticNode *> const &nodes)
     return n;
 }
 
+namespace jags {
+
 GraphView::GraphView(vector<StochasticNode *> const &nodes, Graph const &graph,
 		     bool multilevel)
     : _length(sumLength(nodes)), _nodes(nodes), _stoch_children(0),
       _determ_children(0), _multilevel(false)
 {
+    //Sanity check on node
+    //FIXME: Could use a templated version of countChains here
+    for (unsigned int i = 1; i < nodes.size(); ++i) {
+	if (nodes[i]->nchain() != nodes[0]->nchain()) {
+	    throw logic_error("Chain mismatch in GraphView");
+	}
+    }
     classifyChildren(nodes, graph, _stoch_children, _determ_children,
 		     multilevel);
-}
-
-GraphView::GraphView(StochasticNode * node, Graph const &graph)
-    : _length(node->length()), _nodes(vector<StochasticNode*>(1,node)), 
-      _stoch_children(0), _determ_children(0), _multilevel(false)
-{
-    classifyChildren(_nodes, graph, _stoch_children, _determ_children, false);
 }
 
 vector<StochasticNode *> const &GraphView::nodes() const
@@ -52,7 +55,8 @@ vector<StochasticNode *> const &GraphView::nodes() const
 }
 
 static bool classifyNode(StochasticNode *snode, Graph const &sample_graph, 
-			 set<StochasticNode const *> &sset)
+			 set<StochasticNode const *> &sset,
+			 list<StochasticNode *> &slist)
 {
     // classification function for stochastic nodes
 
@@ -61,6 +65,7 @@ static bool classifyNode(StochasticNode *snode, Graph const &sample_graph,
     
     if (sample_graph.contains(snode)) {
 	sset.insert(snode);
+	slist.push_back(snode);
 	return true;
     }
     else {
@@ -68,10 +73,12 @@ static bool classifyNode(StochasticNode *snode, Graph const &sample_graph,
     }
 }
 
-static bool classifyNode(DeterministicNode *dnode, Graph const &sample_graph,
+static bool classifyNode(DeterministicNode *dnode, 
+			 Graph const &sample_graph,
                          set<StochasticNode const *> &sset,
+			 list<StochasticNode *> &slist,
 			 set<DeterministicNode const *> &dset,
-			 vector<DeterministicNode *> &dvec)
+			 list<DeterministicNode *> &dlist)
 {
     //  Recursive classification function for deterministic nodes
 
@@ -82,23 +89,23 @@ static bool classifyNode(DeterministicNode *dnode, Graph const &sample_graph,
 	return true;
     
     bool informative = false;
-    set<StochasticNode*>::const_iterator p; 
+    list<StochasticNode*>::const_iterator p; 
     for (p = dnode->stochasticChildren()->begin(); 
 	 p != dnode->stochasticChildren()->end(); ++p)
     {
-	if (classifyNode(*p, sample_graph, sset)) 
+	if (classifyNode(*p, sample_graph, sset, slist))
 	    informative = true;
     }
-    set<DeterministicNode*>::const_iterator q;
+    list<DeterministicNode*>::const_iterator q;
     for (q = dnode->deterministicChildren()->begin();
 	 q != dnode->deterministicChildren()->end(); ++q)
     {
-	if (classifyNode(*q, sample_graph, sset, dset, dvec)) 
+	if (classifyNode(*q, sample_graph, sset, slist, dset, dlist)) 
 	    informative = true;
     }
     if (informative) {
 	dset.insert(dnode);
-	dvec.push_back(dnode);
+	dlist.push_back(dnode);
     }
     return informative;
 }
@@ -106,14 +113,14 @@ static bool classifyNode(DeterministicNode *dnode, Graph const &sample_graph,
 
 void GraphView::classifyChildren(vector<StochasticNode *> const &nodes,
 				 Graph const &graph,
-				 vector<StochasticNode const*> &stoch_nodes,
+				 vector<StochasticNode *> &stoch_nodes,
 				 vector<DeterministicNode*> &dtrm_nodes,
 				 bool multilevel)
 {
-    set<DeterministicNode const *> dset;
     set<StochasticNode const *> sset;
-
-    dtrm_nodes.clear();
+    set<DeterministicNode const *> dset;
+    list<StochasticNode *> slist;
+    list<DeterministicNode *> dlist;
 
     /* Classify children of each node */
     vector<StochasticNode  *>::const_iterator p; 
@@ -121,17 +128,17 @@ void GraphView::classifyChildren(vector<StochasticNode *> const &nodes,
 	if (!graph.contains(*p)) {
 	    throw logic_error("Sampled node outside of sampling graph");
 	}
-	set<StochasticNode*> const *sch = (*p)->stochasticChildren();
-	for (set<StochasticNode*>::const_iterator q = sch->begin();
+	list<StochasticNode*> const *sch = (*p)->stochasticChildren();
+	for (list<StochasticNode*>::const_iterator q = sch->begin();
 	     q != sch->end(); ++q)
 	{
-	    classifyNode(*q, graph, sset);
+	    classifyNode(*q, graph, sset, slist);
 	}
-	set<DeterministicNode*> const *dch = (*p)->deterministicChildren();
-	for (set<DeterministicNode*>::const_iterator q = dch->begin();
+	list<DeterministicNode*> const *dch = (*p)->deterministicChildren();
+	for (list<DeterministicNode*>::const_iterator q = dch->begin();
 	     q != dch->end(); ++q)
 	{
-	    classifyNode(*q, graph, sset, dset, dtrm_nodes);
+	    classifyNode(*q, graph, sset, slist, dset, dlist);
 	}
     }
 
@@ -141,7 +148,16 @@ void GraphView::classifyChildren(vector<StochasticNode *> const &nodes,
 	   AND the likelihood, causing incorrect calculation of the
 	   log full conditional */
 	for (p = nodes.begin(); p != nodes.end(); ++p) {
-	    sset.erase(*p);
+	    if (sset.count(*p)) {
+		list<StochasticNode*>::iterator i = 
+		    find(slist.begin(), slist.end(), *p);
+		if (i == slist.end()) {
+		    throw logic_error("error in ClassifyChildren"); 
+		}
+		else {
+		    slist.erase(i);
+		}
+	    }
 	}
 	/* 
 	   We also need ensure that we calculate the full log density
@@ -155,17 +171,24 @@ void GraphView::classifyChildren(vector<StochasticNode *> const &nodes,
 		throw logic_error("Invalid multilevel GraphView");
 	    }
 	}
+	
     }
 
     stoch_nodes.clear();
-    for (set<StochasticNode const *>::const_iterator i = sset.begin();
-         i != sset.end(); ++i)
+    for (list<StochasticNode *>::const_iterator i = slist.begin();
+         i != slist.end(); ++i)
     {
-       stoch_nodes.push_back(*i);
+	stoch_nodes.push_back(*i);
     }
 
+    dtrm_nodes.clear();
     // Deterministic nodes are pushed onto dtrm_nodes in reverse order
-    reverse(dtrm_nodes.begin(), dtrm_nodes.end());
+    for (list<DeterministicNode *>::reverse_iterator i = dlist.rbegin();
+         i != dlist.rend(); ++i)
+    {
+	dtrm_nodes.push_back(*i);
+    }
+
 }
 
 double GraphView::logFullConditional(unsigned int chain) const
@@ -179,7 +202,7 @@ double GraphView::logFullConditional(unsigned int chain) const
     }
   
     double llike = 0.0;
-    vector<StochasticNode const*>::const_iterator q = _stoch_children.begin();
+    vector<StochasticNode *>::const_iterator q = _stoch_children.begin();
     for (; q != _stoch_children.end(); ++q) {
 	llike += (*q)->logDensity(chain, PDF_LIKELIHOOD);
     }
@@ -264,7 +287,7 @@ double GraphView::logLikelihood(unsigned int chain) const
 {
     double llik = 0.0;
 
-    vector<StochasticNode const*>::const_iterator q = _stoch_children.begin();
+    vector<StochasticNode *>::const_iterator q = _stoch_children.begin();
     for (; q != _stoch_children.end(); ++q) {
 	llik += (*q)->logDensity(chain, PDF_LIKELIHOOD);
     }
@@ -284,7 +307,7 @@ double GraphView::logLikelihood(unsigned int chain) const
     return llik;
 }
 
-vector<StochasticNode const*> const &GraphView::stochasticChildren() const
+vector<StochasticNode *> const &GraphView::stochasticChildren() const
 {
   return _stoch_children;
 }
@@ -295,7 +318,7 @@ vector<DeterministicNode*> const &GraphView::deterministicChildren() const
 }
 
 void GraphView::setValue(double const * value, unsigned int length,
-		       unsigned int chain) const
+			 unsigned int chain) const
 {
     if (length != _length) {
       throw logic_error("Argument length mismatch in GraphView::setValue");
@@ -315,25 +338,8 @@ void GraphView::setValue(double const * value, unsigned int length,
 
 void GraphView::setValue(vector<double> const &value, unsigned int chain) const
 {
-    if (value.size() != _length) {
-	throw logic_error("Argument length mismatch in GraphView::setValue");
-    }
-
-    double *x = new double[value.size()];
-    vector<double>::const_iterator p = value.begin();
-    for (unsigned int i = 0; i < _nodes.size(); ++i) {
-	Node *node = _nodes[i];
-	unsigned int N = node->length();
-	copy(p, p + N, x);
-	node->setValue(x, N, chain);
-	p += N;
-    }
-    delete [] x;
-
-    for (vector<DeterministicNode*>::const_iterator p(_determ_children.begin());
-	 p != _determ_children.end(); ++p) {
-      (*p)->deterministicSample(chain);
-    }
+    //FIXME We could inline this
+    setValue(&value[0], value.size(), chain);
 }
  
 void GraphView::getValue(vector<double> &value, unsigned int chain) const 
@@ -353,6 +359,7 @@ void GraphView::getValue(vector<double> &value, unsigned int chain) const
 unsigned int GraphView::length() const
 {
     return _length;
+
 }
 
 bool GraphView::isDependent(Node const *node) const
@@ -368,27 +375,39 @@ bool GraphView::isDependent(Node const *node) const
     return false;
 }
       
-static void stochChildren(Node *node, Graph const &graph,
-			  set<StochasticNode const *> &children)
-{
-    set<StochasticNode*> const *sch = node->stochasticChildren();
-    for (set<StochasticNode*>::const_iterator p = sch->begin();
-	 p != sch->end(); ++p)
-    {
-	if (graph.contains(*p))
-	    children.insert(*p);
-    }
-    set<DeterministicNode*> const *dch = node->deterministicChildren();
-    for (set<DeterministicNode*>::const_iterator p = dch->begin();
-	 p != dch->end(); ++p)
-    {
-	if (graph.contains(*p))
-	    stochChildren(*p, graph, children);
-    }
-}
-
 unsigned int nchain(GraphView const *gv)
 {
     return gv->nodes()[0]->nchain();
 }
+
     
+    void GraphView::checkFinite(unsigned int chain) const
+    {
+
+	vector<StochasticNode*>::const_iterator p = _nodes.begin();
+	for ( ; p != _nodes.end(); ++p)
+	{
+	    double ld = (*p)->logDensity(chain, PDF_PRIOR);
+	    if (jags_isnan(ld)) {
+		throw NodeError(*p, "Error calculating log density");
+	    }
+	    else if (ld == JAGS_NEGINF || (!jags_finite(ld) && ld < 0)) {
+		throw NodeError(*p, "Node inconsistent with parents");
+	    }
+	}
+
+	
+	for (p =_stoch_children.begin(); p != _stoch_children.end(); ++p)
+	{
+	    double ld = (*p)->logDensity(chain, PDF_PRIOR);
+	    if (jags_isnan(ld)) {
+		throw NodeError(*p, "Error calculting log density");
+	    }
+	    else if (ld == JAGS_NEGINF || (!jags_finite(ld) && ld < 0)) {
+		throw NodeError(*p, "Node inconsistent with parents");
+	    }
+	}
+
+    }
+
+} //namespace jags

@@ -7,6 +7,7 @@
 #include <rng/RNGFactory.h>
 #include <rng/RNG.h>
 #include <graph/GraphMarks.h>
+#include <graph/Graph.h>
 #include <graph/StochasticNode.h>
 #include <graph/DeterministicNode.h>
 #include <graph/ConstantNode.h>
@@ -40,6 +41,48 @@ using std::copy;
 using std::min;
 using std::max;
 using std::reverse;
+using std::find;
+
+namespace jags {
+
+static bool checkClosure(vector<Node*> const &nodes) 
+{
+    // Determine whether a model is closed, i.e. that the nodes in
+    // the model do not have any parents or children outside the model.
+
+    set<Node const *> graph;
+    for (unsigned int i = 0; i < nodes.size(); ++i) {
+	graph.insert(nodes[i]);
+    }
+
+    for (vector<Node*>::const_iterator i = nodes.begin(); i != nodes.end(); 
+	 i++) 
+    {
+	// Check parents
+	vector<Node const *> const &parents = (*i)->parents();
+	for (vector<Node const *>::const_iterator j = parents.begin(); 
+	     j != parents.end(); j++) 
+	{
+	    if (graph.find(*j) == graph.end()) return false;
+	}
+
+	// Check children
+	list<StochasticNode*> const *sch = (*i)->stochasticChildren();
+	for (list<StochasticNode*>::const_iterator k = sch->begin(); 
+	     k != sch->end(); k++)
+	{
+	    if (graph.find(*k) == graph.end()) return false;
+	}
+	
+	list<DeterministicNode*> const *dch = (*i)->deterministicChildren();
+	for (list<DeterministicNode*>::const_iterator k = dch->begin(); 
+	     k != dch->end(); k++)
+	{
+	    if (graph.find(*k) == graph.end()) return false;
+	}
+    }
+    return true;
+}
 
 Model::Model(unsigned int nchain)
     : _samplers(0), _nchain(nchain), _rng(nchain, 0), _iteration(0),
@@ -54,27 +97,14 @@ Model::~Model()
 	delete sampler0;
 	_samplers.pop_back();
     }
-    for (list<Monitor*>::const_iterator p = _default_monitors.begin();
-	 p != _default_monitors.end(); ++p)
-    {
-	delete *p;
-    }
 
     //Delete nodes in reverse sampling order
-    vector<Node*> managed_nodes;
-    _graph.getSortedNodes(managed_nodes);
-    while(!managed_nodes.empty())
+    while(!_nodes.empty())
     {
-	Node *node = managed_nodes.back();
+	Node *node = _nodes.back();
 	delete node;
-	managed_nodes.pop_back();
+	_nodes.pop_back();
     }
-
-}
-
-Graph const &Model::graph() 
-{
-    return _graph;
 }
 
 bool Model::isInitialized()
@@ -131,7 +161,7 @@ void Model::initialize(bool datagen)
     if (_is_initialized)
 	throw logic_error("Model already initialized");
 
-    if (!_graph.isClosed())
+    if (!checkClosure(_nodes))
 	throw runtime_error("Graph not closed");
 
     // Choose random number generators
@@ -140,59 +170,12 @@ void Model::initialize(bool datagen)
     //Initialize nodes
     initializeNodes();
     
-    // Check initial values of all stochastic nodes
-    // Note that we need to do this before choosing samplers.
-    if (!datagen) {
-	for (unsigned int ch = 0; ch < _nchain; ++ch) {
-	    for (unsigned int i = 0; i < _stochastic_nodes.size(); ++i) {
-		StochasticNode const *snode = _stochastic_nodes[i];
-		double ld = snode->logDensity(ch, PDF_PRIOR);
-		if (jags_isnan(ld)) {
-		    string msg = "Error calculating log density at initial values";
-		    throw NodeError(snode, msg);
-		}
-		else if (ld == JAGS_NEGINF || (!jags_finite(ld) && ld < 0)) {
-		    string msg;
-		    if (snode->isObserved()) {
-			msg = "Observed node";
-		    }
-		    else {
-			msg = "Unobserved node";
-		    }
-		    msg.append(" inconsistent with ");
-		    bool obs_par = true;
-		    for (unsigned int j = 0; j < snode->parents().size(); ++j) {
-			if (!snode->parents()[j]->isObserved()) {
-			    obs_par = false;
-			    break;
-			}
-		    }
-		    if (obs_par) {
-			msg.append("observed parents");
-		    }
-		    else {
-			msg.append("unobserved parents");
-		    }
-		    msg.append(" at initialization.\n");
-		    msg.append("Try setting appropriate initial values.");
-		    throw NodeError(snode, msg);
-		}
-	    }
-	}
-    }
-
     // Choose Samplers
     chooseSamplers();
     
     if (datagen) {
-	Graph egraph;
-	for (set<Node *>::const_iterator p = _extra_nodes.begin(); 
-	     p != _extra_nodes.end(); ++p)
-	{
-	    egraph.add(*p);
-	}
-	_sampled_extra.clear();
-	egraph.getSortedNodes(_sampled_extra);
+	//All extra nodes are sampled
+	_sampled_extra = _extra_nodes;
 	_data_gen = true;
     }
 
@@ -209,12 +192,8 @@ void Model::initialize(bool datagen)
 
 void Model::initializeNodes()
 {
-    //Get nodes in forward-sampling order
-    vector<Node*> sorted_nodes;
-    _graph.getSortedNodes(sorted_nodes);
-
     vector<Node*>::const_iterator i;
-    for (i = sorted_nodes.begin(); i != sorted_nodes.end(); ++i) {
+    for (i = _nodes.begin(); i != _nodes.end(); ++i) {
 	Node *node = *i;
 	for (unsigned int n = 0; n < _nchain; ++n) {
 	    if (!node->checkParentValues(n)) {
@@ -253,8 +232,13 @@ void Model::chooseSamplers()
      *
      * @see Model#samplerFactories
      */
+    
+    Graph full_graph;
+    for (unsigned int i = 0; i < _nodes.size(); ++i) {
+	full_graph.insert(_nodes[i]);
+    }
 
-    GraphMarks marks(_graph);
+    GraphMarks marks(full_graph);
     Graph sample_graph;
 
     // Add observed stochastic nodes to the sample graph and mark
@@ -263,15 +247,15 @@ void Model::chooseSamplers()
     vector<Node const*> informative;
     vector<StochasticNode*>::const_iterator p;
     for (p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
-	if ((*p)->isObserved()) {
-	    sample_graph.add(*p);
+	if (isObserved(*p)) {
+	    sample_graph.insert(*p);
 	    informative.push_back(*p);
 	}
     }
     marks.markAncestors(informative, 1);
 
     for (p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
-	if ((*p)->isObserved()) {
+	if (isObserved(*p)) {
 	    marks.mark(*p, 2);
 	}
     }
@@ -279,33 +263,23 @@ void Model::chooseSamplers()
     //Triage on marked nodes. We do this twice: once for stochastic
     //nodes and once for all nodes.
 
-    set<StochasticNode*> sset;
+    list<StochasticNode*> slist; //List of nodes to be sampled
     for(p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
-	switch(marks.mark(*p)) {
-	case 0:
-	    _extra_nodes.insert(*p);
-	    break;
-	case 1:
-	    sset.insert(*p); 
-	    sample_graph.add(*p);
-	    break;
-	case 2:
-	    sample_graph.add(*p);
-	    break;
-	default:
-	    throw logic_error("Invalid mark");
+	if (marks.mark(*p) == 1) {
+	    //Unobserved stochastic nodes: to be sampled
+	    slist.push_back(*p); 
 	}
     }
 
-    set<Node*> const &nodes = _graph.nodes();
-    set<Node*>::const_iterator j;
-    for (j = nodes.begin(); j != nodes.end(); ++j) {
+    for (vector<Node*>::const_iterator j = _nodes.begin();
+	 j != _nodes.end(); ++j) 
+    {
 	switch(marks.mark(*j)) {
 	case 0:
-	    _extra_nodes.insert(*j);
+	    _extra_nodes.push_back(*j);
 	    break;
 	case 1: case 2:
-	    sample_graph.add(*j);
+	    sample_graph.insert(*j);
 	    break;
 	}
     }
@@ -315,24 +289,32 @@ void Model::chooseSamplers()
     for(list<pair<SamplerFactory *, bool> >::const_iterator q = sf.begin();
 	q != sf.end(); ++q) 
     {
-	if (q->second) {
-	    vector<Sampler*> svec = q->first->makeSamplers(sset, sample_graph);
-	    while (!svec.empty()) {
-		for (unsigned int i = 0; i < svec.size(); ++i) {
-		    vector<StochasticNode*> const &nodes = svec[i]->nodes();
-		    for (unsigned int j = 0; j < nodes.size(); ++j) {
-			sset.erase(nodes[j]);
+	if (!q->second) continue;
+
+	vector<Sampler*> svec = q->first->makeSamplers(slist, sample_graph);
+	while (!svec.empty()) {
+	    for (unsigned int i = 0; i < svec.size(); ++i) {
+
+		vector<StochasticNode*> const &nodes = svec[i]->nodes();
+		for (unsigned int j = 0; j < nodes.size(); ++j) {
+		    /* FIXME: This is a potential bottleneck if slist
+		       is large */
+		    list<StochasticNode*>::iterator p = 
+			find(slist.begin(), slist.end(), nodes[j]);
+		    if (p == slist.end()) {
+			throw logic_error("Unable to find sampled node");
 		    }
-		    _samplers.push_back(svec[i]);
+		    slist.erase(p);
 		}
-		svec = q->first->makeSamplers(sset, sample_graph);
+		_samplers.push_back(svec[i]);
 	    }
+	    svec = q->first->makeSamplers(slist, sample_graph);
 	}
     }
   
     // Make sure we found a sampler for all the nodes
-    if (!sset.empty()) {
-	throw NodeError(*sset.begin(),
+    if (!slist.empty()) {
+	throw NodeError(*slist.begin(),
 			"Unable to find appropriate sampler");
     }
   
@@ -377,11 +359,6 @@ void Model::update(unsigned int niter)
 	throw logic_error("Attempt to update uninitialized model");
     }
 
-    list<MonitorControl>::iterator p;
-    for (p = _monitors.begin(); p != _monitors.end(); ++p) {
-	p->reserve(niter);
-    }
-
     for (unsigned int iter = 0; iter < niter; ++iter) {    
 	
 	for (vector<Sampler*>::iterator i = _samplers.begin(); 
@@ -408,6 +385,7 @@ void Model::update(unsigned int niter)
 	    k->update(_iteration);
 	}
     }
+
 }
 
 unsigned int Model::iteration() const
@@ -459,10 +437,10 @@ void Model::setSampledExtra()
 	
     //Insert extra nodes into a new graph
     Graph egraph;
-    for (set<Node *>::const_iterator p = _extra_nodes.begin(); 
+    for (vector<Node *>::const_iterator p = _extra_nodes.begin(); 
 	 p != _extra_nodes.end(); ++p)
     {
-	egraph.add(*p);
+	egraph.insert(*p);
     }
     //Mark the ancestors of all monitored nodes in this graph
     GraphMarks emarks(egraph);
@@ -478,16 +456,16 @@ void Model::setSampledExtra()
 	    }
 	}
     }
-    //Remove unmarked nodes from graph
-    for (set<Node *>::const_iterator p = _extra_nodes.begin(); 
-	 p != _extra_nodes.end(); ++p)
-    {
-	if (emarks.mark(*p) == 0)
-	    egraph.remove(*p);
-    }
-    //Replace vector of sampled extra nodes
+
+    //Add marked nodes to the vector of sampled extra nodes
     _sampled_extra.clear();
-    egraph.getSortedNodes(_sampled_extra);
+    for(vector<Node *>::const_iterator p = _extra_nodes.begin();
+	p != _extra_nodes.end(); ++p)
+    {
+	if (emarks.mark(*p)) {
+	    _sampled_extra.push_back(*p);
+	}
+    }
 }
 
 void Model::addMonitor(Monitor *monitor, unsigned int thin)
@@ -512,45 +490,6 @@ void Model::removeMonitor(Monitor *monitor)
     }
     setSampledExtra();
 }
-
-void Model::addExtraNode(Node *node)
-{
-    if (!_is_initialized) {
-	throw logic_error("Attempt to add extra node to uninitialized model");
-    }
-    if (node->isObserved()) {
-	for (unsigned int i = 0; i < node->parents().size(); ++i) {
-	    if (!node->parents()[i]->isObserved())
-		throw logic_error("Cannot add observed node to initialized model");
-	}
-    }
-    if (!node->stochasticChildren()->empty() || !node->deterministicChildren()->empty()) {
-	throw logic_error("Cannot add extra node with children");
-    }
-
-    if (_extra_nodes.count(node)) {
-	throw logic_error("Extra node already in model");
-    }
-    
-    for (vector<Node const *>::const_iterator p = node->parents().begin(); 
-	 p != node->parents().end(); ++p)
-    {
-	if (!_graph.contains(*p)) {
-	throw logic_error("Extra node has parents not in model");
-	}
-    }
-
-    if (!_graph.contains(node)) {
-	_graph.add(node);
-    }
-
-    _extra_nodes.insert(node);
-    if (_data_gen) {
-	//Extra nodes are automatically sampled
-	_sampled_extra.push_back(node);
-    }
-}
-
 
 /* 
    We use construct-on-first-use for the factory lists used by model
@@ -631,67 +570,30 @@ list<MonitorControl> const &Model::monitors() const
   return _monitors;
 }
 
-/*
-bool Model::setDefaultMonitors(string const &type, unsigned int thin)
-{
-    list<MonitorFactory*> const &faclist = monitorFactories();
-
-    for(list<MonitorFactory*>::const_iterator j = faclist.begin();
-	j != faclist.end(); ++j)
-    {
-	vector <Node const *> default_nodes = (*j)->defaultNodes(this, type);
-	if (!default_nodes.empty()) {
-	    unsigned int start = iteration() + 1;
-	    for (unsigned int i = 0; i < default_nodes.size(); ++i) {
-		Monitor *monitor = (*j)->getMonitor(default_nodes[i], this,
-						    type);
-		if (!monitor) {
-		    throw logic_error("Invalid default monitor");
-		}
-		addMonitor(monitor, thin);
-		// Model takes ownership of default monitors
-		_default_monitors.push_back(monitor);
-	    }
-	    return true;
-	}
-    }
-    return false;
-}
-
-void Model::clearDefaultMonitors(string const &type)
-{
-    list<Monitor*> dmonitors = _default_monitors;
-    for (list<Monitor*>::const_iterator p = dmonitors.begin();
-	 p != dmonitors.end(); ++p) 
-    {
-	Monitor *monitor = *p;
-	if (monitor->type() == type) {
-	    _default_monitors.remove(monitor);
-	    removeMonitor(monitor);
-	    delete monitor;
-	}
-    }
-    setSampledExtra();
-}
-*/
-
 void Model::addNode(StochasticNode *node)
 {
-    _graph.add(node);
+    _nodes.push_back(node);
     _stochastic_nodes.push_back(node);
 }
 
 void Model::addNode(DeterministicNode *node)
 {
-    _graph.add(node);
+    _nodes.push_back(node);
 }
 
 void Model::addNode(ConstantNode *node)
 {
-    _graph.add(node);
+    _nodes.push_back(node);
 }
 
 vector<StochasticNode*> const &Model::stochasticNodes() const
 {
     return _stochastic_nodes;
 }
+
+    vector<Node*> const &Model::nodes() const
+    {
+	return _nodes;
+    }
+
+} //namespace jags

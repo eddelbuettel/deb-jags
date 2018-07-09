@@ -6,12 +6,14 @@
 
 #include <vector>
 
+namespace jags {
+
 class Graph;
 class GraphView;
 
 namespace mix {
 
-    class DirichletInfo;
+    struct DirichletInfo;
 
 /**
  * @short Sample method for normal mixture models
@@ -51,10 +53,9 @@ namespace mix {
 	double logLikelihood() const;
 	double logJacobian(std::vector<double> const &value) const;
 	void step(std::vector<double> &value, double step, RNG *rng) const;
-	std::string name() const;
 	static bool canSample(std::vector<StochasticNode *> const &snodes);
     };
 
-}
+}}
 
 #endif /* NORM_MIX_METHOD_H_ */

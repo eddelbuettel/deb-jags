@@ -3,7 +3,9 @@
 
 #include "ConjugateMethod.h"
 
-class StochasticNode;
+namespace jags {
+
+    class Graph;
 
 namespace bugs {
 
@@ -13,12 +15,11 @@ namespace bugs {
 class Censored : public ConjugateMethod {
     StochasticNode *_snode;
 public:
-    Censored(GraphView const *gv);
+    Censored(SingletonGraphView const *gv);
     static bool canSample(StochasticNode *snode, Graph const &graph);
     void update(unsigned int chain, RNG * rng) const;
-    std::string name() const;
 };
 
-}
+}}
 
 #endif /* CENSORED_H_ */

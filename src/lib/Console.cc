@@ -6,6 +6,7 @@
 #include <model/BUGSModel.h>
 #include <model/Monitor.h>
 #include <graph/NodeError.h>
+#include <graph/ParentError.h>
 #include <sampler/SamplerFactory.h>
 #include <model/MonitorFactory.h>
 #include <rng/RNGFactory.h>
@@ -14,7 +15,8 @@
 #include <sarray/SArray.h>
 #include <rng/RNG.h>
 #include <util/dim.h>
-#include <Module.h>
+#include <module/Module.h>
+#include <graph/StochasticNode.h>
 
 #include <map>
 #include <list>
@@ -34,20 +36,23 @@ using std::pair;
 using std::FILE;
 
 #define CATCH_ERRORS							\
-    catch (NodeError except) {						\
-	_err << "Error in node " <<					\
-	    _model->symtab().getName(except.node) << "\n";		\
-	_err << except.what() << endl;					\
+    catch (ParentError const &except) {					\
+        except.printMessage(_err, _model->symtab());			\
 	clearModel();							\
 	return false;							\
     }									\
-    catch (std::runtime_error except) {					\
+    catch (NodeError const &except) {					\
+        except.printMessage(_err, _model->symtab());			\
+	clearModel();							\
+	return false;							\
+    }									\
+    catch (std::runtime_error const &except) {				\
 	_err << "RUNTIME ERROR:\n";					\
 	_err << except.what() << endl;					\
 	clearModel();							\
 	return false;							\
     }									\
-    catch (std::logic_error except) {					\
+    catch (std::logic_error const &except) {				\
 	_err << "LOGIC ERROR:\n" << except.what() << '\n';		\
 	_err << "Please send a bug report to "				\
 	     << PACKAGE_BUGREPORT << endl;				\
@@ -57,14 +62,16 @@ using std::FILE;
 
 /* Helper functions for dumpState */
 
+namespace jags {
+
 static bool isData(Node const *node)
 {
-  return node->isRandomVariable() && node->isObserved();
+    return node->randomVariableStatus() == RV_TRUE_OBSERVED;
 }
 
 static bool isParameter(Node const *node)
 {
-  return node->isRandomVariable() && !node->isObserved();
+    return node->randomVariableStatus() == RV_TRUE_UNOBSERVED;
 }
 
 static bool alwaysTrue(Node const *node)
@@ -91,24 +98,21 @@ Console::~Console()
     }
 }
 
-static void getVariableNames(ParseTree const *ptree, set<string> &names,
-			     vector<string> &counterstack)
+static void getVariableNames(ParseTree const *ptree, set<string> &nameset,
+			     vector<string> &namelist, 
+			     vector<string> &counters)
 {
     /* 
        Get variables from model, ensuring that we ignore counters.
-       
     */
 
     if (ptree->treeClass() == P_VAR) {
-	bool is_counter = false;
-	for (unsigned int i = 0; i < counterstack.size(); ++i) {
-	    if (ptree->name() == counterstack[i]) {
-		is_counter = true;
-		break;
+	string const &var = ptree->name();
+	if (find(counters.begin(), counters.end(), var) == counters.end()) {
+	    if (nameset.count(var) == 0) {
+		nameset.insert(var);
+		namelist.push_back(var);
 	    }
-	}
-	if (!is_counter) {
-	    names.insert(ptree->name());
 	}
     }
 
@@ -116,26 +120,22 @@ static void getVariableNames(ParseTree const *ptree, set<string> &names,
     for (vector<ParseTree*>::const_iterator p = param.begin(); 
 	 p != param.end(); ++p) 
     {  
-	ParseTree *counter;
+	//ParseTree objects of type P_BOUND can have null parameters
+	if (*p == 0) continue;
       
-	if (*p) {
-	    //ParseTree objects of type P_BOUND can have null parameters
-	    switch ((*p)->treeClass()) {
-	    case P_FOR:
-		counter = (*p)->parameters()[0];
-                for (unsigned int i = 0; i < counter->parameters().size(); ++i)
-                {
-                    getVariableNames(counter->parameters()[i], names,
-                                     counterstack);
-                }
-		counterstack.push_back(counter->name());
-		getVariableNames((*p)->parameters()[1], names, counterstack);
-		counterstack.pop_back();
-		break;
-	    default:
-		getVariableNames(*p, names, counterstack);
-		break;
+	if ((*p)->treeClass() == P_FOR) {
+	    ParseTree *counter = (*p)->parameters()[0];
+	    for (unsigned int i = 0; i < counter->parameters().size(); ++i) {
+		getVariableNames(counter->parameters()[i], nameset,
+				 namelist, counters);
 	    }
+	    counters.push_back(counter->name());
+	    getVariableNames((*p)->parameters()[1], nameset, 
+			     namelist, counters);
+	    counters.pop_back();
+	}
+	else {
+	    getVariableNames(*p, nameset, namelist, counters);
 	}
     }
 }
@@ -170,26 +170,19 @@ bool Console::checkModel(FILE *file)
     //Get names of all variables in the model
     set<string> nameset;
     vector<string> counterstack;
+    _array_names.clear();
     if (_pvariables) {
 	for (vector<ParseTree*>::const_iterator p = _pvariables->begin();
 	     p != _pvariables->end(); ++p) 
 	{
-	    getVariableNames(*p, nameset, counterstack);
+	    getVariableNames(*p, nameset, _array_names, counterstack);
 	}
     }
     if (_pdata) {
-	getVariableNames(_pdata, nameset, counterstack);
+	getVariableNames(_pdata, nameset, _array_names, counterstack);
     }
     if (_prelations) {
-	getVariableNames(_prelations, nameset, counterstack);
-    }
-
-    _array_names.clear();
-    _array_names.reserve(nameset.size());
-    for (set<string>::const_iterator p = nameset.begin(); p != nameset.end();
-	 ++p)
-    {
-	_array_names.push_back(*p);
+	getVariableNames(_prelations, nameset, _array_names, counterstack);
     }
 
     return true;
@@ -225,18 +218,18 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 	    compiler.writeRelations(_pdata);
       
 	    /* Check validity of data generating model */
-	    vector<Node*> nodes;
-	    _model->graph().getNodes(nodes);
-	    for (unsigned int i = 0; i < nodes.size(); ++i) {
-		if (nodes[i]->isObserved()) {
-		    vector<Node const*> const &parents = nodes[i]->parents();
+	    for (vector<Node*>::const_iterator r = _model->nodes().begin();
+		 r != _model->nodes().end(); ++r)
+	    {
+		if ((*r)->randomVariableStatus() == RV_TRUE_OBSERVED) {
+		    vector<Node const*> const &parents = (*r)->parents();
 		    for (vector<Node const*>::const_iterator p = parents.begin();
 			 p != parents.end(); ++p)
 		    {
-			if (!((*p)->isObserved())) {
+			if (!((*p)->isFixed())) {
 			    _err << "Invalid data graph: observed node " 
-				 << _model->symtab().getName(nodes[i]) 
-				 << " has unobserved parent " 
+				 << _model->symtab().getName(*r) 
+				 << " has non-fixed parent " 
 				 << _model->symtab().getName(*p)
 				 << "\n";
 			    clearModel();
@@ -257,7 +250,7 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 	    delete _model;
 	    _model = 0;
 	}
-	CATCH_ERRORS
+	CATCH_ERRORS;
     }
 
     _model = new BUGSModel(nchain);
@@ -280,7 +273,20 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 	    return true;
 	}
 	if (_model) {
-	    _out << "   Graph Size: " << _model->graph().size() << endl;
+	    unsigned int nobs = 0, nparam = 0;
+	    vector<StochasticNode*> const &snodes =  _model->stochasticNodes();
+	    for (unsigned int i = 0; i < snodes.size(); ++i) {
+		if (isObserved(snodes[i])) {
+		    ++nobs;
+		}
+		else {
+		    ++nparam;
+		}
+	    }
+            _out << "Graph information:\n";
+	    _out << "   Observed stochastic nodes: " << nobs << "\n";
+	    _out << "   Unobserved stochastic nodes: " << nparam << "\n";
+	    _out << "   Total graph size: " << _model->nodes().size() << endl;
 	    if (datagen_rng) {
 		// Reuse the data-generation RNG, if there is one, for chain 0 
 		_model->setRNG(datagen_rng, 0);
@@ -300,12 +306,18 @@ bool Console::initialize()
 {
     if (_model == 0) {
 	_err << "Can't initialize. No model!" << endl;
+	return false;
+    }
+    if (_model->nodes().size() == 0) {
+	_err << "Can't initialize. No nodes in graph." << endl;
+	_err << "Have you compiled the model?" << endl;
+	return false;
+    }
+    if (_model->isInitialized()) {
+	_err << "Model is already initialized" << endl;
 	return true;
     }
-    if (_model->graph().size() == 0) {
-	_err << "Can't initialize. No nodes in graph (Have you compiled the model?)" 	 << endl;
-	return true;
-    }
+    
     try {
 	_out << "Initializing model" << endl;
 	_model->initialize(false);
@@ -330,9 +342,9 @@ bool Console::setParameters(map<string, SArray> const &init_table,
   try {
     _model->setParameters(init_table, chain - 1);
   } 
-  CATCH_ERRORS
+  CATCH_ERRORS;
 	
-      return true;
+  return true;
 }
 
 bool Console::setRNGname(string const &name, unsigned int chain)
@@ -347,9 +359,9 @@ bool Console::setRNGname(string const &name, unsigned int chain)
 	    _err << "WARNING: RNG name " << name << " not found\n";
 	}
     }
-    CATCH_ERRORS
+    CATCH_ERRORS;
 	
-	return true;
+    return true;
 }
 
 bool Console::update(unsigned int n)
@@ -411,7 +423,7 @@ bool Console::setMonitor(string const &name, Range const &range,
 	    return false;
 	}
     }
-    CATCH_ERRORS
+    CATCH_ERRORS;
 
     return true;
 }
@@ -432,46 +444,10 @@ bool Console::clearMonitor(string const &name, Range const &range,
 	  return false;
       }
   }
-  CATCH_ERRORS
+  CATCH_ERRORS;
 
   return true;
 }
-
-/*
-bool Console::setDefaultMonitors(string const &type, unsigned int thin)
-{
-    if (!_model) {
-	_err << "Can't set monitors. No model!" << endl;    
-	return false;
-    }
-
-    try {
-	bool ok = _model->setDefaultMonitors(type, thin);
-	if (!ok) {
-	    _err << "Failed to set default monitors of type " << type << endl;
-	    return false;
-	}
-    }
-    CATCH_ERRORS
-
-    return true;
-}
-
-bool Console::clearDefaultMonitors(string const &type)
-{
-    if (!_model) {
-	_err << "Can't clear monitors. No model!" << endl;    
-	return true;
-    }
-
-    try {
-	_model->clearDefaultMonitors(type);
-    }
-    CATCH_ERRORS
-
-	return true;
-}
-*/
 
 void Console::clearModel()
 {
@@ -527,7 +503,7 @@ bool Console::dumpState(map<string,SArray> &data_table,
       }
     }
   }
-  CATCH_ERRORS
+  CATCH_ERRORS;
   
   return true;
 }
@@ -551,7 +527,7 @@ bool Console::dumpMonitors(map<string,SArray> &data_table,
 	    }
 	}
     }
-    CATCH_ERRORS
+    CATCH_ERRORS;
 
     return true;
 }
@@ -571,7 +547,7 @@ bool Console::coda(string const &prefix)
             _err << "WARNING:\n" << warn;
         }
     }
-    CATCH_ERRORS
+    CATCH_ERRORS;
 
     return true;
 }
@@ -592,7 +568,7 @@ bool Console::coda(vector<pair<string, Range> > const &nodes,
             _err << "WARNINGS:\n" << warn;
         }
     }
-    CATCH_ERRORS
+    CATCH_ERRORS;
 
     return true;
 }
@@ -626,7 +602,7 @@ bool Console::checkAdaptation(bool &status)
     try {
 	status =  _model->checkAdaptation();
     }
-    CATCH_ERRORS
+    CATCH_ERRORS;
 
     return true;
 }
@@ -645,7 +621,7 @@ bool Console::adaptOff(void)
   try {
       _model->adaptOff();
   }
-  CATCH_ERRORS
+  CATCH_ERRORS;
 
   return true;
 }
@@ -674,7 +650,7 @@ bool Console::dumpSamplers(vector<vector<string> > &sampler_names)
     try {
 	_model->samplerNames(sampler_names);
     }
-    CATCH_ERRORS
+    CATCH_ERRORS;
 
     return true;
 }
@@ -686,6 +662,13 @@ bool Console::loadModule(string const &name)
     {
 	if ((*p)->name() == name) {
 	    (*p)->load();
+	    if (rngSeed() != 0) {
+		// Set default seed of RNG factories
+		vector<RNGFactory*> const &facs = (*p)->rngFactories();
+		for (unsigned int i = 0; i < facs.size(); ++i) {
+		    facs[i]->setSeed(rngSeed());
+		}
+	    }
 	    return true;
 	}
     }
@@ -829,3 +812,24 @@ vector<pair<string, bool> >  Console::listFactories(FactoryType type)
     }
     return ans;
 }
+
+unsigned int &Console::rngSeed()
+{
+    static unsigned int seed = 0;
+    return seed;
+}
+    
+void Console::setRNGSeed(unsigned int seed)
+{
+    if (seed == 0) return;
+
+    list<pair<RNGFactory*, bool> >::const_iterator p;
+    for (p = Model::rngFactories().begin(); p != Model::rngFactories().end(); 
+	 ++p) 
+    {
+	p->first->setSeed(seed);
+    }
+    rngSeed() = seed;
+}
+
+} //namespace jags
