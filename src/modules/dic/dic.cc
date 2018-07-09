@@ -2,8 +2,7 @@
 
 #include "DevianceMonitorFactory.h"
 #include "PDMonitorFactory.h"
-#include "PoptMonitorFactory.h"
-#include "KLTab.h"
+#include "PDTraceFactory.h"
 
 using std::vector;
 
@@ -15,11 +14,13 @@ namespace dic {
 	~DICModule();
     };
     
-    DICModule::DICModule() {
+    DICModule::DICModule() 
+	: Module("dic")
+    {
 	
 	insert(new DevianceMonitorFactory);
 	insert(new PDMonitorFactory);
-	insert(new PoptMonitorFactory);
+	insert(new PDTraceFactory);
     }
     
     DICModule::~DICModule() {
@@ -29,8 +30,6 @@ namespace dic {
 	    delete mvec[i];
 	}
     }
-
-    KLTab _kltab;
 }
 
 dic::DICModule _dic_module;

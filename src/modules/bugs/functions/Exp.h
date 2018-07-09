@@ -1,7 +1,7 @@
 #ifndef FUNC_EXP_H_
 #define FUNC_EXP_H_
 
-#include <function/InverseLinkFunc.h>
+#include <function/LinkFunction.h>
 
 namespace bugs {
 
@@ -12,11 +12,11 @@ namespace bugs {
      * y <- exp(x)
      * </pre>
      */
-    class Exp: public InverseLinkFunc
+    class Exp: public LinkFunction
     {
     public:
 	Exp ();
-	double evaluateScalar(std::vector<double const *> const &args) const;
+	double inverseLink(double eta) const;
 	double link(double mu) const;
 	double grad(double eta) const;
     };

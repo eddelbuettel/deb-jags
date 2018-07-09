@@ -15,38 +15,29 @@ class Function;
  */
 class LogicalNode : public DeterministicNode {
     Function const * const _func;
-    std::vector<std::vector<double const*> > _parameters;
-    std::vector<unsigned int> _lengths;
-    std::vector<std::vector<unsigned int> > _dims;
+protected:
+    const std::vector<std::vector<double const*> > _parameters;
 public:
     /**
      * A logical node is defined by a function (which may be an inline
      * operator in the BUGS language) and its parameters.
      */
-    LogicalNode(Function const *func,
-                std::vector<Node const*> const &parameters);
-    ~LogicalNode();
-    /** 
-     * Calculates the value of the node based on the parameters. This
-     * function calls Function#checkParameterValue and will throw an
-     * exception if the result is false.
-     * @exception NodeError
-     */
-    void deterministicSample(unsigned int chain);
+    LogicalNode(std::vector<unsigned int> const &dim, 
+                std::vector<Node const*> const &parameters,
+		Function const *func);
     /**
-     * @see Function#checkParameterValue.
+     * A LogicalNode may be discrete valued if its parents are. 
+     * @see Function##isDiscreteValued
      */
-    bool checkParentValues(unsigned int chain) const;
+    bool isDiscreteValued() const;
     /**
-     * A logical node preserves linearity if its function is linear.
-     * @see Function#isLinear
+     * A LogicalNode belongs to a closed class if its function
+     * preserves that class.
+     *
+     * @see Function#isLinear, Function#isScale, Function#isPower
      */
-    bool isLinear(GraphMarks const &linear_marks, bool fixed) const;
-    /**
-     * A logical node preserves scale if its function is a scale function.
-     * @see Function#isScale
-     */
-    bool isScale(GraphMarks const &scale_marks, bool fixed) const;
+    bool isClosed(std::set<Node const *> const &ancestors, 
+		  ClosedFuncClass fc, bool fixed) const;
     std::string deparse(std::vector<std::string> const &) const;
 };
 

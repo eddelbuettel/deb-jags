@@ -2,13 +2,19 @@
 
 #include <compiler/Compiler.h>
 #include <compiler/ParseTree.h>
-#include <graph/LogicalNode.h>
+#include <graph/ScalarLogicalNode.h>
+#include <graph/VectorLogicalNode.h>
+#include <graph/ArrayLogicalNode.h>
+#include <graph/LinkNode.h>
 #include <graph/ConstantNode.h>
-#include <graph/StochasticNode.h>
-#include <graph/DevianceNode.h>
+#include <graph/ScalarStochasticNode.h>
+#include <graph/VectorStochasticNode.h>
+#include <graph/ArrayStochasticNode.h>
 #include <graph/AggNode.h>
 #include <graph/NodeError.h>
 #include <sarray/RangeIterator.h>
+#include <function/FunctionPtr.h>
+#include <distribution/DistPtr.h>
 #include <util/nainf.h>
 #include <util/dim.h>
 #include <util/integer.h>
@@ -46,6 +52,24 @@ std::string ToString(const T& val)
     strm << val;
     return strm.str();
 }
+
+void CompileError(ParseTree const *p, string const &msg1, 
+		  string const &msg2 = "")
+{
+    string msg = string("Compilation error on line ") + ToString(p->line())
+	+ ".";
+    if (!msg1.empty()) {
+	msg.append("\n");
+	msg.append(msg1);
+    }
+    if (!msg2.empty()) {
+	msg.append(" ");
+	msg.append(msg2);
+    }
+    throw runtime_error(msg);
+}
+
+
 
 Node * Compiler::constFromTable(ParseTree const *p)
 {
@@ -98,11 +122,13 @@ Node * Compiler::constFromTable(ParseTree const *p)
 	    }
 	    return cnode;
 	}
-	_index_graph.add(cnode);
+	_index_nodes.push_back(cnode);
 	return cnode;
     }
 }
 
+//debuggin
+#include <iostream>
 bool Compiler::indexExpression(ParseTree const *p, int &value)
 {
     /* 
@@ -124,7 +150,7 @@ bool Compiler::indexExpression(ParseTree const *p, int &value)
        getParameter and getArraySubset.  The counter tracks the levels
        of nesting of index expressions.
        
-       The graph _index_graph holds the Nodes created during the 
+       The vector _index_nodes holds the Nodes created during the 
        evaluation of the index expression.
     */
 
@@ -132,32 +158,28 @@ bool Compiler::indexExpression(ParseTree const *p, int &value)
     Node *node = getParameter(p);
     _index_expression--;
 
-    Graph tgraph;
-    if (_index_expression == 0) {
-	if (node) {
-	    tgraph.add(node); //Preserves node when _index_graph is cleared
-	}
-        _index_graph.clear();
+    if (!node || !node->isObserved()) {
+	return false;
     }
 
-    if (!node) {
-	return false;
-    }
     if (node->length() != 1) {
-	throw NodeError(node,"Vector value in index expression"); 
+	throw NodeError(node, "Vector value in index expression"); 
     }
-    if (node->isObserved()) {
-	bool is_integer = true;
-	value = checkInteger(node->value(0)[0], is_integer);
-	if (!is_integer) {
-	    throw NodeError(node, 
-			    "Index expression evaluates to non-integer value");
+    if (!checkInteger(node->value(0)[0])) {
+	std::cout << node->value(0)[0] << std::endl;
+	throw NodeError(node, 
+			"Index expression evaluates to non-integer value");
+    }
+    value = asInteger(node->value(0)[0]);
+	
+    if (_index_expression == 0) {
+	while(!_index_nodes.empty()) {
+	    Node *inode = _index_nodes.back();
+	    _index_nodes.pop_back();
+	    delete inode;
 	}
-	return true;
     }
-    else {
-	return false;
-    }
+    return true;
 }
 
 Range Compiler::getRange(ParseTree const *p, Range const &default_range)
@@ -184,8 +206,7 @@ Range Compiler::getRange(ParseTree const *p, Range const &default_range)
   // Check size and integrity of range expression
   unsigned int size = range_list.size();
   if (!isNULL(default_range) && size != default_range.ndim(false)) {
-    string msg = string("dimension mismatch taking subset of ") + name;
-    throw runtime_error(msg);
+      CompileError(p, "Dimension mismatch taking subset of", name);
   }
   for (unsigned int i = 0; i < size; ++i) {
     if (range_list[i]->treeClass() != P_RANGE) {
@@ -241,8 +262,7 @@ Range Compiler::VariableSubsetRange(ParseTree const *var)
 
   string const &name = var->name();
   if (_countertab.getCounter(name)) {
-    throw runtime_error(string("Counter cannot appear on LHS of relation: ")
-			+ name);
+      CompileError(var, "Counter cannot appear on LHS of relation:", name);
   }
   NodeArray *array = _model.symtab().getVariable(name);
   if (array) {
@@ -254,22 +274,19 @@ Range Compiler::VariableSubsetRange(ParseTree const *var)
 	return array->range();
     }
     if (range_list.size() != array->range().ndim(false)) {
-	throw runtime_error(string("Dimension mismatch in subset expression") +
-			    " of variable " + name);
+	CompileError(var, "Dimension mismatch in subset expression of", name);
     }
     Range range = getRange(var, array->range());
     if (isNULL(range)) {
-	throw runtime_error(string("Missing values in subset expression ") 
-			    + "of variable " + name);
+	CompileError(var, "Missing values in subset expression of", name);
     }
-	return range;
+    return range;
   }
   else {
       // Undeclared node
       Range range = getRange(var, Range());
       if (isNULL(range)) {
-	  throw runtime_error(string("Cannot evaluate subset expression for ")
-			      + "undeclared variable " + name);
+	  CompileError(var, "Cannot evaluate subset expression for", name);
       }
       return range;
   }
@@ -299,19 +316,18 @@ Range Compiler::CounterRange(ParseTree const *var)
 
   unsigned int size = prange->parameters().size();
   if (size < 1 || size > 2) {
-    throw logic_error(string("Invalid range expression for counter")
+    throw logic_error(string("Invalid range expression for counter ")
 		      + var->name());
   }
   int lower;
   if(!indexExpression(prange->parameters()[0], lower)) {
-    throw runtime_error(string("Unable to evaluate lower index of counter ")
-			+ var->name());
+      CompileError(var, "Cannot evaluate lower index of counter", var->name());
   }
   int upper;
   if (prange->parameters().size() == 2) {
     if (!indexExpression(prange->parameters()[1], upper)) {
-      throw runtime_error(string("Unable to evaluate upper index of counter ")
-			  + var->name());
+	CompileError(var, "Cannot evaluate upper index of counter", 
+		     var->name());
     }
   }
   else {
@@ -326,39 +342,6 @@ Range Compiler::CounterRange(ParseTree const *var)
   }
 }
 
-Node * Compiler::getSubsetNode(ParseTree const *var)
-{
-    if (var->treeClass() != P_VAR) {
-	throw logic_error("Expecting variable expression");
-    }
-    
-    NodeArray *array = _model.symtab().getVariable(var->name());
-    if (array == 0) {
-	if (_strict_resolution) {
-	    throw runtime_error(string("Unknown variable ") + var->name());
-	}
-	else {
-	    return 0;
-	}
-    }
-    Range subset_range = getRange(var, array->range());
-    if (isNULL(subset_range)) {
-	return 0;
-    }
-    if (!array->range().contains(subset_range)) {
-	throw runtime_error(string("Subset ") + var->name() 
-			    + print(subset_range)
-			    + " out of range");
-    }
-    Node *node = array->getSubset(subset_range, _model.graph());
-    if (node == 0 && _strict_resolution) {
-	throw runtime_error(string("Unable to resolve parameter ") + 
-			    array->name() + print(subset_range) +
-			    " (one of its ancestors may be undefined)");
-    }
-    return node;
-}
-
 Node *Compiler::getArraySubset(ParseTree const *p)
 {
     Node *node = 0;
@@ -371,11 +354,10 @@ Node *Compiler::getArraySubset(ParseTree const *p)
     if (counter) {
 	if (_index_expression) {
 	    node = new ConstantNode((*counter)[0], _model.nchain());
-	    _index_graph.add(node);
+	    _index_nodes.push_back(node);
 	}
 	else {
-	    node = _constantfactory.getConstantNode((*counter)[0], 
-						    _model.graph());
+	    node = _constantfactory.getConstantNode((*counter)[0], _model);
 	}
     }
     else {
@@ -383,15 +365,29 @@ Node *Compiler::getArraySubset(ParseTree const *p)
 	if (array) {
 	    Range subset_range = getRange(p, array->range());
 	    if (!isNULL(subset_range)) {
-		node = getSubsetNode(p); //A fixed subset
+		//A fixed subset
+		if (!array->range().contains(subset_range)) {
+		    string msg = string("Subset ") + array->name() 
+			+ print(subset_range) + " out of range";
+		    CompileError(p, msg);
+		}
+		node = array->getSubset(subset_range, _model);
+		if (node == 0 && _strict_resolution) {
+		    string msg = string("Unable to resolve parameter ")
+			+ array->name() + print(subset_range);
+		    CompileError(p, msg,
+				 "(one of its ancestors may be undefined)");
+		
+		}
 	    }
 	    else if (!_index_expression) {
-		node = getMixtureNode(p, this); //A stochastic subset
+		//A stochastic subset
+		node = getMixtureNode(p, this);
 	    } 
 	}
 	else if (_strict_resolution) {
 	    //Give an informative error message in case of failure
-	    throw runtime_error(string("Unknown parameter ") + p->name());
+	    CompileError(p, "Unknown parameter", p->name());
 	}
 	
 	if (!node && _index_expression) {
@@ -404,38 +400,21 @@ Node *Compiler::getArraySubset(ParseTree const *p)
     return node;
 }
 
-static Function const *getLink(ParseTree const *t, FuncTab const &functab)
-{
-  if (t->treeClass() != P_LINK) {
-    throw logic_error("Malformed parse tree: Expected link function");
-  }
-
-  Function const *func = functab.findInverse(t->name());
-  if (func == 0) {
-    string msg("Unable to find inverse of link function ");
-    msg.append(t->name());
-    throw runtime_error(msg);
-  }
-  else {
-    return func;
-  }
-}
-
-static Function const *getFunction(ParseTree const *t, FuncTab const &functab)
+static FunctionPtr const &
+getFunction(ParseTree const *t, FuncTab const &functab)
 {
     if (t->treeClass() != P_FUNCTION) 
 	throw logic_error("Malformed parse tree: Expected function");
 
-    Function const *func = functab.find(t->name());
-    if (func == 0) {
-	string msg("Unable to find function ");
-	msg.append(t->name());
-	throw runtime_error(msg);
+    FunctionPtr const &func = functab.find(t->name());
+    if (isNULL(func)) {
+	CompileError(t, "Unknown function:", t->name());
     }    
 
     return func;
 }
 
+/*
 static Distribution const *getDistribution(ParseTree const *pstoch_rel, 
 				           DistTab const &table)
 {
@@ -452,10 +431,11 @@ static Distribution const *getDistribution(ParseTree const *pstoch_rel,
   }
   Distribution const *dist = table.find(pdist->name());
   if (dist == 0) {
-    throw runtime_error(string("Unknown distribution: ") + pdist->name());
+      CompileError(pdist, "Unknown distribution:", pdist->name());
   }
   return dist;
 }
+*/
 
 Node *Compiler::getLength(ParseTree const *p, SymTab const &symtab)
 {
@@ -476,11 +456,11 @@ Node *Compiler::getLength(ParseTree const *p, SymTab const &symtab)
 	    double length = product(subset_range.dim(true));
 	    if (_index_expression) {
 		Node *node = new ConstantNode(length, _model.nchain());
-		_index_graph.add(node);
-	    return node;
+		_index_nodes.push_back(node);
+		return node;
 	    }
 	    else {
-		return _constantfactory.getConstantNode(length, _model.graph());
+		return _constantfactory.getConstantNode(length, _model);
 	    }
 	}
     }
@@ -493,7 +473,7 @@ Node *Compiler::getLength(ParseTree const *p, SymTab const &symtab)
 Node *Compiler::getDim(ParseTree const *p, SymTab const &symtab)
 {
     if (p->treeClass() != P_DIM) {
-	throw logic_error("Malformed parse tree. Expecting length expression");
+	throw logic_error("Malformed parse tree. Expecting dim expression");
     }
     ParseTree const *var = p->parameters()[0];
     if (var->treeClass() != P_VAR) {
@@ -516,12 +496,11 @@ Node *Compiler::getDim(ParseTree const *p, SymTab const &symtab)
 
 	    if (_index_expression) {
 		Node *node = new ConstantNode(d, ddim, _model.nchain());
-		_index_graph.add(node);
-	    return node;
+		_index_nodes.push_back(node);
+		return node;
 	    }
 	    else {
-		return _constantfactory.getConstantNode(d, ddim, 
-							_model.graph());
+		return _constantfactory.getConstantNode(d, ddim, _model);
 	    }
 	}
     }
@@ -545,11 +524,10 @@ Node * Compiler::getParameter(ParseTree const *t)
     case P_VALUE:
 	if (_index_expression) {
 	    node = new ConstantNode(t->value(), _model.nchain());
-	    _index_graph.add(node);
+	    _index_nodes.push_back(node);
 	}
 	else {
-	    node =  _constantfactory.getConstantNode(t->value(), 
-						     _model.graph());
+	    node =  _constantfactory.getConstantNode(t->value(), _model);
 	}
 	break;
     case P_VAR:
@@ -561,22 +539,24 @@ Node * Compiler::getParameter(ParseTree const *t)
     case P_DIM:
         node = getDim(t, _model.symtab());
 	break;
-    case P_FUNCTION: case P_LINK:
+    case P_LINK:
 	if (getParameterVector(t, parents)) {
-	    Function const *func = 0;
-	    if (t->treeClass() == P_FUNCTION) {
-		func = getFunction(t, funcTab());
+	    LinkFunction const *link = funcTab().findLink(t->name());
+	    if (!link) {
+		CompileError(t, "Unknown link function:", t->name());
 	    }
-	    else {
-		func = getLink(t, funcTab());
-	    }
+	    node = _logicalfactory.getNode(FunctionPtr(link), parents, _model);
+	}
+	break;
+    case P_FUNCTION:
+	if (getParameterVector(t, parents)) {
+	    FunctionPtr const &func = getFunction(t, funcTab());
 	    if (_index_expression) {
-		node = new LogicalNode(func, parents);
-		_index_graph.add(node);
+		node = LogicalFactory::newNode(func, parents);
+		_index_nodes.push_back(node);
 	    }
-	    else {
-		node = _logicalfactory.getLogicalNode(func, parents, 
-						      _model.graph());
+	    else {	    
+		node = _logicalfactory.getNode(func, parents, _model);
 	    }
 	}
 	break;
@@ -588,18 +568,13 @@ Node * Compiler::getParameter(ParseTree const *t)
     if (!node)
         return 0;
 
-    /* Initialize deterministic nodes now, if they are functions of 
-       data, to aid in node recycling */
-    if (!node->isRandomVariable()) {
-      node->initializeData();
+    if (_index_expression) {
+	//Random variables in index expressions must be observed
+	if (node->isRandomVariable() && !node->isObserved())
+	    return 0;
     }
 
-    if (_index_expression && !node->isObserved()) {
-	return 0;
-    }
-    else {
-	return node;
-    }
+    return node;
 }
 
 /*
@@ -615,7 +590,7 @@ bool Compiler::getParameterVector(ParseTree const *t,
     }
 
     switch (t->treeClass()) {
-    case P_FUNCTION: case P_LINK:
+    case P_FUNCTION: case P_LINK: case P_DENSITY:
 	for (unsigned int i = 0; i < t->parameters().size(); ++i) {
 	    Node *node = getParameter(t->parameters()[i]);
 	    if (node) {
@@ -629,31 +604,39 @@ bool Compiler::getParameterVector(ParseTree const *t,
 	}
 	break;
     default:
-	throw logic_error("Invalid Parse Tree. Expected function or operator.");
+	throw logic_error("Invalid Parse Tree.");
     }
     return true;
 }
 
+
+//debuggin
+#include <iostream>
 Node * Compiler::allocateStochastic(ParseTree const *stoch_relation)
 {
     ParseTree const *distribution = stoch_relation->parameters()[1];  
-    vector<Node const *> parameters;
-    Node *lBound = 0, *uBound = 0;
 
     // Create the parameter vector
+    vector<Node const *> parameters;
+    if (!getParameterVector(distribution, parameters)) {
+	return 0;
+    }
+/*
     vector<ParseTree*> const &param_list = distribution->parameters();
     for (unsigned int i = 0; i < param_list.size(); ++i) {
-	Node *param = getParameter(param_list[i]);
-	if (param) {
-	    parameters.push_back(param);
-	}
-	else {
-	    return 0;
-	}
+        Node *param = getParameter(param_list[i]);
+        if (param) {
+            parameters.push_back(param);
+        }
+        else {
+            return 0;
+        }
     }
-
-    // Set upper and lower bounds, if truncated
+*/
+    // Set upper and lower bounds
+    Node *lBound = 0, *uBound = 0;
     if (stoch_relation->parameters().size() == 3) {
+	//Truncated distribution
 	ParseTree const *truncated = stoch_relation->parameters()[2];
 	ParseTree const *ll = truncated->parameters()[0];
 	ParseTree const *ul = truncated->parameters()[1];
@@ -671,54 +654,95 @@ Node * Compiler::allocateStochastic(ParseTree const *stoch_relation)
 	}
     }
 
-  
-    StochasticNode *snode = 0;
-    Distribution const *dist = getDistribution(stoch_relation, distTab());
+    /* 
+       Check data table to see if this is an observed node.  If it is,
+       we put the data in a array of doubles pointed to by this_data,
+       and set data_length equal to the length of the array
+    */
+    double *this_data = 0;
+    unsigned int data_length = 0;
 
-    //Search data table to see if this is an observed node
     ParseTree *var = stoch_relation->parameters()[0];
-    string const &name = var->name();
-    map<string,SArray>::const_iterator q = _data_table.find(name);
+    map<string,SArray>::const_iterator q = _data_table.find(var->name());
     if (q != _data_table.end()) {
+
 	vector<double> const &data_value = q->second.value();
-        Range const &data_range = q->second.range();
+	Range const &data_range = q->second.range();
 
 	Range target_range = VariableSubsetRange(var);
-	unsigned int nmissing = 0;
-	SArray this_data(target_range.dim(true));
+	data_length = target_range.length();
+	this_data = new double[data_length];
+
 	unsigned int i = 0;
+	unsigned int nmissing = 0;
 	for (RangeIterator p(target_range); !p.atEnd(); p.nextLeft()) {
 	    unsigned int j = data_range.leftOffset(p);
 	    if (data_value[j] == JAGS_NA) {
 		++nmissing;
 	    }
-	    else {
-		this_data.setValue(data_value[j], i++);
-	    }
+	    this_data[i++] = data_value[j];
 	}
-
-	if (nmissing == 0) {
-	    snode = new StochasticNode(dist, parameters, lBound, uBound);
-	    if (this_data.dim(true) != drop(snode->dim())) {
-		string msg = "Dimension mismatch between node and data:\n";
-		msg.append("Expected ");
-		msg.append(print(Range(snode->dim())));
-		msg.append(" got ");
-		msg.append(print(Range(this_data.dim(true))));
-		throw NodeError(snode, msg);
-	    }
-	    snode->setObserved(this_data.value());
+	if (nmissing == data_length) {
+	    delete [] this_data;
+	    this_data = 0;
+	    data_length = 0;
 	}
-	else if (nmissing != this_data.length()) {
-	    throw NodeError(snode, "Node cannot be partially missing");
+	else if (nmissing != 0) {
+	    CompileError(var, var->name() + print(target_range),
+			 "has missing values");
 	}
     }
- 
-    if (snode == 0) {
-	snode =  new StochasticNode(dist, parameters, lBound, uBound);
+
+    // Check that distribution exists
+    string const &distname = distribution->name();
+    DistPtr const &dist = distTab().find(distname);
+    if (isNULL(dist)) {
+	CompileError(distribution, "Unknown distribution:", distname);
     }
 
-    _model.graph().add(snode);
+    if (!this_data) {
+	/* 
+	   Special rule for observable functions, which exist both as
+	   a Function and a Distribution.  If the node is unobserved,
+	   and we find a function matched to the distribution in
+	   obsFuncTab, then we create a Logical Node instead.
+	*/
+	FunctionPtr const &func = obsFuncTab().find(dist);
+	if (!isNULL(func)) {
+	    //FIXME: Why are we not using a factory here?
+	    LogicalNode *lnode = LogicalFactory::newNode(func, parameters);
+	    _model.addNode(lnode);
+            return lnode;
+	}
+    }	
+
+    StochasticNode *snode = 0;
+    if (SCALAR(dist)) {
+	snode =  new ScalarStochasticNode(SCALAR(dist), parameters, 
+					  lBound, uBound);
+    }
+    else if (VECTOR(dist)) {
+	snode = new VectorStochasticNode(VECTOR(dist), parameters,
+					 lBound, uBound);
+    }
+    else if (ARRAY(dist)) {
+	snode = new ArrayStochasticNode(ARRAY(dist), parameters,
+					lBound, uBound);
+    }
+    else {
+	throw logic_error("Unable to classify distribution");
+    }
+    _model.addNode(snode);
+    
+    // If Node is observed, set the data
+    if (this_data) {
+	for (unsigned int n = 0; n < snode->nchain(); ++n) {
+	    snode->setValue(this_data, data_length, n);
+	}
+	snode->setObserved();
+	delete [] this_data;
+    }
+    
     return snode;
 }
 
@@ -726,12 +750,14 @@ Node * Compiler::allocateLogical(ParseTree const *rel)
 {
     ParseTree *expression = rel->parameters()[1];
     Node *node = 0;
+    ConstantNode *cnode = 0;
     vector <Node const *> parents;
 
     switch (expression->treeClass()) {
     case P_VALUE: 
-	node = new ConstantNode(expression->value(), _model.nchain());
-	_model.graph().add(node); 
+	cnode = new ConstantNode(expression->value(), _model.nchain());
+	_model.addNode(cnode);
+	node = cnode;
 	/* The reason we aren't using a ConstantFactory here is to ensure
 	   that the nodes are correctly named */
 	break;
@@ -779,8 +805,8 @@ void Compiler::allocate(ParseTree const *rel)
 	    // Check if a node is already inserted into this range
 	    Range range = VariableSubsetRange(var);
 	    if (array->find(range)) {
-		throw runtime_error(string("Attempt to redefine node ") +
-				    var->name() + print(range));
+		CompileError(var, "Attempt to redefine node",
+			     var->name() + print(range));
 	    }
 	    array->insert(node, range);
 	}
@@ -804,7 +830,7 @@ void Compiler::setConstantMask(ParseTree const *rel)
     Range range = VariableSubsetRange(var);
     Range const &var_range = q->second.range();
     if (!var_range.contains(range)) {
-	throw logic_error("Invalid range in Compiler::setConstantMask.");
+        throw logic_error("Invalid range in Compiler::setConstantMask.");
     }
     vector<bool> &mask = p->second;
     for (RangeIterator i(range); !i.atEnd(); i.nextLeft()) {
@@ -843,7 +869,7 @@ void Compiler::getArrayDim(ParseTree const *p)
     //Check against the existing entry, and modify if necessary
     unsigned int ndim = i->second[0].size();
     if (new_range.ndim(false) != ndim) {
-      throw runtime_error(string("Inconsistent dimensions for array ") + name);
+	CompileError(var, "Inconsistent dimensiosn for array", name);
     }
     else {
 	for (unsigned int j = 0; j < ndim; ++j) {
@@ -966,7 +992,7 @@ Compiler::Compiler(BUGSModel &model, map<string, SArray> const &data_table)
     : _model(model), _countertab(), 
       _data_table(data_table), _n_resolved(0), 
       _n_relations(0), _is_resolved(0), _strict_resolution(false),
-      _index_expression(0), _index_graph(),
+      _index_expression(0), _index_nodes(),
       _constantfactory(model.nchain())
 {
   if (_model.graph().size() != 0)
@@ -998,12 +1024,11 @@ void Compiler::declareVariables(vector<ParseTree*> const &dec_list)
 	for (unsigned int i = 0; i < ndim; ++i) {
 	    int dim_i;
 	    if (!indexExpression(node_dec->parameters()[i], dim_i)) {
-		throw runtime_error(string("Unable to calculate dimensions of node ")
-				    + name);
+		CompileError(node_dec, "Unable to calculate dimensions of node",
+			     name);
 	    }
 	    if (dim_i <= 0) {
-		throw runtime_error(string("Non-positive dimension for node ") 
-				    + name);
+		CompileError(node_dec, "Non-positive dimension for node", name);
 	    }
 	    dim[i] = static_cast<unsigned int>(dim_i);
 	}
@@ -1087,9 +1112,20 @@ FuncTab &Compiler::funcTab()
     return _functab;
 }
 
-MixtureFactory& Compiler::mixtureFactory()
+ObsFuncTab &Compiler::obsFuncTab()
 {
-   return _mixfactory;
+    static ObsFuncTab _oftab;
+    return _oftab;
+}
+
+MixtureFactory& Compiler::mixtureFactory1()
+{
+   return _mixfactory1;
+}
+
+MixtureFactory& Compiler::mixtureFactory2()
+{
+   return _mixfactory2;
 }
 
 BUGSModel &Compiler::model() const

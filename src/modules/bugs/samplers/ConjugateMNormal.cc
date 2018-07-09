@@ -6,6 +6,7 @@
 #include <graph/LogicalNode.h>
 #include <graph/StochasticNode.h>
 #include <sampler/Linear.h>
+#include <sampler/GraphView.h>
 
 #include "lapack.h"
 
@@ -28,13 +29,12 @@ using std::sqrt;
 using std::invalid_argument;
 using std::string;
 
-static void calBeta(double *betas, ConjugateSampler *sampler,
+static void calBeta(double *betas, GraphView const *gv,
                     unsigned int chain)
 {
-    StochasticNode *snode = sampler->node();
+    StochasticNode *snode = gv->nodes()[0];
     double const *xold = snode->value(chain);
     unsigned int nrow = snode->length();
-    //unsigned int nrow = snode->length();
 
     double *xnew = new double[nrow];
     for (unsigned int i = 0; i < nrow; ++i) {
@@ -42,11 +42,10 @@ static void calBeta(double *betas, ConjugateSampler *sampler,
     }
 
     vector<StochasticNode const*> const &stoch_children = 
-        sampler->stochasticChildren();
+        gv->stochasticChildren();
 
     unsigned long nchildren = stoch_children.size();
     double *beta_j = betas;
-
     for (unsigned int j = 0; j < nchildren; ++j) {
 	StochasticNode const *snode = stoch_children[j];
 	double const *mu = snode->parents()[0]->value(chain);
@@ -61,13 +60,12 @@ static void calBeta(double *betas, ConjugateSampler *sampler,
 
     for (unsigned int i = 0; i < nrow; ++i) {
 	xnew[i] += 1;
-	sampler->setValue(xnew, nrow, chain);
+	gv->setValue(xnew, nrow, chain);
 	beta_j = betas;
 	for (unsigned int j = 0; j < nchildren; ++j) {
 	    StochasticNode const *snode = stoch_children[j];
 	    double const *mu = snode->parents()[0]->value(chain);
 	    unsigned int nrow_child = snode->length();
-
 	    for (unsigned int k = 0; k < nrow_child; ++k) {
 		beta_j[nrow * k + i] += mu[k];
 	    }
@@ -75,42 +73,38 @@ static void calBeta(double *betas, ConjugateSampler *sampler,
 	}
 	xnew[i] -= 1;
     }
-    sampler->setValue(xnew, nrow, chain);
+    gv->setValue(xnew, nrow, chain);
 
     delete [] xnew;
 }
 
-ConjugateMNormal::ConjugateMNormal()
-    : _betas(0), _length_betas(0)
+static unsigned int sumChildrenLength(GraphView const *gv)
 {
+    vector<StochasticNode const *> const &children = 
+	gv->stochasticChildren(); 
+
+    unsigned int N = 0;
+    for (unsigned int i = 0; i < children.size(); ++i) {
+	N += children[i]->length();
+    }
+    return N;
+}
+
+
+ConjugateMNormal::ConjugateMNormal(GraphView const *gv)
+    : ConjugateMethod(gv), _betas(0), 
+      _length_betas(sumChildrenLength(gv) * gv->length())
+{
+    if(!gv->deterministicChildren().empty() && checkLinear(gv, true))
+    {
+	_betas = new double[_length_betas];
+	calBeta(_betas, gv, 0);
+    }
 }
 
 ConjugateMNormal::~ConjugateMNormal()
 {
     delete [] _betas;
-}
-
-void ConjugateMNormal::initialize(ConjugateSampler *sampler, Graph const &graph)
-{
-    if(sampler->deterministicChildren().empty())
-	return; //Nothing to do
-
-    StochasticNode const *snode = sampler->node();
-    vector<StochasticNode const *> const &children = 
-	sampler->stochasticChildren();
-    unsigned int N = 0;
-    for (unsigned int i = 0; i < children.size(); ++i) {
-	N += children[i]->length();
-    }
-    _length_betas = N * snode->length();
-
-    // Check for constant linear terms
-    if (!checkLinear(sampler->nodes(), graph, true))
-	return; //Coefficients not fixed
-
-    //Onetime calculation of fixed coefficients
-    _betas = new double[_length_betas];
-    calBeta(_betas, sampler, 0);
 }
 
 bool ConjugateMNormal::canSample(StochasticNode *snode, Graph const &graph)
@@ -121,50 +115,36 @@ bool ConjugateMNormal::canSample(StochasticNode *snode, Graph const &graph)
     if (isBounded(snode))
 	return false;
 
-    vector<StochasticNode const*> stoch_nodes;
-    vector<Node*> dtrm_nodes, extra_nodes;
-    Sampler::classifyChildren(vector<StochasticNode*>(1,snode), 
-		              graph, stoch_nodes, dtrm_nodes);
-    /* 
-       Create a set of nodes containing snode and its deterministic
-       descendants for the checks below.
-    */
-    set<Node const *> paramset;
-    paramset.insert(snode);
-    for (unsigned int j = 0; j < dtrm_nodes.size(); ++j) {
-	paramset.insert(dtrm_nodes[j]);
-    }
+    GraphView gv(snode, graph);
+    vector<StochasticNode const*> const &schild = gv.stochasticChildren();
 
     // Check stochastic children
-    for (unsigned int i = 0; i < stoch_nodes.size(); ++i) {
-	if (getDist(stoch_nodes[i]) != MNORM &&
-	    getDist(stoch_nodes[i]) != NORM) {
+    for (unsigned int i = 0; i < schild.size(); ++i) {
+	if (getDist(schild[i]) != MNORM && getDist(schild[i]) != NORM) {
 	    return false; //Not normal or multivariate normal
 	}
-	if (isBounded(stoch_nodes[i])) {
+	if (isBounded(schild[i])) {
 	    return false;
 	}
-	vector<Node const *> const &param = stoch_nodes[i]->parents();
-	if (paramset.count(param[1])) {
+	if (gv.isDependent(schild[i]->parents()[1])) {
 	    return false; //Precision depends on snode
 	}
     }
 
     // Check linearity of deterministic descendants
-    if (!checkLinear(vector<StochasticNode*>(1, snode),graph, false))
+    if (!checkLinear(&gv, false))
 	return false;
 
     return true; //We made it!
 }
 
-void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain, 
-			      RNG *rng) const
+void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 {
     vector<StochasticNode const*> const &stoch_children = 
-          sampler->stochasticChildren();
+          _gv->stochasticChildren();
     unsigned int nchildren = stoch_children.size();
     
-    StochasticNode *snode = sampler->node();
+    StochasticNode *snode = _gv->nodes()[0];
     double const *xold = snode->value(chain);
     double const *priormean = snode->parents()[0]->value(chain); 
     double const *priorprec = snode->parents()[1]->value(chain);
@@ -195,7 +175,7 @@ void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain,
     double d1 = 1;
     int i1 = 1;
 
-    if (sampler->deterministicChildren().empty()) {
+    if (_gv->deterministicChildren().empty()) {
       
 	// This can only happen if the stochastic children are all
 	// multivariate normal with the same number of rows and 
@@ -209,7 +189,7 @@ void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain,
 	    double alpha = 1;
 	
 	    F77_DAXPY (&N, &alpha, tau, &i1, A, &i1);
-	    for (unsigned int i = 0; i < nrow; ++i) {
+	    for (int i = 0; i < nrow; ++i) {
 		delta[i] = Y[i] - xold[i];
 	    }
 	    F77_DGEMV ("N", &nrow, &nrow, &alpha, tau, &nrow, delta, &i1,
@@ -225,7 +205,7 @@ void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain,
         double *betas = 0;
 	if (temp_beta) {
 	    betas = new double[_length_betas];
-	    calBeta(betas, sampler, chain);
+	    calBeta(betas, _gv, chain);
 	}
         else {
             betas = _betas;
@@ -280,7 +260,7 @@ void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain,
 		F77_DSYMM("R", "L", &nrow, &nrow_child, &alpha, tau,
                           &nrow_child, beta_j, &nrow, &zero, C, &nrow);
 
-		for (unsigned int i = 0; i < nrow_child; ++i) {
+		for (int i = 0; i < nrow_child; ++i) {
 		    delta[i] = Y[i] - mu[i];
 		}
 		
@@ -290,8 +270,6 @@ void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain,
 			  &d1, C, &nrow, beta_j, &nrow, &d1, A, &nrow);
 	    }
 	       
-
-	  
 	    beta_j += nrow_child * nrow;
 	}
 
@@ -321,7 +299,7 @@ void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain,
 	delete [] A;
 	delete [] b;
 	throw NodeError(snode,
-			"unable to solve linear equations in Conjugate mnorm sampler");
+			"unable to solve linear equations in conjugate multivariate normal method");
     }
 
     //Shift origin back to original scale
@@ -329,9 +307,9 @@ void ConjugateMNormal::update(ConjugateSampler *sampler, unsigned int chain,
 	b[i] += xold[i];
     }
     double *xnew = new double[nrow];
-    //FIXME. This must use lower triangle of A!!!!
+    //NB. This uses the lower triangle of A
     DMNorm::randomsample(xnew, b, A, true, nrow, rng);
-    sampler->setValue(xnew, nrow, chain);
+    _gv->setValue(xnew, nrow, chain);
 
     delete [] A;
     delete [] Acopy;

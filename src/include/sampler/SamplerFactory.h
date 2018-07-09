@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <string>
 
 class Sampler;
 class StochasticNode;
@@ -17,12 +18,18 @@ public:
     virtual ~SamplerFactory();
     /**
      * Finds nodes in the set of stochastic nodes that can be sampled
-     * within the given graph, removes them from the set and adds a
-     * sampler to the vector of samplers.
+     * within the given graph, and returns a vector of newly allocated
+     * samplers for them.  If no sampler can be created, an empty
+     * vector is returned.
      */
-    virtual void 
-	makeSampler(std::set<StochasticNode*> &nodes, Graph const &graph,
-		    std::vector<Sampler*> &samplers) const = 0;
+    virtual std::vector<Sampler*> 
+	makeSamplers(std::set<StochasticNode*> const &nodes, 
+		     Graph const &graph) const = 0;
+    /**
+      * Returns the name of the sampler factory
+      */
+    virtual std::string name() const = 0;
+
 };
 
 #endif /* SAMPLER_FACTORY_H_ */

@@ -35,7 +35,9 @@ namespace base {
 	~BaseModule();
     };
 
-    BaseModule::BaseModule() {
+    BaseModule::BaseModule() 
+	: Module("basemod")
+    {
 
 	insert(new Add);
 	insert(new And);
@@ -57,7 +59,7 @@ namespace base {
 	insert(new FiniteFactory);
 	
 	insert(new BaseRNGFactory);
-
+	
 	insert(new TraceMonitorFactory);
 
     }

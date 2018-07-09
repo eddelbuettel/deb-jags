@@ -1,5 +1,6 @@
 #include <config.h>
 #include <model/SymTab.h>
+#include <model/Model.h>
 #include <graph/Node.h>
 #include <util/nainf.h>
 
@@ -16,8 +17,8 @@ using std::runtime_error;
 using std::logic_error;
 using std::set;
 
-SymTab::SymTab(Graph &graph, unsigned int nchain)
-    : _graph(graph), _nchain(nchain)
+SymTab::SymTab(Model *model)
+    : _model(model)
 {
 }
 
@@ -38,7 +39,7 @@ void SymTab::addVariable(string const &name, vector<unsigned int> const &dim)
     throw runtime_error(msg);
   }
 
-  NodeArray *array = new NodeArray(name, dim, _nchain);
+  NodeArray *array = new NodeArray(name, dim, _model->nchain());
   _varTable[name] = array;
 }
 
@@ -65,7 +66,7 @@ void SymTab::writeData(std::map<std::string, SArray> const &data_table)
 	msg.append(p->first);
 	throw runtime_error(msg);
       }
-      array->setData(p->second, _graph);
+      array->setData(p->second, _model);
     }
   }
 }
@@ -91,34 +92,42 @@ void SymTab::writeValues(std::map<std::string, SArray> const &data_table,
     }
 }
 
+static bool allMissing(SArray const &sarray)
+{
+    unsigned int N=sarray.length();
+    vector<double> const &v = sarray.value();
+    for (unsigned int i = 0; i < N; ++i) {
+	if (v[i] != JAGS_NA)
+	    return false;
+    }
+    return true;
+}
+
 void SymTab::readValues(map<string, SArray> &data_table, 
 		        unsigned int chain,
                         bool (*condition)(Node const *)) const
 {
-  if (chain > _nchain) 
-    throw logic_error("Invalid chain in SymTab::readValues");
-  if (!condition) 
-    throw logic_error("NULL condition in Symtab::readValues");
+    if (chain > _model->nchain()) 
+	throw logic_error("Invalid chain in SymTab::readValues");
+    if (!condition) 
+	throw logic_error("NULL condition in Symtab::readValues");
 
-  map<string, NodeArray*>::const_iterator p;
-  for (p = _varTable.begin(); p != _varTable.end(); ++p) {
-    /* Create a new SArray to hold the values from the symbol table */
-    SArray read_values(p->second->range().dim(false));
-    p->second->getValue(read_values, chain, condition);
-    /* Only write to the data table if we can find at least one
-       non-missing value */
-    for (unsigned int i = 0; i < read_values.length(); ++i) {
-      if (read_values.value()[i] != JAGS_NA) {
-	string const &name = p->first;
-	if (data_table.find(name) != data_table.end()) {
-	  data_table.erase(name);
+    map<string, NodeArray*>::const_iterator p;
+    for (p = _varTable.begin(); p != _varTable.end(); ++p) {
+	/* Create a new SArray to hold the values from the symbol table */
+	SArray read_values(p->second->range().dim(false));
+	p->second->getValue(read_values, chain, condition);
+	/* Only write to the data table if we can find at least one
+	   non-missing value */
+	if (!allMissing(read_values)) {
+	    string const &name = p->first;
+	    if (data_table.find(name) != data_table.end()) {
+		//Replace any existing entry
+		data_table.erase(name);
+	    }
+	    data_table.insert(pair<string,SArray>(name, read_values));
 	}
-	data_table.insert(pair<string,SArray>(name, read_values));
-        /* FIXED! Insane failure to break out of this loop */
-        break;
-      }
     }
-  }
 }
 
 unsigned int SymTab::size() const
@@ -281,8 +290,9 @@ string SymTab::getName(Node const *node) const
     return node->deparse(parnames);
 }
 
+//FIXME: Necessary?
 unsigned int SymTab::nchain() const
 {
-  return _nchain;
+    return _model->nchain();
 }
     

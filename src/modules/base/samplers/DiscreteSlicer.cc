@@ -2,7 +2,7 @@
 #include <graph/StochasticNode.h>
 #include <graph/NodeError.h>
 #include <distribution/Distribution.h>
-#include <sampler/DensitySampler.h>
+#include <sampler/GraphView.h>
 
 #include "DiscreteSlicer.h"
 
@@ -16,24 +16,20 @@ using std::string;
 
 namespace base {
 
-    DiscreteSlicer::DiscreteSlicer(StochasticNode const *node, 
-				   unsigned int chain, double width, 
-				   long ndoubles)
-	: Slicer(width, ndoubles), _x(0)
+    DiscreteSlicer::DiscreteSlicer(GraphView const *gv, unsigned int chain, 
+				   double width, long ndoubles)
+	: Slicer(width, ndoubles), _gv(gv), _chain(chain), _x(0)
     {
-	if (!canSample(node)) {
+	if (gv->nodes().size() != 1 || !canSample(gv->nodes()[0])) {
 	    throw logic_error("Invalid DiscreteSlicer");
 	}
-
-	_x = node->value(chain)[0];
+	
+	_x = _gv->nodes()[0]->value(chain)[0];
     }
 
     bool DiscreteSlicer::canSample(StochasticNode const *node)
     {
-	if (!node->distribution()->isDiscreteValued() || node->length() != 1)
-	    return false;
-	
-	if (df(node) == 0)
+	if (!node->isDiscreteValued() || node->length() != 1)
 	    return false;
 	
 	return true;
@@ -43,7 +39,7 @@ namespace base {
     {
 	_x = x;
 	x = floor(x);
-	_sampler->setValue(&x, 1, _chain);
+	_gv->setValue(&x, 1, _chain);
     }
   
     double DiscreteSlicer::value() const
@@ -53,11 +49,11 @@ namespace base {
 
     void DiscreteSlicer::getLimits(double *lower, double *upper) const
     {
-	StochasticNode const *snode = _sampler->nodes().front();
-        support(lower, upper, 1, snode, _chain);
+	StochasticNode const *snode = _gv->nodes()[0];
+        snode->support(lower, upper, 1, _chain);
 	*upper += 1;
     }
-
+    
     void DiscreteSlicer::update(RNG *rng)
     {
 	updateDouble(rng);
@@ -67,4 +63,10 @@ namespace base {
     {
 	return "DiscreteSlicer";
     }
+    
+    double DiscreteSlicer::logDensity() const
+    {
+	return _gv->logFullConditional(_chain);
+    }
+
 }

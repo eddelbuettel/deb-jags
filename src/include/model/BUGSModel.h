@@ -8,6 +8,7 @@
 
 #include <model/Model.h>
 #include <model/SymTab.h>
+#include <model/MonitorInfo.h>
 
 /**
  * @short Model with symbol table 
@@ -19,8 +20,8 @@
 class BUGSModel : public Model
 {
     SymTab _symtab;
-    std::map<Node const*, std::pair<std::string, Range> > _node_map;
-    std::list<Monitor*> _bugs_monitors;
+    //std::map<Node const*, std::pair<std::string, Range> > _node_map;
+    std::list<MonitorInfo> _bugs_monitors;
 public:
     BUGSModel(unsigned int nchain);
     ~BUGSModel();
@@ -29,22 +30,13 @@ public:
      */
     SymTab &symtab();
     /**
-     * Adds a DevianceNode to the model graph.  The parents of this node
-     * are all observed stochastic nodes in the graph.  A new NodeArray
-     * is added to the symbol table with name "deviance" and the new
-     * DevianceNode is inserted into it. However, if a NodeArray with
-     * name "deviance" already exists in the symbol table then this
-     * function does nothing.
-     */
-    void addDevianceNode();
-    /**
      * Returns a node given a variable name and a range of indices. The
      * name is used to look up a NodeArray in the symbol table, and 
      * a subset of the Nodearray corresponding to the given index range
      * is taken. 
      *
-     * If the requested Node cannot be returned, a NULL pointer is 
-     * returned and an informative error message is given.
+     * If the requested Node cannot be returned, a NULL pointer is
+     * returned.
      *
      * @param name String giving the BUGS-language name of a variable
      *
@@ -55,33 +47,28 @@ public:
      * @param message If the requested Node does not exist, an
      * informative error message is copied to this string.
      */
-    Node *getNode(std::string const &name, Range const &range,
-		  std::string &message);
+    Node *getNode(std::string const &name, Range const &range);
     /**
-     * Writes out stored samples in CODA format.
+     * Writes out selected monitors in CODA format.
      *
-     * @param nodes Vector of nodes to write out. Each node is described
-     * by a pair consisting of a variable name and a range of indices.
-     * If a node is not being monitored, then it is ignored.
+     * @param nodes Vector of nodes to write out. Each node is
+     * described by a pair consisting of a name and a range of
+     * indices.  If a node is not being monitored, then it is ignored.
      *
-     * @param index ofstream for the index file. The index file consists
-     * of three entries per line: the node name, the start line number,
-     * and the end line number. Start and end line numbers refer to the
-     * lines of the output file(s). A multivariate node has separate
-     * entries for each element, e.g. A[1,1], A[2,1], etc.
-     * 
-     * @param output vector of ofstreams for the output files. There
-     * must be one output file for each chain in the model or a
-     * logic_error is thrown. An output file consists of two entries per
-     * line: the iteration number and the node value.
+     * @param prefix String giving prefix to be prepened to the output
+     * file names.
+     *
+     * @param warn String that will contain any warning messages on
+     * exit. It is cleared on entry.
      *
      * @exception logic_error
      */
     void coda(std::vector<std::pair<std::string,Range> > const &nodes, 
-	      std::ofstream &index, std::vector<std::ofstream*> const &output,
-              std::string &warn);
-    void coda(std::ofstream &index, std::vector<std::ofstream*> const &output,
-              std::string &warn);
+	      std::string const &prefix, std::string &warn);
+    /**
+     * Write out all monitors in CODA format
+     */
+    void coda(std::string const &prefix, std::string &warn);
     /**
      * Sets the state of the RNG, and the values of the unobserved
      * stochastic nodes in the model, for a given chain.
@@ -131,6 +118,20 @@ public:
      */
     bool deleteMonitor(std::string const &name, Range const &range,
 		       std::string const &type);
+    /**
+     * Traverses the list of monitor factories requesting default
+     * monitors of the given type. The function returns true after the
+     * first monitor factory has added at least one node to the monitor
+     * list. If none of the available monitor factories can create
+     * default monitors of the given type, the return value is false.
+     *
+     * @see MonitorFactory#addDefaultMonitors
+     */
+    bool setDefaultMonitors(std::string const &type, unsigned int thin);
+    /**
+     * Removes all Monitors of the given type.
+     */
+    void clearMonitors(std::string const &type);
     /**
      * Writes the names of the samplers, and the corresponding 
      * sampled nodes vectors to the given vector.

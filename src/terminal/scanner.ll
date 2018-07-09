@@ -1,6 +1,7 @@
 /* -*-C++-*- */
 %{
 #include <iostream>
+#include <string>
 #include <cstring>
 #include <compiler/ParseTree.h>
 #include "parser.h"
@@ -10,6 +11,7 @@
     int buffer_count = 0;
     void return_to_main_buffer();
     void close_buffer();
+    std::string ExpandFileName(char const *name);
 %}
 
 %option prefix="zz"
@@ -45,18 +47,25 @@ type			zzlval.intval=TYPE; return TYPE;
 set			zzlval.intval=SET; return SET;
 clear			zzlval.intval=CLEAR; return CLEAR;
 thin			zzlval.intval=THIN; return THIN;
+sampler                 zzlval.intval=SAMPLER; return SAMPLER;
 samplers                zzlval.intval=SAMPLERS; return SAMPLERS;
+rng                     zzlval.intval=RNG; return RNG;
+factory                 zzlval.intval=FACTORY; return FACTORY;
+factories               zzlval.intval=FACTORIES; return FACTORIES;
 
 coda			zzlval.intval=CODA; return CODA;
 stem			zzlval.intval=STEM; return STEM;
 
 load                    zzlval.intval=LOAD; return LOAD;
+unload                  zzlval.intval=UNLOAD; return UNLOAD;
 exit			zzlval.intval=EXIT; return EXIT;
 
 dir                     zzlval.intval=DIRECTORY; return DIRECTORY;
 cd                      zzlval.intval=CD; return CD;
 pwd                     zzlval.intval=PWD; return PWD;
 run                     zzlval.intval=RUN; return RUN;
+
+<INITIAL>"list"         zzlval.intval=LIST; return LIST;
 
 ","			return ',';
 "["			return '[';
@@ -81,7 +90,7 @@ run                     zzlval.intval=RUN; return RUN;
 <INITIAL>[\n]           return ENDCMD;
 
 <INITIAL>"system"       BEGIN(SYSTEM);
-<SYSTEM>.*+ {
+<SYSTEM>.+ {
   zzlval.stringptr = new std::string(zztext);
   return SYSCMD;
 }
@@ -178,7 +187,7 @@ void pop_file() {
 
 
 bool open_data_buffer(std::string const *name) {
-    FILE *file = fopen(name->c_str(),"r");
+    FILE *file = fopen(ExpandFileName(name->c_str()).c_str(),"r");
     if (file) {
 	zzpush_buffer_state(zz_create_buffer(file, YY_BUF_SIZE));
 	push_file(file);

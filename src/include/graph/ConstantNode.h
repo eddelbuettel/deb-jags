@@ -25,6 +25,15 @@ public:
     ConstantNode(std::vector<unsigned int> const &dim, 
 		 std::vector<double> const &value,
 		 unsigned int nchain);
+    ~ConstantNode();
+    /**
+     * A ConstantNode is always observed
+     */
+    bool isObserved() const;
+    /**
+     * Indicates whether a ConstantNode is discrete-valued
+     */
+    bool isDiscreteValued() const;
     /**
      * This function does nothing. It exists only so that objects of
      * class ConstantNode can be instantiated.
@@ -48,16 +57,6 @@ public:
      * returns true.
      */
     bool isRandomVariable() const;
-    /**
-     * Constant nodes are trivial fixed linear functions. This function
-     * always returns true.
-     */
-    bool isLinear(GraphMarks const &linear_marks, bool fixed) const;
-    /**
-     * Constant nodes are trivial fixed scale functions. This function
-     * always returns true.
-     */
-    bool isScale(GraphMarks const &scale_marks, bool fixed) const;
 };
 
 #endif /* CONSTANT_NODE_H_ */

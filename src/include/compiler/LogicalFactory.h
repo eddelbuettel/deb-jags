@@ -1,22 +1,23 @@
 #ifndef LOGICAL_FACTORY_H_
 #define LOGICAL_FACTORY_H_
 
-#include <graph/Graph.h>
-#include <graph/Node.h>
-
 #include <vector>
 #include <utility>
 #include <map>
 #include <cfloat>
 
+#include <function/FunctionPtr.h>
+
 class Function;
+class Node;
+class Model;
 class LogicalNode;
 
 /**
  * A "logical pair", consisting of a function and a vector of arguments,
  * uniquely defines a logical node.
  */
-typedef std::pair<Function const*,std::vector<Node const *> > LogicalPair;
+typedef std::pair<FunctionPtr,std::vector<Node const *> > LogicalPair;
 
 /**
  * @short "Less than" operator for LogicalPair objects. 
@@ -55,18 +56,23 @@ struct ltlogical
  */
 class LogicalFactory 
 { 
-  std::map<LogicalPair, LogicalNode*, ltlogical> _logicalmap;
+    std::map<LogicalPair, Node*, ltlogical> _logicalmap;
 	
 public:
-  /**
-   * Get a logical node with a given function and given parameters.
-   * The results are cached, so if a request is repeated, the same
-   * node will be returned. If a newly allocated node is returned,
-   * it is also added to the given Graph.
-   */
-  LogicalNode *getLogicalNode(Function const *func, 
-			      std::vector<Node const*> const &param,
-                              Graph &graph);
+    /**
+     * Get a logical node with a given function and given parameters.
+     * The results are cached, so if a request is repeated, the same
+     * node will be returned. If a newly allocated node is returned,
+     * it is also added to the given Model.
+     */
+    Node *getNode(FunctionPtr const &func, 
+		  std::vector<Node const*> const &param,
+		  Model &model);
+    /**
+     * Returns a newly allocated LogicalNode.
+     */
+    static LogicalNode* newNode(FunctionPtr const &func, 
+				std::vector<Node const *> const &parents);
 };
 
 #endif /* LOGICAL_FACTORY_H_ */

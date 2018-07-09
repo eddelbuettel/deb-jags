@@ -3,9 +3,6 @@
 
 #include "ConjugateMethod.h"
 
-class StochasticNode;
-class Graph;
-
 /**
  * @short Conjugate sampler for the beta distribution
  *
@@ -17,8 +14,8 @@ class Graph;
  */
 class ConjugateBeta : public ConjugateMethod {
 public:
-    void initialize(ConjugateSampler *sampler, Graph const &graph);
-    void update(ConjugateSampler *sampler, unsigned int chain, RNG *rng) const;
+    ConjugateBeta(GraphView const *gv);
+    void update(unsigned int chain, RNG *rng) const;
     static bool canSample(StochasticNode *snode, Graph const &graph);
     std::string name() const;
 };

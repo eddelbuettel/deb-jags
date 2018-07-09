@@ -1,5 +1,4 @@
 #include <Module.h>
-#include <distribution/DistTab.h>
 
 #include <distributions/DNormMix.h>
 #include <samplers/MixSamplerFactory.h>
@@ -14,7 +13,8 @@ namespace mix {
 	~MIXModule();
     };
 
-    MIXModule::MIXModule() {
+    MIXModule::MIXModule() 
+	: Module("mix") {
 
 	insert(new DNormMix);
 	insert(new MixSamplerFactory);

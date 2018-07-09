@@ -22,7 +22,10 @@ rnorm.c dnorm.c pnorm.c qnorm.c \
 rpois.c dpois.c ppois.c qpois.c \
 rt.c dt.c pt.c qt.c \
 runif.c dunif.c punif.c qunif.c \
-rweibull.c dweibull.c pweibull.c qweibull.c 
+rweibull.c dweibull.c pweibull.c qweibull.c \
+rnchisq.c dnchisq.c pnchisq.c qnchisq.c \
+rcauchy.c dcauchy.c pcauchy.c qcauchy.c \
+polygamma.c
 
 noinst_HEADERS = nmath.h dpq.h 
 

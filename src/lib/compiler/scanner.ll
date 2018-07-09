@@ -18,6 +18,7 @@ BRACKET		[ \t]*\(
 
 %option nounput
 %option yylineno
+%option nodefault
 
 %%
 "var"			return VAR;
@@ -72,37 +73,35 @@ BRACKET		[ \t]*\(
 [ \t\r\n]+              /* Eat whitespace */
 "#".*\n                 /* Eat comments */
 
-([0-9]+){EXPONENT} {
+([0-9]+){EXPONENT}? {
   yylval.val = atof(yytext); return DOUBLE;
 }
-([0-9]+"."[0-9]*){EXPONENT} {
+([0-9]+"."[0-9]*){EXPONENT}? {
   yylval.val = atof(yytext); return DOUBLE;
 }
-([0-9]+"."[0-9]*) {
+("."[0-9]+){EXPONENT}? {
   yylval.val = atof(yytext); return DOUBLE;
 }
-("."[0-9]+){EXPONENT} {
-  yylval.val = atof(yytext); return DOUBLE;
-}
-("."[0-9]+) {
-  yylval.val = atof(yytext); return DOUBLE;
-}
-([0-9]+) {
-  yylval.val = atof(yytext); return DOUBLE;
-}
-
 
 ([a-zA-Z]+)/{BRACKET} {
   yylval.stringptr = new std::string(yytext);
   return FUNC;
 }
 
-[a-zA-Z]+[a-zA-Z0-9\.]*	 {
+[a-zA-Z]+[a-zA-Z0-9\._]*	 {
   yylval.stringptr = new std::string(yytext);
   return NAME;
 }
 
 <<EOF>>	yyterminate();
+
+. {
+  /* Default rule for unmatched input.
+     We return a BADCHAR which is not matched by any grammar rule,
+     and so causes a syntax error.
+  */
+  return BADCHAR;
+}
 
 %%
 

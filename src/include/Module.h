@@ -2,13 +2,23 @@
 #define _MODULE_H_
 
 #include <vector>
+#include <string>
+#include <list>
+#include <utility>
 
-class InverseLinkFunc;
-class Function;
-class Distribution;
+#include <function/FunctionPtr.h>
+#include <distribution/DistPtr.h>
+
 class SamplerFactory;
 class RNGFactory;
 class MonitorFactory;
+class LinkFunctiontion;
+class ScalarFunction;
+class VectorFunction;
+class ArrayFunction;
+class ScalarDist;
+class VectorDist;
+class ArrayDist;
 
 /**
  * @short Memory management for dynamically loadable modules
@@ -23,27 +33,60 @@ class MonitorFactory;
  * member function.
  */
 class Module {
-    std::vector<Function*> _internal_functions;
-    std::vector<InverseLinkFunc*> _internal_link_functions;
+    std::string _name;
+    bool _loaded;
+    std::vector<FunctionPtr> _fp_list;
     std::vector<Function*> _functions;
+    std::vector<std::pair<DistPtr, FunctionPtr> > _obs_functions;
+    std::vector<DistPtr> _dp_list;
     std::vector<Distribution*> _distributions;
     std::vector<SamplerFactory*> _sampler_factories;
     std::vector<RNGFactory*> _rng_factories;
     std::vector<MonitorFactory*> _monitor_factories;
 public:
-    Module();
+    Module(std::string const &name);
     virtual ~Module();
-    void insert(InverseLinkFunc*);
-    void insert(Function*);
+
+    void insert(ScalarFunction*);
+    void insert(LinkFunction*);
+    void insert(VectorFunction*);
+    void insert(ArrayFunction*);
     void insert(Distribution*);
+
+    void insert(ScalarDist*);
+    void insert(VectorDist*);
+    void insert(ArrayDist*);
+
+    void insert(ScalarDist*, ScalarFunction*);
+    void insert(ScalarDist*, LinkFunction*);
+    void insert(ScalarDist*, VectorFunction*);
+    void insert(ScalarDist*, ArrayFunction*);
+
+    void insert(VectorDist*, ScalarFunction*);
+    void insert(VectorDist*, LinkFunction*);
+    void insert(VectorDist*, VectorFunction*);
+    void insert(VectorDist*, ArrayFunction*);
+
+    void insert(ArrayDist*, ScalarFunction*);
+    void insert(ArrayDist*, LinkFunction*);
+    void insert(ArrayDist*, VectorFunction*);
+    void insert(ArrayDist*, ArrayFunction*);
+
     void insert(SamplerFactory*);
     void insert(RNGFactory*);
     void insert(MonitorFactory*);
+
     std::vector<Function*> const &functions() const;
     std::vector<Distribution*> const &distributions() const;
     std::vector<SamplerFactory*> const &samplerFactories() const;
     std::vector<RNGFactory*> const &rngFactories() const;
     std::vector<MonitorFactory*> const &monitorFactories() const;
+    
+    void load();
+    void unload();
+    std::string const &name() const;
+    static std::list<Module *> &modules();
+    static std::list<Module *> &loadedModules();
 };
 
 #endif /* _MODULE_H_ */

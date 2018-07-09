@@ -15,8 +15,9 @@ namespace base {
     public:
 	BaseRNGFactory();
 	~BaseRNGFactory();
-	std::vector<RNG *> makeRNGs(unsigned int &n);
+	std::vector<RNG *> makeRNGs(unsigned int n);
 	RNG * makeRNG(std::string const &name);
+	std::string name() const;
     };
 
 }

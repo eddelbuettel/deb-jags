@@ -1,13 +1,14 @@
 #include <config.h>
 #include <distribution/Distribution.h>
-//asStochastic
-#include <graph/StochasticNode.h>
 #include <graph/Graph.h>
+#include <graph/StochasticNode.h>
 #include <graph/NodeError.h>
-#include <sampler/DensitySampler.h>
+#include <sampler/ParallelSampler.h>
+#include <sampler/GraphView.h>
 
 #include "DSumFactory.h"
-#include "DSumSampler.h"
+#include "RealDSum.h"
+#include "DiscreteDSum.h"
 
 #include <stdexcept>
 #include <algorithm>
@@ -15,53 +16,91 @@
 using std::set;
 using std::vector;
 using std::runtime_error;
+using std::string;
 
-void DSumFactory::makeSampler(set<StochasticNode*> &nodes,
-			      Graph const &graph,
-			      vector<Sampler*> &samplers) const
+static StochasticNode const *getDSumChild(StochasticNode *node)
 {
-    set<Node*>::const_iterator p;
-    vector<StochasticNode const*> dsum_nodes;
-
-    //Find DSum nodes
-    for (p = graph.nodes().begin(); p != graph.nodes().end(); ++p) {
-	StochasticNode const *snode = asStochastic(*p);
-	if (snode && snode->distribution()->name() == "dsum")
-	    dsum_nodes.push_back(snode);
+    set<StochasticNode*>::const_iterator p;
+    for (p = node->stochasticChildren()->begin(); 
+	 p != node->stochasticChildren()->end(); ++p) 
+    {
+	//Skip unobserved nodes
+	if ((*p)->isObserved() && (*p)->distribution()->name() == "dsum") 
+	    return *p;
     }
-  
-    //See if we can sample them
-    for (unsigned int i = 0; i < dsum_nodes.size(); ++i) {
+    return 0;
+}
 
-	bool cansample = true;
+Sampler * DSumFactory::makeSampler(set<StochasticNode*> const &nodes,
+				   Graph const &graph) const
+{
+    //Find DSum node
+    StochasticNode const *dsum_node = 0;
+    for (set<StochasticNode*>::const_iterator p = nodes.begin(); 
+	 p != nodes.end(); ++p) 
+    {
+	dsum_node = getDSumChild(*p);
+	if (dsum_node)
+	    break;
+    }
+    
+    if (!dsum_node)
+	return 0;
+    
+    //See if we can sample the parents. This can only be done if they
+    //are unobserved stochastic nodes in the sample set
 
-	/* Get parents of dsumnode as a vector of Stochastic Nodes */
-	vector<StochasticNode *> parameters;
-	vector<Node const *> const &parents = dsum_nodes[i]->parents();
-	for (unsigned int j = 0; j < parents.size(); ++j) {
-	    set<StochasticNode *>::const_iterator q =
-		find(nodes.begin(), nodes.end(), parents[j]);
-	    if (q == nodes.end()) {
-		cansample = false;
-		break;
-	    }
-	    else {
-		parameters.push_back(*q);
-	    }
+    vector<StochasticNode *> parameters;
+    vector<Node const *> const &parents = dsum_node->parents();
+    vector<Node const *>::const_iterator pp;
+    for (pp = parents.begin(); pp != parents.end(); ++pp) {
+	set<StochasticNode*>::const_iterator q =
+	    find(nodes.begin(), nodes.end(), *pp);
+	if (q != nodes.end()) {
+	    parameters.push_back(*q);
 	}
-
-	if (cansample && DSumMethod::canSample(parameters, graph)) {
-	    for (unsigned int i = 0; i < parameters.size(); ++i) {
-		nodes.erase(parameters[i]);
-	    }
-	    
-	    unsigned int nchain = parameters[0]->nchain();
-	    vector<DensityMethod*> methods(nchain, 0);
-	    for (unsigned int ch = 0; ch < nchain; ++ch) {
-		methods[ch] = new DSumMethod;
-	    }
-	    Sampler *sampler = new DensitySampler(parameters, graph, methods);
-	    samplers.push_back(sampler);
+	else {
+	    return 0;
 	}
     }
+    
+    bool discrete;
+    if (RWDSum::canSample(parameters, graph, false)) {
+	discrete = false;
+    }
+    else if (RWDSum::canSample(parameters, graph, true)) {
+	discrete = true;
+    }
+    else {
+	return 0;
+    }
+    
+    GraphView *gv = new GraphView(parameters, graph);
+    unsigned int nchain = parameters[0]->nchain();
+    vector<SampleMethod*> methods(nchain, 0);
+    for (unsigned int ch = 0; ch < nchain; ++ch) {
+	if (discrete) {
+	    methods[ch] = new DiscreteDSum(gv, ch);
+	}
+	else {
+	    methods[ch] = new RealDSum(gv, ch);
+	}
+    }
+    return new ParallelSampler(gv, methods);
+
+}
+
+string DSumFactory::name() const
+{
+    return "bugs::DSum";
+}
+
+vector<Sampler*>  DSumFactory::makeSamplers(set<StochasticNode*> const &nodes, 
+					    Graph const &graph) const
+{
+    Sampler *s = makeSampler(nodes, graph);
+    if (s)
+	return vector<Sampler*>(1, s);
+    else 
+	return vector<Sampler*>();
 }

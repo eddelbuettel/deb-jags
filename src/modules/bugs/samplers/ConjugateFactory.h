@@ -6,18 +6,13 @@
 #include <sampler/SingletonFactory.h>
 #include <map>
 #include <string>
-class StochasticNode;
-
 
 /**
  * @short Factory object for conjugate samplers
  */
 class ConjugateFactory : public SingletonFactory
 {
-    std::map<std::string, bool (*)(StochasticNode *,
-					 Graph const &)> _func_table;
 public:
-    ConjugateFactory();
     /**
      * Provides a simple interface to the canSample member functions of
      * the various conjugate samplers.  The distribution of snode is found
@@ -28,8 +23,8 @@ public:
     /**
      * Creates a ConjugateSampler for a stochastic node. 
      */
-    Sampler *makeSingletonSampler(StochasticNode *snode, Graph const &graph)
-                                  const;
+    Sampler *makeSampler(StochasticNode *snode, Graph const &graph) const;
+    std::string name() const;
 };
 
 #endif /* CONJUGATE_FACTORY_H_ */

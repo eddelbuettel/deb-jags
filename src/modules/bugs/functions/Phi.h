@@ -1,7 +1,7 @@
 #ifndef FUNC_PHI_H_
 #define FUNC_PHI_H_
 
-#include <function/InverseLinkFunc.h>
+#include <function/LinkFunction.h>
 
 namespace bugs {
 
@@ -14,11 +14,11 @@ namespace bugs {
      * p = Prob(X < x) where X ~ N(0,1)
      * </pre>
      */
-    class Phi : public InverseLinkFunc
+    class Phi : public LinkFunction
     {
     public:
 	Phi ();
-	double evaluateScalar(std::vector<double const *> const &args) const;
+	double inverseLink(double eta) const;
 	double link(double mu) const;
 	double grad(double eta) const;
     };

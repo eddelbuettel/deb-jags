@@ -1,8 +1,7 @@
 #include <config.h>
-#include <distribution/Distribution.h>
-#include <graph/StochasticNode.h>
-#include <sampler/DensitySampler.h>
-#include <sampler/DensityMethod.h>
+#include <sampler/ParallelSampler.h>
+#include <sampler/GraphView.h>
+#include <sampler/SampleMethod.h>
 
 #include "FiniteMethod.h"
 #include "FiniteFactory.h"
@@ -10,6 +9,7 @@
 #include <vector>
 
 using std::vector;
+using std::string;
 
 namespace base {
 
@@ -19,17 +19,20 @@ namespace base {
 	return FiniteMethod::canSample(snode);
     }
 
-    Sampler *  FiniteFactory::makeSingletonSampler(StochasticNode *snode,
-						   Graph const &graph) const
+    Sampler *  FiniteFactory::makeSampler(StochasticNode *snode,
+					  Graph const &graph) const
     {
-	unsigned int nchain = snode->nchain();
-	vector<DensityMethod*> methods(nchain, 0);
-	for (unsigned int i = 0; i < nchain; ++i) {
-	    methods[i] = new FiniteMethod(snode);
+	GraphView *gv = new GraphView(snode, graph);
+	unsigned int N = nchain(gv);
+	vector<SampleMethod*> methods(N, 0);
+	for (unsigned int ch = 0; ch < N; ++ch) {
+	    methods[ch] = new FiniteMethod(gv, ch);
 	}
-	
-	vector<StochasticNode*> sample_nodes(1, snode);
-	return new DensitySampler(sample_nodes, graph, methods);
+	return new ParallelSampler(gv, methods);
     }
-    
+
+    string FiniteFactory::name() const
+    {
+	return "base::Finite";
+    }
 }

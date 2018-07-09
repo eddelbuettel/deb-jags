@@ -4,12 +4,14 @@
 #include "DiscreteSlicer.h"
 #include "SliceFactory.h"
 
-#include <sampler/DensitySampler.h>
+#include <sampler/ParallelSampler.h>
+#include <sampler/GraphView.h>
 #include <graph/StochasticNode.h>
 
 #include <vector>
 
 using std::vector;
+using std::string;
 
 namespace base {
 
@@ -24,24 +26,29 @@ namespace base {
         }
     }
 
-    Sampler *SliceFactory::makeSingletonSampler(StochasticNode *snode,
-						Graph const &graph) const
+    Sampler *SliceFactory::makeSampler(StochasticNode *snode,
+				       Graph const &graph) const
     {
 	unsigned int nchain = snode->nchain();
-	vector<DensityMethod*> methods(nchain, 0);
-	bool discrete = snode->isDiscreteValued();
+	vector<SampleMethod*> methods(nchain, 0);
+	//Fixme: use snode and graph in constructor...
+	GraphView *gv = new GraphView(snode, graph);
 
+	bool discrete = snode->isDiscreteValued();
 	for (unsigned int ch = 0; ch < nchain; ++ch) {
 	    if (discrete) {
-		methods[ch] = new DiscreteSlicer(snode, ch);
+		methods[ch] = new DiscreteSlicer(gv, ch);
 	    }
 	    else {
-		methods[ch] = new RealSlicer();
+		methods[ch] = new RealSlicer(gv, ch);
 	    }
 	}
 
-	vector<StochasticNode*> nodes(1, snode);
-	return new DensitySampler(nodes, graph, methods);
+	return new ParallelSampler(gv, methods);
     }
 
+    string SliceFactory::name() const
+    {
+	return "base::Slice";
+    }
 }
