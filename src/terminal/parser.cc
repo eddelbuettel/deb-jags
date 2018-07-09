@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.6.1.  */
 
 /* Bison implementation for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.5"
+#define YYBISON_VERSION "2.6.1"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -58,8 +58,6 @@
 /* Pull parsers.  */
 #define YYPULL 1
 
-/* Using locations.  */
-#define YYLSP_NEEDED 0
 
 /* Substitute the variable and function names.  */
 #define yyparse         zzparse
@@ -70,11 +68,9 @@
 #define yydebug         zzdebug
 #define yynerrs         zznerrs
 
-
 /* Copy the first part of user declarations.  */
-
-/* Line 268 of yacc.c  */
-#line 2 "parser.yy"
+/* Line 336 of yacc.c  */
+#line 2 "../../../../../jags-3_patched/src/terminal/parser.yy"
 
 #include <config.h>
 
@@ -160,14 +156,16 @@
                            std::string const &status);
     static bool Jtry(bool ok);
     
+/* Line 336 of yacc.c  */
+#line 161 "parser.cc"
 
-/* Line 268 of yacc.c  */
-#line 166 "parser.cc"
-
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
+# ifndef YY_NULL
+#  if defined __cplusplus && 201103L <= __cplusplus
+#   define YY_NULL nullptr
+#  else
+#   define YY_NULL 0
+#  endif
+# endif
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE
@@ -177,11 +175,17 @@
 # define YYERROR_VERBOSE 0
 #endif
 
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE 0
+/* In a future release of Bison, this section will be replaced
+   by #include "y.tab.h".  */
+#ifndef ZZ_Y_TAB_H
+# define ZZ_Y_TAB_H
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
 #endif
-
+#if YYDEBUG
+extern int zzdebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -295,13 +299,11 @@
 
 
 
-
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-
-/* Line 293 of yacc.c  */
-#line 91 "parser.yy"
+/* Line 350 of yacc.c  */
+#line 91 "../../../../../jags-3_patched/src/terminal/parser.yy"
 
   int intval;
   double val;
@@ -312,21 +314,36 @@ typedef union YYSTYPE
   std::vector<long> *ivec;
 
 
-
-/* Line 293 of yacc.c  */
-#line 318 "parser.cc"
+/* Line 350 of yacc.c  */
+#line 319 "parser.cc"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+extern YYSTYPE zzlval;
+
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int zzparse (void *YYPARSE_PARAM);
+#else
+int zzparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int zzparse (void);
+#else
+int zzparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
+
+#endif /* !ZZ_Y_TAB_H  */
 
 /* Copy the second part of user declarations.  */
 
-
-/* Line 343 of yacc.c  */
-#line 330 "parser.cc"
+/* Line 353 of yacc.c  */
+#line 347 "parser.cc"
 
 #ifdef short
 # undef short
@@ -432,6 +449,7 @@ YYID (yyi)
 #    if ! defined _ALLOCA_H && ! defined EXIT_SUCCESS && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 #     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
+      /* Use EXIT_SUCCESS as a witness for stdlib.h.  */
 #     ifndef EXIT_SUCCESS
 #      define EXIT_SUCCESS 0
 #     endif
@@ -523,20 +541,20 @@ union yyalloc
 #endif
 
 #if defined YYCOPY_NEEDED && YYCOPY_NEEDED
-/* Copy COUNT objects from FROM to TO.  The source and destination do
+/* Copy COUNT objects from SRC to DST.  The source and destination do
    not overlap.  */
 # ifndef YYCOPY
 #  if defined __GNUC__ && 1 < __GNUC__
-#   define YYCOPY(To, From, Count) \
-      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
+#   define YYCOPY(Dst, Src, Count) \
+      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
 #  else
-#   define YYCOPY(To, From, Count)		\
-      do					\
-	{					\
-	  YYSIZE_T yyi;				\
-	  for (yyi = 0; yyi < (Count); yyi++)	\
-	    (To)[yyi] = (From)[yyi];		\
-	}					\
+#   define YYCOPY(Dst, Src, Count)              \
+      do                                        \
+        {                                       \
+          YYSIZE_T yyi;                         \
+          for (yyi = 0; yyi < (Count); yyi++)   \
+            (Dst)[yyi] = (Src)[yyi];            \
+        }                                       \
       while (YYID (0))
 #  endif
 # endif
@@ -697,7 +715,7 @@ static const yytype_uint16 yyrline[] =
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
+#if YYDEBUG || YYERROR_VERBOSE || 0
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
@@ -722,7 +740,7 @@ static const char *const yytname[] =
   "r_generic_list", "r_generic_list_element", "r_generic_vector",
   "r_numeric_vector", "r_double_list", "r_character_vector",
   "r_string_list", "get_working_dir", "set_working_dir", "read_dir",
-  "run_script", 0
+  "run_script", YY_NULL
 };
 #endif
 
@@ -1009,17 +1027,18 @@ static const yytype_uint8 yystos[] =
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)					\
-do								\
-  if (yychar == YYEMPTY && yylen == 1)				\
-    {								\
-      yychar = (Token);						\
-      yylval = (Value);						\
-      YYPOPSTACK (1);						\
-      goto yybackup;						\
-    }								\
-  else								\
-    {								\
+#define YYBACKUP(Token, Value)                                  \
+do                                                              \
+  if (yychar == YYEMPTY)                                        \
+    {                                                           \
+      yychar = (Token);                                         \
+      yylval = (Value);                                         \
+      YYPOPSTACK (yylen);                                       \
+      yystate = *yyssp;                                         \
+      goto yybackup;                                            \
+    }                                                           \
+  else                                                          \
+    {                                                           \
       yyerror (YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
@@ -1029,31 +1048,32 @@ while (YYID (0))
 #define YYTERROR	1
 #define YYERRCODE	256
 
-
 /* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
    If N is 0, then set CURRENT to the empty location which ends
    the previous symbol: RHS[0] (always defined).  */
 
-#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)				\
-    do									\
-      if (YYID (N))                                                    \
-	{								\
-	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
-	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
-	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
-	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
-	}								\
-      else								\
-	{								\
-	  (Current).first_line   = (Current).last_line   =		\
-	    YYRHSLOC (Rhs, 0).last_line;				\
-	  (Current).first_column = (Current).last_column =		\
-	    YYRHSLOC (Rhs, 0).last_column;				\
-	}								\
+# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+    do                                                                  \
+      if (YYID (N))                                                     \
+        {                                                               \
+          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
+          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
+          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
+          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).first_line   = (Current).last_line   =              \
+            YYRHSLOC (Rhs, 0).last_line;                                \
+          (Current).first_column = (Current).last_column =              \
+            YYRHSLOC (Rhs, 0).last_column;                              \
+        }                                                               \
     while (YYID (0))
 #endif
+
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
+
 
 
 /* This macro is provided for backward compatibility. */
@@ -1114,6 +1134,8 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep)
     YYSTYPE const * const yyvaluep;
 #endif
 {
+  FILE *yyo = yyoutput;
+  YYUSE (yyo);
   if (!yyvaluep)
     return;
 # ifdef YYPRINT
@@ -1365,12 +1387,12 @@ static int
 yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yytype_int16 *yyssp, int yytoken)
 {
-  YYSIZE_T yysize0 = yytnamerr (0, yytname[yytoken]);
+  YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
   YYSIZE_T yysize = yysize0;
   YYSIZE_T yysize1;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
-  const char *yyformat = 0;
+  const char *yyformat = YY_NULL;
   /* Arguments of yyformat. */
   char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
   /* Number of reported tokens (one for the "unexpected", one per
@@ -1430,7 +1452,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                     break;
                   }
                 yyarg[yycount++] = yytname[yyx];
-                yysize1 = yysize + yytnamerr (0, yytname[yyx]);
+                yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
                 if (! (yysize <= yysize1
                        && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
                   return 2;
@@ -1522,20 +1544,6 @@ yydestruct (yymsg, yytype, yyvaluep)
 }
 
 
-/* Prevent warnings from -Wmissing-prototypes.  */
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void);
-#else
-int yyparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
 
 
 /* The lookahead symbol.  */
@@ -1582,7 +1590,7 @@ yyparse ()
        `yyss': related to states.
        `yyvs': related to semantic values.
 
-       Refer to the stacks thru separate pointers, to allow yyoverflow
+       Refer to the stacks through separate pointers, to allow yyoverflow
        to reallocate them elsewhere.  */
 
     /* The state stack.  */
@@ -1636,7 +1644,6 @@ yyparse ()
      The wasted elements are never initialized.  */
   yyssp = yyss;
   yyvsp = yyvs;
-
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -1814,9 +1821,8 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-
-/* Line 1806 of yacc.c  */
-#line 168 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 168 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1824,9 +1830,8 @@ yyreduce:
     break;
 
   case 3:
-
-/* Line 1806 of yacc.c  */
-#line 172 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 172 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
@@ -1834,51 +1839,44 @@ yyreduce:
     break;
 
   case 4:
-
-/* Line 1806 of yacc.c  */
-#line 178 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 178 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {}
     break;
 
   case 5:
-
-/* Line 1806 of yacc.c  */
-#line 179 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 179 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {}
     break;
 
   case 6:
-
-/* Line 1806 of yacc.c  */
-#line 180 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 180 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {if(interactive) yyerrok; else exit(1); }
     break;
 
   case 7:
-
-/* Line 1806 of yacc.c  */
-#line 181 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 181 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {}
     break;
 
   case 8:
-
-/* Line 1806 of yacc.c  */
-#line 182 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 182 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {}
     break;
 
   case 9:
-
-/* Line 1806 of yacc.c  */
-#line 183 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 183 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { doSystem((yyvsp[(1) - (2)].stringptr)); delete (yyvsp[(1) - (2)].stringptr);}
     break;
 
   case 32:
-
-/* Line 1806 of yacc.c  */
-#line 210 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 210 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     std::FILE *file = std::fopen(ExpandFileName(((yyvsp[(3) - (3)].stringptr))->c_str()).c_str(), "r");
     if (!file) {
@@ -1894,18 +1892,16 @@ yyreduce:
     break;
 
   case 33:
-
-/* Line 1806 of yacc.c  */
-#line 222 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 222 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     console->clearModel();
  }
     break;
 
   case 34:
-
-/* Line 1806 of yacc.c  */
-#line 227 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 227 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     std::string rngname;
     readRData((yyvsp[(2) - (3)].pvec), _data_table, rngname);
@@ -1917,9 +1913,8 @@ yyreduce:
     break;
 
   case 35:
-
-/* Line 1806 of yacc.c  */
-#line 235 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 235 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     // Failed to open the data file 
     if (!interactive) exit(1);
@@ -1927,9 +1922,8 @@ yyreduce:
     break;
 
   case 36:
-
-/* Line 1806 of yacc.c  */
-#line 241 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 241 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_DATA, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -1937,9 +1931,8 @@ yyreduce:
     break;
 
   case 37:
-
-/* Line 1806 of yacc.c  */
-#line 247 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 247 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
 	std::cout << "Reading data file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
@@ -1953,9 +1946,8 @@ yyreduce:
     break;
 
   case 38:
-
-/* Line 1806 of yacc.c  */
-#line 259 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 259 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     std::cout << "Clearing data table " << std::endl;
     _data_table.clear();
@@ -1963,9 +1955,8 @@ yyreduce:
     break;
 
   case 39:
-
-/* Line 1806 of yacc.c  */
-#line 266 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 266 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -1994,9 +1985,8 @@ yyreduce:
     break;
 
   case 40:
-
-/* Line 1806 of yacc.c  */
-#line 292 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 292 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     std::map<std::string, SArray> parameter_table;
     std::string rngname;
@@ -2013,16 +2003,14 @@ yyreduce:
     break;
 
   case 41:
-
-/* Line 1806 of yacc.c  */
-#line 305 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 305 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {}
     break;
 
   case 42:
-
-/* Line 1806 of yacc.c  */
-#line 308 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 308 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     doDump(*(yyvsp[(3) - (3)].stringptr), DUMP_PARAMETERS, 1);
     delete (yyvsp[(3) - (3)].stringptr);
@@ -2030,9 +2018,8 @@ yyreduce:
     break;
 
   case 43:
-
-/* Line 1806 of yacc.c  */
-#line 312 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 312 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     doDump(*(yyvsp[(3) - (8)].stringptr), DUMP_PARAMETERS, (yyvsp[(7) - (8)].intval));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -2040,9 +2027,8 @@ yyreduce:
     break;
 
   case 44:
-
-/* Line 1806 of yacc.c  */
-#line 318 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 318 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
     std::cout << "Reading parameter file " << *(yyvsp[(3) - (3)].stringptr) << std::endl;
@@ -2055,9 +2041,8 @@ yyreduce:
     break;
 
   case 45:
-
-/* Line 1806 of yacc.c  */
-#line 327 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 327 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   /* Legacy option to not break existing scripts */
   if(open_data_buffer((yyvsp[(3) - (3)].stringptr))) {
@@ -2071,9 +2056,8 @@ yyreduce:
     break;
 
   case 46:
-
-/* Line 1806 of yacc.c  */
-#line 339 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 339 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     Jtry(console->compile(_data_table, 1, true));
     print_unused_variables(_data_table, true);
@@ -2081,9 +2065,8 @@ yyreduce:
     break;
 
   case 47:
-
-/* Line 1806 of yacc.c  */
-#line 343 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 343 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     Jtry(console->compile(_data_table, (yyvsp[(5) - (6)].intval), true));
     print_unused_variables(_data_table, true);
@@ -2091,9 +2074,8 @@ yyreduce:
     break;
 
   case 48:
-
-/* Line 1806 of yacc.c  */
-#line 349 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 349 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     if (!console->initialize()) {
 	errordump();
@@ -2102,9 +2084,8 @@ yyreduce:
     break;
 
   case 49:
-
-/* Line 1806 of yacc.c  */
-#line 356 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 356 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     long refresh = interactive ? (yyvsp[(2) - (2)].intval)/50 : 0;
     adaptstar((yyvsp[(2) - (2)].intval), refresh, 50);
@@ -2112,18 +2093,16 @@ yyreduce:
     break;
 
   case 50:
-
-/* Line 1806 of yacc.c  */
-#line 360 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 360 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     adaptstar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval), 50);
 }
     break;
 
   case 51:
-
-/* Line 1806 of yacc.c  */
-#line 365 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 365 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     long refresh = interactive ? (yyvsp[(2) - (2)].intval)/50 : 0;
     updatestar((yyvsp[(2) - (2)].intval), refresh, 50);
@@ -2131,34 +2110,30 @@ yyreduce:
     break;
 
   case 52:
-
-/* Line 1806 of yacc.c  */
-#line 369 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 369 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   updatestar((yyvsp[(2) - (7)].intval),(yyvsp[(6) - (7)].intval), 50);
 }
     break;
 
   case 53:
-
-/* Line 1806 of yacc.c  */
-#line 374 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 374 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { return 0; }
     break;
 
   case 54:
-
-/* Line 1806 of yacc.c  */
-#line 377 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 377 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (1)].stringptr));
 }
     break;
 
   case 55:
-
-/* Line 1806 of yacc.c  */
-#line 380 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 380 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (4)].stringptr));
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
@@ -2166,88 +2141,78 @@ yyreduce:
     break;
 
   case 56:
-
-/* Line 1806 of yacc.c  */
-#line 386 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 386 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); 
 }
     break;
 
   case 57:
-
-/* Line 1806 of yacc.c  */
-#line 389 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 389 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.pvec)=(yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
     break;
 
   case 58:
-
-/* Line 1806 of yacc.c  */
-#line 394 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 394 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree), (yyvsp[(1) - (1)].ptree));
 }
     break;
 
   case 59:
-
-/* Line 1806 of yacc.c  */
-#line 397 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 397 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_RANGE); setParameters((yyval.ptree), (yyvsp[(1) - (3)].ptree), (yyvsp[(3) - (3)].ptree));
 }
     break;
 
   case 60:
-
-/* Line 1806 of yacc.c  */
-#line 403 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 403 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].intval));}
     break;
 
   case 63:
-
-/* Line 1806 of yacc.c  */
-#line 410 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 410 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { 
     setMonitor((yyvsp[(3) - (3)].ptree), 1, "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
     break;
 
   case 64:
-
-/* Line 1806 of yacc.c  */
-#line 413 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 413 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { 
     setMonitor((yyvsp[(3) - (8)].ptree), (yyvsp[(7) - (8)].intval), "trace"); delete (yyvsp[(3) - (8)].ptree);
 }
     break;
 
   case 65:
-
-/* Line 1806 of yacc.c  */
-#line 416 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 416 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     setMonitor((yyvsp[(2) - (2)].ptree), 1, "trace"); delete (yyvsp[(2) - (2)].ptree);
 }
     break;
 
   case 66:
-
-/* Line 1806 of yacc.c  */
-#line 419 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 419 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { 
     setMonitor((yyvsp[(2) - (7)].ptree), (yyvsp[(6) - (7)].intval), "trace"); delete (yyvsp[(2) - (7)].ptree);
 }
     break;
 
   case 67:
-
-/* Line 1806 of yacc.c  */
-#line 422 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 422 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     setMonitor((yyvsp[(2) - (7)].ptree), 1, *(yyvsp[(6) - (7)].stringptr));
     delete (yyvsp[(6) - (7)].stringptr);
@@ -2255,9 +2220,8 @@ yyreduce:
     break;
 
   case 68:
-
-/* Line 1806 of yacc.c  */
-#line 426 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 426 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(10) - (11)].intval), *(yyvsp[(6) - (11)].stringptr)); 
     delete (yyvsp[(6) - (11)].stringptr);
@@ -2265,9 +2229,8 @@ yyreduce:
     break;
 
   case 69:
-
-/* Line 1806 of yacc.c  */
-#line 430 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 430 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     setMonitor((yyvsp[(2) - (11)].ptree), (yyvsp[(6) - (11)].intval), *(yyvsp[(10) - (11)].stringptr)); 
     delete (yyvsp[(10) - (11)].stringptr);
@@ -2275,18 +2238,16 @@ yyreduce:
     break;
 
   case 70:
-
-/* Line 1806 of yacc.c  */
-#line 436 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 436 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     clearMonitor((yyvsp[(3) - (3)].ptree), "trace"); delete (yyvsp[(3) - (3)].ptree);
 }
     break;
 
   case 71:
-
-/* Line 1806 of yacc.c  */
-#line 439 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 439 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     clearMonitor((yyvsp[(3) - (8)].ptree), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(7) - (8)].stringptr);
@@ -2294,9 +2255,8 @@ yyreduce:
     break;
 
   case 72:
-
-/* Line 1806 of yacc.c  */
-#line 446 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 446 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (3)].stringptr), "trace");
     delete (yyvsp[(3) - (3)].stringptr);
@@ -2304,9 +2264,8 @@ yyreduce:
     break;
 
   case 73:
-
-/* Line 1806 of yacc.c  */
-#line 451 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 451 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     dumpMonitors(*(yyvsp[(3) - (8)].stringptr), *(yyvsp[(7) - (8)].stringptr));
     delete (yyvsp[(3) - (8)].stringptr);
@@ -2315,73 +2274,64 @@ yyreduce:
     break;
 
   case 74:
-
-/* Line 1806 of yacc.c  */
-#line 463 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 463 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr);}
     break;
 
   case 75:
-
-/* Line 1806 of yacc.c  */
-#line 464 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 464 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { (yyval.stringptr) = (yyvsp[(1) - (1)].stringptr); }
     break;
 
   case 76:
-
-/* Line 1806 of yacc.c  */
-#line 467 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 467 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   doCoda ((yyvsp[(2) - (2)].ptree), "CODA"); delete (yyvsp[(2) - (2)].ptree);
 }
     break;
 
   case 77:
-
-/* Line 1806 of yacc.c  */
-#line 470 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 470 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   doCoda ((yyvsp[(2) - (7)].ptree), *(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(2) - (7)].ptree); delete (yyvsp[(6) - (7)].stringptr);
 }
     break;
 
   case 78:
-
-/* Line 1806 of yacc.c  */
-#line 473 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 473 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   doAllCoda ("CODA"); 
 }
     break;
 
   case 79:
-
-/* Line 1806 of yacc.c  */
-#line 476 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 476 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   doAllCoda (*(yyvsp[(6) - (7)].stringptr)); delete (yyvsp[(6) - (7)].stringptr); 
 }
     break;
 
   case 80:
-
-/* Line 1806 of yacc.c  */
-#line 481 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 481 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { loadModule(*(yyvsp[(2) - (2)].stringptr)); }
     break;
 
   case 81:
-
-/* Line 1806 of yacc.c  */
-#line 484 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 484 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { unloadModule(*(yyvsp[(2) - (2)].stringptr)); }
     break;
 
   case 82:
-
-/* Line 1806 of yacc.c  */
-#line 488 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 488 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     dumpSamplers(*(yyvsp[(3) - (3)].stringptr));
     delete (yyvsp[(3) - (3)].stringptr);
@@ -2389,36 +2339,32 @@ yyreduce:
     break;
 
   case 83:
-
-/* Line 1806 of yacc.c  */
-#line 495 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 495 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     listFactories(SAMPLER_FACTORY);
 }
     break;
 
   case 84:
-
-/* Line 1806 of yacc.c  */
-#line 500 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 500 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     listFactories(RNG_FACTORY);
 }
     break;
 
   case 85:
-
-/* Line 1806 of yacc.c  */
-#line 505 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 505 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     listFactories(MONITOR_FACTORY);
 }
     break;
 
   case 86:
-
-/* Line 1806 of yacc.c  */
-#line 511 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 511 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), SAMPLER_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2427,9 +2373,8 @@ yyreduce:
     break;
 
   case 87:
-
-/* Line 1806 of yacc.c  */
-#line 518 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 518 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), RNG_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2438,9 +2383,8 @@ yyreduce:
     break;
 
   case 88:
-
-/* Line 1806 of yacc.c  */
-#line 525 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 525 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     setFactory(*(yyvsp[(3) - (9)].stringptr), MONITOR_FACTORY, *(yyvsp[(4) - (9)].stringptr));
     delete (yyvsp[(3) - (9)].stringptr);
@@ -2449,45 +2393,40 @@ yyreduce:
     break;
 
   case 89:
-
-/* Line 1806 of yacc.c  */
-#line 534 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 534 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree));
 }
     break;
 
   case 90:
-
-/* Line 1806 of yacc.c  */
-#line 537 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 537 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (2)].pvec); (yyval.pvec)->push_back((yyvsp[(2) - (2)].ptree));
 }
     break;
 
   case 91:
-
-/* Line 1806 of yacc.c  */
-#line 540 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 540 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));
 }
     break;
 
   case 92:
-
-/* Line 1806 of yacc.c  */
-#line 545 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 545 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
 }
     break;
 
   case 93:
-
-/* Line 1806 of yacc.c  */
-#line 548 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 548 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY);
   setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2496,9 +2435,8 @@ yyreduce:
     break;
 
   case 94:
-
-/* Line 1806 of yacc.c  */
-#line 553 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 553 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   /* Allow this for setting the NAME of the random number generator */
   (yyval.ptree) = new ParseTree(P_VAR); setName((yyval.ptree), (yyvsp[(1) - (3)].stringptr));
@@ -2508,9 +2446,8 @@ yyreduce:
     break;
 
   case 97:
-
-/* Line 1806 of yacc.c  */
-#line 563 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 563 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     /* R >= 2.4.0 uses backticks for quoted names */
     (yyval.stringptr) = (yyvsp[(2) - (3)].stringptr);
@@ -2518,9 +2455,8 @@ yyreduce:
     break;
 
   case 98:
-
-/* Line 1806 of yacc.c  */
-#line 568 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 568 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_ARRAY); 
   if ((yyvsp[(5) - (6)].ptree)) 
@@ -2531,9 +2467,8 @@ yyreduce:
     break;
 
   case 99:
-
-/* Line 1806 of yacc.c  */
-#line 575 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 575 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     (yyval.ptree) = new ParseTree(P_ARRAY);
     setParameters((yyval.ptree), (yyvsp[(3) - (4)].ptree));
@@ -2541,48 +2476,42 @@ yyreduce:
     break;
 
   case 101:
-
-/* Line 1806 of yacc.c  */
-#line 584 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 584 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.ptree)=0;}
     break;
 
   case 103:
-
-/* Line 1806 of yacc.c  */
-#line 586 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 586 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.ptree)=(yyvsp[(3) - (3)].ptree);}
     break;
 
   case 104:
-
-/* Line 1806 of yacc.c  */
-#line 589 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 589 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree);
 }
     break;
 
   case 105:
-
-/* Line 1806 of yacc.c  */
-#line 592 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 592 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = (yyvsp[(3) - (3)].ptree);
 }
     break;
 
   case 108:
-
-/* Line 1806 of yacc.c  */
-#line 601 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 601 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.ptree) = (yyvsp[(3) - (4)].ptree);}
     break;
 
   case 109:
-
-/* Line 1806 of yacc.c  */
-#line 604 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 604 "../../../../../jags-3_patched/src/terminal/parser.yy"
     { 
   (yyval.ptree) = new ParseTree(P_VECTOR); 
   setParameters((yyval.ptree), (yyvsp[(1) - (1)].ptree));
@@ -2590,9 +2519,8 @@ yyreduce:
     break;
 
   case 110:
-
-/* Line 1806 of yacc.c  */
-#line 608 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 608 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
   (yyval.ptree) = new ParseTree(P_VECTOR);
   setParameters((yyval.ptree), (yyvsp[(3) - (4)].pvec));
@@ -2600,163 +2528,140 @@ yyreduce:
     break;
 
   case 111:
-
-/* Line 1806 of yacc.c  */
-#line 614 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 614 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[(1) - (1)].ptree)); }
     break;
 
   case 112:
-
-/* Line 1806 of yacc.c  */
-#line 615 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 615 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.pvec) = (yyvsp[(1) - (3)].pvec); (yyval.pvec)->push_back((yyvsp[(3) - (3)].ptree));}
     break;
 
   case 113:
-
-/* Line 1806 of yacc.c  */
-#line 618 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 618 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue((yyvsp[(1) - (1)].val));}
     break;
 
   case 114:
-
-/* Line 1806 of yacc.c  */
-#line 619 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 619 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {(yyval.ptree) = new ParseTree(P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
     break;
 
   case 115:
-
-/* Line 1806 of yacc.c  */
-#line 625 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 625 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 116:
-
-/* Line 1806 of yacc.c  */
-#line 628 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 628 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 117:
-
-/* Line 1806 of yacc.c  */
-#line 629 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 629 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 118:
-
-/* Line 1806 of yacc.c  */
-#line 632 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 632 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 119:
-
-/* Line 1806 of yacc.c  */
-#line 633 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 633 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 120:
-
-/* Line 1806 of yacc.c  */
-#line 636 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 636 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 121:
-
-/* Line 1806 of yacc.c  */
-#line 637 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 637 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 122:
-
-/* Line 1806 of yacc.c  */
-#line 638 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 638 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 123:
-
-/* Line 1806 of yacc.c  */
-#line 639 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 639 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 124:
-
-/* Line 1806 of yacc.c  */
-#line 640 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 640 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 125:
-
-/* Line 1806 of yacc.c  */
-#line 641 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 641 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 126:
-
-/* Line 1806 of yacc.c  */
-#line 644 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 644 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 128:
-
-/* Line 1806 of yacc.c  */
-#line 648 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 648 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 129:
-
-/* Line 1806 of yacc.c  */
-#line 649 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 649 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 130:
-
-/* Line 1806 of yacc.c  */
-#line 652 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 652 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 131:
-
-/* Line 1806 of yacc.c  */
-#line 653 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 653 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 132:
-
-/* Line 1806 of yacc.c  */
-#line 656 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 656 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 133:
-
-/* Line 1806 of yacc.c  */
-#line 657 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 657 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {;}
     break;
 
   case 134:
-
-/* Line 1806 of yacc.c  */
-#line 663 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 663 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     std::string name;
     if (getWorkingDirectory(name)) {
@@ -2769,9 +2674,8 @@ yyreduce:
     break;
 
   case 135:
-
-/* Line 1806 of yacc.c  */
-#line 674 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 674 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     if (chdir(((yyvsp[(2) - (2)].stringptr))->c_str()) == -1) {
 	std::cout << "ERROR: Cannot change working directory" << std::endl;
@@ -2781,9 +2685,8 @@ yyreduce:
     break;
 
   case 136:
-
-/* Line 1806 of yacc.c  */
-#line 682 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 682 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     std::string name;
     if (!getWorkingDirectory(name)) {
@@ -2809,9 +2712,8 @@ yyreduce:
     break;
 
   case 137:
-
-/* Line 1806 of yacc.c  */
-#line 705 "parser.yy"
+/* Line 1787 of yacc.c  */
+#line 705 "../../../../../jags-3_patched/src/terminal/parser.yy"
     {
     if(open_command_buffer((yyvsp[(2) - (2)].stringptr))) {
 	std::cout << "Running script file " << *(yyvsp[(2) - (2)].stringptr) << std::endl;
@@ -2824,9 +2726,8 @@ yyreduce:
     break;
 
 
-
-/* Line 1806 of yacc.c  */
-#line 2830 "parser.cc"
+/* Line 1787 of yacc.c  */
+#line 2731 "parser.cc"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3013,7 +2914,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#if !defined(yyoverflow) || YYERROR_VERBOSE
+#if !defined yyoverflow || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -3055,9 +2956,8 @@ yyreturn:
 }
 
 
-
-/* Line 2067 of yacc.c  */
-#line 716 "parser.yy"
+/* Line 2048 of yacc.c  */
+#line 716 "../../../../../jags-3_patched/src/terminal/parser.yy"
 
 
 int zzerror (const char *s)
@@ -3725,7 +3625,9 @@ static void print_unused_variables(std::map<std::string, SArray> const &table,
 	model_vars.push_back(".RNG.name");
 	model_vars.push_back(".RNG.seed");
 	model_vars.push_back(".RNG.state");
+	std::sort(model_vars.begin(), model_vars.end());
     }
+
     std::set_difference(supplied_vars.begin(), supplied_vars.end(),
 			model_vars.begin(), model_vars.end(),
 			std::inserter(unused_vars, unused_vars.begin()));

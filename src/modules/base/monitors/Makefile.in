@@ -71,7 +71,9 @@ CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 basemonitors_la_LIBADD =
 am_basemonitors_la_OBJECTS = basemonitors_la-TraceMonitor.lo \
-	basemonitors_la-TraceMonitorFactory.lo
+	basemonitors_la-TraceMonitorFactory.lo \
+	basemonitors_la-MeanMonitor.lo \
+	basemonitors_la-MeanMonitorFactory.lo
 basemonitors_la_OBJECTS = $(am_basemonitors_la_OBJECTS)
 basemonitors_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -256,8 +258,12 @@ top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = basemonitors.la
 basemonitors_la_CPPFLAGS = -I$(top_srcdir)/src/include
 basemonitors_la_LDFLAGS = -no-undefined -module -avoid-version
-basemonitors_la_SOURCES = TraceMonitor.cc TraceMonitorFactory.cc	
-noinst_HEADERS = TraceMonitor.h TraceMonitorFactory.h 
+basemonitors_la_SOURCES = TraceMonitor.cc TraceMonitorFactory.cc	\
+MeanMonitor.cc MeanMonitorFactory.cc
+
+noinst_HEADERS = TraceMonitor.h TraceMonitorFactory.h MeanMonitor.h	\
+MeanMonitorFactory.h
+
 all: all-am
 
 .SUFFIXES:
@@ -310,6 +316,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basemonitors_la-MeanMonitor.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basemonitors_la-MeanMonitorFactory.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basemonitors_la-TraceMonitor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/basemonitors_la-TraceMonitorFactory.Plo@am__quote@
 
@@ -347,6 +355,20 @@ basemonitors_la-TraceMonitorFactory.lo: TraceMonitorFactory.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TraceMonitorFactory.cc' object='basemonitors_la-TraceMonitorFactory.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basemonitors_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o basemonitors_la-TraceMonitorFactory.lo `test -f 'TraceMonitorFactory.cc' || echo '$(srcdir)/'`TraceMonitorFactory.cc
+
+basemonitors_la-MeanMonitor.lo: MeanMonitor.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basemonitors_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT basemonitors_la-MeanMonitor.lo -MD -MP -MF $(DEPDIR)/basemonitors_la-MeanMonitor.Tpo -c -o basemonitors_la-MeanMonitor.lo `test -f 'MeanMonitor.cc' || echo '$(srcdir)/'`MeanMonitor.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/basemonitors_la-MeanMonitor.Tpo $(DEPDIR)/basemonitors_la-MeanMonitor.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MeanMonitor.cc' object='basemonitors_la-MeanMonitor.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basemonitors_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o basemonitors_la-MeanMonitor.lo `test -f 'MeanMonitor.cc' || echo '$(srcdir)/'`MeanMonitor.cc
+
+basemonitors_la-MeanMonitorFactory.lo: MeanMonitorFactory.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basemonitors_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT basemonitors_la-MeanMonitorFactory.lo -MD -MP -MF $(DEPDIR)/basemonitors_la-MeanMonitorFactory.Tpo -c -o basemonitors_la-MeanMonitorFactory.lo `test -f 'MeanMonitorFactory.cc' || echo '$(srcdir)/'`MeanMonitorFactory.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/basemonitors_la-MeanMonitorFactory.Tpo $(DEPDIR)/basemonitors_la-MeanMonitorFactory.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MeanMonitorFactory.cc' object='basemonitors_la-MeanMonitorFactory.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(basemonitors_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o basemonitors_la-MeanMonitorFactory.lo `test -f 'MeanMonitorFactory.cc' || echo '$(srcdir)/'`MeanMonitorFactory.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

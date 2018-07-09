@@ -85,13 +85,13 @@ am_bugsfunc_la_OBJECTS = bugsfunc_la-Max.lo bugsfunc_la-Probit.lo \
 	bugsfunc_la-ArcTan.lo bugsfunc_la-ArcCosh.lo \
 	bugsfunc_la-ArcSinh.lo bugsfunc_la-ArcTanh.lo \
 	bugsfunc_la-InterpLin.lo bugsfunc_la-Round.lo \
-	bugsfunc_la-Trunc.lo bugsfunc_la-Pow.lo bugsfunc_la-Equals.lo \
-	bugsfunc_la-Prod.lo bugsfunc_la-MatMult.lo \
-	bugsfunc_la-Transpose.lo bugsfunc_la-DSumFunc.lo \
-	bugsfunc_la-DIntervalFunc.lo bugsfunc_la-DPQFunction.lo \
-	bugsfunc_la-DFunction.lo bugsfunc_la-PFunction.lo \
-	bugsfunc_la-QFunction.lo bugsfunc_la-DRoundFunc.lo \
-	bugsfunc_la-IfElse.lo
+	bugsfunc_la-Trunc.lo bugsfunc_la-Equals.lo bugsfunc_la-Prod.lo \
+	bugsfunc_la-MatMult.lo bugsfunc_la-Transpose.lo \
+	bugsfunc_la-DSumFunc.lo bugsfunc_la-DIntervalFunc.lo \
+	bugsfunc_la-DPQFunction.lo bugsfunc_la-DFunction.lo \
+	bugsfunc_la-PFunction.lo bugsfunc_la-QFunction.lo \
+	bugsfunc_la-DRoundFunc.lo bugsfunc_la-IfElse.lo \
+	bugsfunc_la-Order.lo
 bugsfunc_la_OBJECTS = $(am_bugsfunc_la_OBJECTS)
 bugsfunc_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -284,17 +284,18 @@ ICLogLog.cc Min.cc Sqrt.cc CLogLog.cc ILogit.cc Step.cc Log.cc Sum.cc	\
 Exp.cc LogFact.cc LogGam.cc Phi.cc Logit.cc Inverse.cc LogDet.cc	\
 Sort.cc Rank.cc Abs.cc Cos.cc Sin.cc Tan.cc Cosh.cc Sinh.cc Tanh.cc	\
 ArcCos.cc ArcSin.cc ArcTan.cc ArcCosh.cc ArcSinh.cc ArcTanh.cc		\
-InterpLin.cc Round.cc Trunc.cc Pow.cc Equals.cc Prod.cc MatMult.cc	\
+InterpLin.cc Round.cc Trunc.cc Equals.cc Prod.cc MatMult.cc	\
 Transpose.cc DSumFunc.cc DIntervalFunc.cc DPQFunction.cc DFunction.cc	\
-PFunction.cc QFunction.cc DRoundFunc.cc IfElse.cc
+PFunction.cc QFunction.cc DRoundFunc.cc IfElse.cc Order.cc
 
 noinst_HEADERS = LogGam.h Phi.h Sum.h Log.h Logit.h Probit.h CLogLog.h	\
 InProd.h Max.h SD.h ICLogLog.h Mean.h Sqrt.h ILogit.h Min.h Step.h	\
 Exp.h LogFact.h Inverse.h LogDet.h Sort.h Rank.h Abs.h Cos.h Sin.h	\
 Tan.h Cosh.h Sinh.h Tanh.h ArcCos.h ArcSin.h ArcTan.h ArcCosh.h		\
-ArcSinh.h ArcTanh.h InterpLin.h Round.h Trunc.h Pow.h Equals.h Prod.h	\
+ArcSinh.h ArcTanh.h InterpLin.h Round.h Trunc.h Equals.h Prod.h	\
 MatMult.h Transpose.h DSumFunc.h DIntervalFunc.h \
-DPQFunction.h DFunction.h PFunction.h QFunction.h DRoundFunc.h IfElse.h
+DPQFunction.h DFunction.h PFunction.h QFunction.h DRoundFunc.h IfElse.h \
+Order.h
 
 all: all-am
 
@@ -380,9 +381,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Max.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Mean.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Min.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Order.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-PFunction.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Phi.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Pow.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Probit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-Prod.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bugsfunc_la-QFunction.Plo@am__quote@
@@ -687,13 +688,6 @@ bugsfunc_la-Trunc.lo: Trunc.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsfunc_la-Trunc.lo `test -f 'Trunc.cc' || echo '$(srcdir)/'`Trunc.cc
 
-bugsfunc_la-Pow.lo: Pow.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bugsfunc_la-Pow.lo -MD -MP -MF $(DEPDIR)/bugsfunc_la-Pow.Tpo -c -o bugsfunc_la-Pow.lo `test -f 'Pow.cc' || echo '$(srcdir)/'`Pow.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/bugsfunc_la-Pow.Tpo $(DEPDIR)/bugsfunc_la-Pow.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Pow.cc' object='bugsfunc_la-Pow.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsfunc_la-Pow.lo `test -f 'Pow.cc' || echo '$(srcdir)/'`Pow.cc
-
 bugsfunc_la-Equals.lo: Equals.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bugsfunc_la-Equals.lo -MD -MP -MF $(DEPDIR)/bugsfunc_la-Equals.Tpo -c -o bugsfunc_la-Equals.lo `test -f 'Equals.cc' || echo '$(srcdir)/'`Equals.cc
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/bugsfunc_la-Equals.Tpo $(DEPDIR)/bugsfunc_la-Equals.Plo
@@ -777,6 +771,13 @@ bugsfunc_la-IfElse.lo: IfElse.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IfElse.cc' object='bugsfunc_la-IfElse.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsfunc_la-IfElse.lo `test -f 'IfElse.cc' || echo '$(srcdir)/'`IfElse.cc
+
+bugsfunc_la-Order.lo: Order.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bugsfunc_la-Order.lo -MD -MP -MF $(DEPDIR)/bugsfunc_la-Order.Tpo -c -o bugsfunc_la-Order.lo `test -f 'Order.cc' || echo '$(srcdir)/'`Order.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/bugsfunc_la-Order.Tpo $(DEPDIR)/bugsfunc_la-Order.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Order.cc' object='bugsfunc_la-Order.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bugsfunc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bugsfunc_la-Order.lo `test -f 'Order.cc' || echo '$(srcdir)/'`Order.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

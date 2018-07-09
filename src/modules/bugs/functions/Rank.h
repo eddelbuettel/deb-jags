@@ -6,11 +6,17 @@
 namespace bugs {
 
     /**
-     * @short Sort function
-     * Calculates the ranks of the elements of a vector in ascending order
+     * @short Rank function
+     *
+     * Calculates the sample ranks of the values in a vector. The ranks
+     * define a permutation that is the inverse of the one returned
+     * by the Order function.
+     *
      * <pre>
-     * y <- sort(x[])
+     * y <- rank(x[])
      * </pre>
+     *
+     * @see Order
      */
     class Rank : public VectorFunction
     {
