@@ -83,6 +83,7 @@ am_libjrmath_la_OBJECTS = libjrmath_la-callbacks.lo \
 	libjrmath_la-i1mach.lo libjrmath_la-fsign.lo \
 	libjrmath_la-imax2.lo libjrmath_la-imin2.lo \
 	libjrmath_la-fmin2.lo libjrmath_la-fmax2.lo \
+	libjrmath_la-fprec.lo libjrmath_la-fround.lo \
 	libjrmath_la-ftrunc.lo libjrmath_la-chebyshev.lo \
 	libjrmath_la-lgammacor.lo libjrmath_la-log1p.lo \
 	libjrmath_la-lbeta.lo libjrmath_la-rbeta.lo \
@@ -307,7 +308,7 @@ libjrmath_la_LDFLAGS = -no-undefined -version-info 0:0:0
 libjrmath_la_SOURCES = callbacks.cc \
 mlutils.c stirlerr.c bd0.c choose.c gamma.c lgamma.c toms708.c \
 d1mach.c i1mach.c fsign.c imax2.c imin2.c \
-fmin2.c fmax2.c ftrunc.c \
+fmin2.c fmax2.c fprec.c fround.c ftrunc.c \
 chebyshev.c lgammacor.c log1p.c lbeta.c \
 rbeta.c dbeta.c pbeta.c qbeta.c \
 rbinom.c dbinom.c pbinom.c qbinom.c \
@@ -428,6 +429,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-dweibull.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-fmax2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-fmin2.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-fprec.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-fround.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-fsign.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-ftrunc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjrmath_la-gamma.Plo@am__quote@
@@ -612,6 +615,20 @@ libjrmath_la-fmax2.lo: fmax2.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fmax2.c' object='libjrmath_la-fmax2.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-fmax2.lo `test -f 'fmax2.c' || echo '$(srcdir)/'`fmax2.c
+
+libjrmath_la-fprec.lo: fprec.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-fprec.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-fprec.Tpo -c -o libjrmath_la-fprec.lo `test -f 'fprec.c' || echo '$(srcdir)/'`fprec.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libjrmath_la-fprec.Tpo $(DEPDIR)/libjrmath_la-fprec.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fprec.c' object='libjrmath_la-fprec.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-fprec.lo `test -f 'fprec.c' || echo '$(srcdir)/'`fprec.c
+
+libjrmath_la-fround.lo: fround.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-fround.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-fround.Tpo -c -o libjrmath_la-fround.lo `test -f 'fround.c' || echo '$(srcdir)/'`fround.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libjrmath_la-fround.Tpo $(DEPDIR)/libjrmath_la-fround.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fround.c' object='libjrmath_la-fround.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libjrmath_la-fround.lo `test -f 'fround.c' || echo '$(srcdir)/'`fround.c
 
 libjrmath_la-ftrunc.lo: ftrunc.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjrmath_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libjrmath_la-ftrunc.lo -MD -MP -MF $(DEPDIR)/libjrmath_la-ftrunc.Tpo -c -o libjrmath_la-ftrunc.lo `test -f 'ftrunc.c' || echo '$(srcdir)/'`ftrunc.c
