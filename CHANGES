@@ -1,23 +1,153 @@
+=====================================	
+Simple ChangeLog
+
+Please put full list of modifications
+in relevant source files
+=====================================
+
 CHANGES:
 
-010715
+030904 Daniel Sundberg <sumpan@sumpan.com>
++ Released jags-0.22.1 bugfix release
++ Remove offline and freebsd plugins from dist
++ Save prefix from configure so that jags will find icons and plugins
+upon first startup
+
+030903 Daniel Sundberg <sumpan@sumpan.com>
++ Released jags-0.22
+
+030824 Daniel Sundberg <sumpan@sumpan.com>
++ Added spec file from moe <moe@blagblagblag.org>
+
+030824 Daniel Sundberg <sumpan@sumpan.com>
++ Fix a couple of minor but critical bugs, both in 
+  scripts and in mainwindow.cpp
+
+030823 Daniel Sundberg <sumpan@sumpan.com>
++ Use old search dialog
++ Fixed a bug in the fetch_master_browser.sh script
++ Use _only_ fetch_master_browser.sh
+
+030816 Daniel Sundberg <sumpan@sumpan.com>
++ Fixed bug in share comment parsing routines
++ Removed useless progressbar
+
+030816 Daniel Sundberg <sumpan@sumpan.com>
++ Fixed bugs in samba-2.0.7 plugin
++ Don't use fetch_master_browser_remote
+
+030806 Anatoliy Demchishin aka Caracal
++ share automounting disabling now works correctly
++ bookmark mechanism fully rewritten and improved
++ small memory leaks killed
+
+030804 Anatoliy Demchishin aka Caracal
++ native workgroup is listed now faster
++ bug in "allready mounted shares" parsing procedure killed (no Raid :))
+
+030726 Anatoliy Demchishin aka Caracal
++ BSD and offline plugins go bye-bye
++ new plugin added to the project... implements cyrillic charset support
+  for share mounting (only on kernels 2.4.0+ and recent SAMBA suites)
++ proper destructor code execution
+
+030724 Anatoliy Demchishin aka Caracal
++ now only one instance of JagsConfig is created :)
+  JagsConfig reloading after PrefsDialog added
++ share directory is now removed after canceling MountWithPass dialog
+
+030721 Anatoliy Demchishin aka Caracal
++ "first TreeItem problem" in search dialog invokation healed
+
+030720 Anatoliy Demchishin aka Caracal
++ windows/dialogs dimension tweaking
++ serious JagsSearchDialog rewrite
+  Code duplicating removed. Interface is made much more integrated
+
+030719 Anatoliy Demchishin aka Caracal
++ appropriate mount procedure for "automounted shares" written
++ some project files cleaning
++ one unnecessary instance of JagsConf eliminated
+
+030717 Anatoliy Demchishin aka Caracal
++ some plugin non-standard situation workaroud added
++ comments alignment added
++ IPC shares visibility are now handled as xxx$ shares
+
+030715  Anatoliy Demchishin aka Caracal
++ server comments added
++ new icons implemented
++ theoretically wrong code-chunk of RPC shares listing replaced with an updated
+  code of share type processing
++ share comment and type processing added
+
+030713 Daniel Sundberg
++ code cleanup
++ install sounds
+
+030711 Anatoliy Demchishin aka Caracal
++ server was not properly selected on user mouse click causing wrong
+  bookmark add procedure. Fixed
++ cancelling mount with password dialog doesn't unshaded popup items
+  Fixed
++ jumbo security hole slightly fixed in "mount with command" dialog
+  Proper fixing needs perl script
+
+030709 Anatoliy Demchishin aka Caracal
++ very special "g_strsplit" bug killed. Bug prevented right config file parsing
+  in cases when key value contained "="
++ sound feature added
++ vorbis ogg123 player check added
++ standard sounds added
+
+030706 Anatoliy Demchishin aka Caracal
++ smbmount guest login fixed. Now it accepts no password for non-native group
++ fixed problem of server shares listing. Workgroup name didn't change correctly
+  when switching between different workgroups
+
+030704 Anatoliy Demchishin aka Caracal
++ All Callback function declarations are rewritten
++ ProgressBar Widget added to watch Jags is doing smthng
++ WINS option added to handle situations when LocalMasterBrowser don't
+  respond on nmblookup broadcast
++ Non native workgroup listing & mounting enabled!
+  Great work to enable this feature had been done
++ Computer search scope now expanded on all visible workgroups
++ "IPC$ hide" option now transformed into "RPC$ hide"
++ Allready mounted smb shares are now loaded into jags on startup
++ Interactive share popup now prohibits to mount allready mounted shares
++ Unmount feature now works correctly
++ Share directory remove after umount
++ First tree element hiding now works not only after first subtree collapse
++ Allready mounted share wouldn't be mounted even if user coped to find
+  "mount" option in popup enabled somehow
++ Subtrees are now expanded on mouse double click
+
+021215 Daniel Sundberg
++ Released jags-0.21
+
+021213 Daniel Sundberg
++ Added some "using namespace std"
++ Removed horror warnings on recent distributions (gcc-3.2)
+
+010715 Daniel Sundberg
 + Removed warnings on -Wall on the rest of the source.
 + Removed some warnings in fixsmbcop.cpp with -Wall.
 
-010709
+010709 Daniel Sundberg
 + Check if workgroup in config is empty...
 
-010518
+010518 Daniel Sundberg
 + After some work the bookmarks menu now works. Will 
   release 0.20 in a few days.
 
-010506
+010506 Daniel Sundberg
 + Now shares mounted with "mount with" also appears 
   in the mounted shares window (this will go into 
   the 0.20-tree).
 + Jags-0.19 released today
 
-010503
+010503 Daniel Sundberg
 + Added --nowindows cmd line option. This means you 
   can use jags to manage your samba-shares (at least 
   shares without password).
@@ -26,109 +156,109 @@ CHANGES:
 + Finally finished Mounted Shares Window. You can now 
   do a lot of stuff with this window.
 
-010430
+010430 Daniel Sundberg
 + Finished the hard work to make JagsConfig able to 
   add and remove premounted shares from config.
 
-010422
+010422 Daniel Sundberg
 + Added MountWithAbsolutePath to the mount-class.
 
-010329
+010329 Daniel Sundberg
 + Rewrote cfg-class. Probably no more crashes on 
   empty cfg files and stuff. Can now also remove 
   stuff from config-file.
 
-010321
+010321 Daniel Sundberg
 + Now reads NumberOfMounts and Mounted shares from 
   config-file.
 
-010315
+010315 Daniel Sundberg
 + Jags-0.18
 
-010312
+010312 Daniel Sundberg
 + Added a Sharity Light plugin, it's 
   called samba-2.0.7-freebsd but it doesn't 
   work at this very moment.
 + Fixed a bug in the configure script
 
-010305
+010305 Daniel Sundberg
 + Jags-0.18pre2 released.
 
-010304
+010304 Daniel Sundberg
 + Now popups passwd dialog if guest mount fails
 + Completed the Mount-class and it's implementations
 
-010219
+010219 Daniel Sundberg
 + Added mount-class
 + Switched to autoconf/automake
 
-010213
+010213 Daniel Sundberg
 + Jags-0.17 released
 
-010212
+010212 Daniel Sundberg
 + jags-0.17pre1 released
 + Now popup menu works in search dialog
 
-010209
+010209 Daniel Sundberg
 + Update on mount_share plugin, can now mount 
   shares with spaces within their names. 
 + Added command line search option support
 + Moved to Jags-0.17
 
-010202
+010202 Daniel Sundberg
 + Quote the mount commands...patch by mike@penbex.com.tw
 + Moved to jags-0.16.1
 
-001214
+001214 Daniel Sundberg
 + Added a simple umount option
 + The search dialog now looks nicer and behaves better.
 + Oops, forgot to mount before running the browser when 
   you doubleclick on a share found with search...FIXED!
 
-001213
+001213 Daniel Sundberg
 + Added the search dialog
 + Added search plugin and a search menu. 
 
-001030
+001030 Daniel Sundberg
 + Now the findsmb-script doesn't have to 
   be present on the system (0.1.1).
 
-001025
+001025 Daniel Sundberg
 + 0.1-FINAL release
 + Cleaned up mount-with dialog layout
 
-001008
+001008 Daniel Sundberg
 + Pre5-release
 
-001006
+001006 Daniel Sundberg
 + Jags-0.1pre5 "informal" release
 + You can now use username & password to mount shares.
   Use the "mount with..." command.
 
-001005
+001005 Daniel Sundberg
 + Username & password cfg option
 
-001003
+001003 Daniel Sundberg
 + Upgrade and configure script now present
 
-001002
+001002 Daniel Sundberg
 + Some new icons!
 
-000929
+000929 Daniel Sundberg
 + Made the new cfg-options work
 + Tooltipped
 + Added "show tooltips" and "show debuginfo" 
   option to config dialog and config files
 + Added tooltips to the network tree
 
-000925
+000925 Daniel Sundberg
 + The menu now works like it should
 
-000924
+000924 Daniel Sundberg
 + Jags now removes '+' in front of shares and servers 
   if no subitem found...
 
-000918
+000918 Daniel Sundberg
 + Seems to work pretty nice on Luleå Campus-net now. 
   I'll release pre4 tomorrow morning...source-tree 
   moving to pre5.
@@ -136,61 +266,61 @@ CHANGES:
   network completely without seg-faults. But å, ä & ö 
   still doesn't work.
 
-000917
+000917 Daniel Sundberg
 + Now we have a CVS-account
 
-000914
+000914 Daniel Sundberg
 + Now handles "spaces" in workgroups. I'll fix the 
   rest of this when I get some free time. But the 
   å, ä & ö still doesn't work.
 + Added some debug info. Jags now seems to work fine 
   on my network.
 
-000914
+000914 Daniel Sundberg
 + pre3 released...local souce->pre4
 
-000913
+000913 Daniel Sundberg
 + First public release today or tomorrow
 
-000911
+000911 Daniel Sundberg
 + ->pre3
 + Bugfix: now also checks for server when you try 
   to mount a share. Means you wont have shares from 
   different servers in the same directory...
 
-000904
+000904 Daniel Sundberg
 + Some bugfix, now don't seg fault on collapse 
   of empty subtree. BUT WHY IS IT POSSIBLE TO 
   HAVE A NETBIOSNAME ANTOTHER THAN THE DNS-NAME? 
   AND WHY IS IT POSSIBLE TO USE Å, Ä, Ö AND OTHER 
   SPECIAL CHARS IN WORKGROUPS AND COMPUTERNAMES???
 
-000901
+000901 Daniel Sundberg
 + Fixed some bugs in the mount function and 
   updated the samba-2.0.7 plugin.
 
-000830
+000830 Daniel Sundberg
 + Fixed some bugs on the plugins...
 
-000824
+000824 Daniel Sundberg
 + Made the compilation process work on a normal 
   gcc (g++).
 
-000820
+000820 Daniel Sundberg
 + Released jags-0.1pre1, this should work fine on 
   some networks but not on mine.
 
-000809
+000809 Daniel Sundberg
 + New button-icons
 
-000808
+000808 Daniel Sundberg
 + Update on the icons! 
 
-000807
+000807 Daniel Sundberg
 + Now allways reloads config when you "reexapand" 
   the tree. 
 
-000806
+000806 Daniel Sundberg
 + Began fixing config reload on prefs-apply
 + Fixed up the preferences dialog a little bit
 + Added some functionality to my gtk_common package
@@ -199,17 +329,17 @@ CHANGES:
 + Now jags mount and browse a share on 
   doubleklick.
 
-000803
+000803 Daniel Sundberg
 + Bugfix on offline plugin
 
-000731
+000731 Daniel Sundberg
 + gtk_common now searches for the pixmaps in 
   3 different locations
 + The popup menu works!
 + Solved most of the memory leak problem 
   on tree collapse and expand
 
-000730
+000730 Daniel Sundberg
 + Added some ugly icons to the tree and 
   the menus, however, they might make the 
   main window look a little bit nicer.
@@ -217,56 +347,55 @@ CHANGES:
 + Fixed popup in the menu-class, but this still 
   don't work in the mainwindow...
 
-000726
+000726 Daniel Sundberg
 + Added a popupmenu to the jagsmenubar 
 
-000725
+000725 Daniel Sundberg
 + The program now detects wheter you have a jags 
   config file or not. But no error handling...
 
-000724
+000724 Daniel Sundberg
 + Added some features in the Makefile
 + Fixed the tree expand/collapse problems.
   GtkTree seems strange, hiding the old items 
   for now...:-)
 
-000723
+000723 Daniel Sundberg
 + Fixed part of tree reloading problems
 
-000719
+000719 Daniel Sundberg
 + Made mount and browse menu options work
 + Minor bugfix on the offline plugin
 
-000717
+000717 Daniel Sundberg
 + Can now read workgroups, servers & shares from 
   plugins into tree-view, only tested offline.
 + Implemented first use of the data-class in 
   the mainwindow. 
 + Finished "mount with" dialog 
 
-000716
+000716 Daniel Sundberg
 + Added "mount with" dialog (not finished)
 + Added 2 item to the file-menu:
   "Mount & browse" and "Browse"
 	
-000715
+000715 Daniel Sundberg
 + Added the about dialog
 + Changed constructor interface on the Data-class
 + Finished the data-class, runs the fetchcommand 
   and puts the result in a GList
 
-000714
+000714 Daniel Sundberg
 + Apply works on JagsConfig
 + JagsConfig now autodetects installed plugins
 
-000713
-
+000713 Daniel Sundberg
 + Added the JagsConfig-class
 + Added autodetection of HOME-dir in CConfig
 
-(C) Daniel Sundberg 2000
+(C) Daniel Sundberg 2000-2003
 
 ****************************
-dansun-8@student.luth.se
-http://sumpan.campus.luth.se
+sumpan@sumpan.com
+http://sumpan.com
 ****************************

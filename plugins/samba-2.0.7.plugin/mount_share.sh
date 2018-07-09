@@ -12,8 +12,8 @@
 if [ -z "$1" ]; then
     echo "Usage: mount_share.sh [COMPUTER] [SHARE] [MOUNT_DIR]"
 else
-    mkdir "$3"
-    mkdir "$3/$2"
+    mkdir -p "$3"
+    mkdir -p "$3/$2"
     smbmount "//$1/$2" "$3/$2" -o guest    
 fi
 

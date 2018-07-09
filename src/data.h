@@ -1,6 +1,5 @@
 /*
- **  data v0.1
- **  Copyright (C) 2000 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg <sumpan@sumpan.com>
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,18 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** data.h
- ** 
+ ** Jags contact information:
  ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
+ ** E-Mail:     sumpan@sumpan.com
+ ** Homepage:   http://jags.sf.net
  ** 
- ** Started on  Mon Jul  3 20:00:00 2000 Daniel Sundberg 
- ** Last update Sat Jul 15 22:58:00 2000 Daniel Sundberg
+ ** ChangeLog:
+ **
+ **   Sat Aug 9 2003 Daniel Sundberg <sumpan@sumpan.com>
+ **     - Coding style
+ **
+ **   Mon June 30 2003 Anatoly Demchishin <demch@iptelecom.net.ua>
+ **     - Various updates
  */
 
 #ifndef __DATA_H
@@ -31,10 +34,12 @@
 
 #include <gtk/gtk.h>
 
-class Data {
- private:
-  GList *glist;
+using namespace std;
+
+class Data
+{
  public:
+  GList *glist;
   Data(const gchar *fetchCommand, const gchar *plugin);
   ~Data();
   GList *getData(void);

@@ -1,6 +1,5 @@
 /*
- **  GtkCommon v0.1
- **  Copyright (C) 2000-2001 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,6 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** gtk_common.cpp
- ** 
- ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se/software/jags
- ** 
- ** Started on  Sun Jul  30 17:52:00 2000 Daniel Sundberg 
- ** Last update Tue Apr   3 20:54:00 2001 Daniel Sundberg
  */
 
 /* 
@@ -36,10 +27,11 @@
  */
 
 #include <gtk/gtk.h>
-#include <iostream.h>
+#include <iostream>
 #include <stdlib.h>
+#include <string.h>
 #include "gtk_common.h"
-
+#include "../config.h"
 
 /* Create a new hbox with an image and a label packed into it
  * and return the box. */
@@ -64,25 +56,36 @@ GtkWidget *xpm_label_box(GtkWidget *parent, gchar *xpm_filename, gchar *label_te
   path = g_strdup_printf("%s/.jags/pixmaps/", getenv("HOME"));
   filename = g_strdup_printf("%s%s", path, xpm_filename);
 
-  pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
+  pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, 
+					       gtk_widget_get_colormap(parent), 
+					       &mask, &style->bg[GTK_STATE_NORMAL], 
+					       filename);
 
   if (!pixmap) {
-    path = g_strdup_printf("/usr/local/share/jags/pixmaps/");
+    path = g_strdup_printf("%s/share/jags/pixmaps/", JAGS_PREFIX);
     filename = g_strdup_printf("%s%s", path, xpm_filename);
     
-    pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
+    pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, 
+						 gtk_widget_get_colormap(parent), 
+						 &mask, 
+						 &style->bg[GTK_STATE_NORMAL], 
+						 filename);
     if (!pixmap) {
       path = g_strdup_printf("pixmaps/");
       filename = g_strdup_printf("%s%s", path, xpm_filename);
       
-      pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
+      pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, 
+						   gtk_widget_get_colormap(parent), 
+						   &mask, 
+						   &style->bg[GTK_STATE_NORMAL], 
+						   filename);
 
     }
   }
 
-//    pixmap = gdk_pixmap_create_from_xpm (parent->window, &mask,
-//  				       &style->bg[GTK_STATE_NORMAL],
-//  				       xpm_filename);
+  //    pixmap = gdk_pixmap_create_from_xpm (parent->window, &mask,
+  //  				       &style->bg[GTK_STATE_NORMAL],
+  //  				       xpm_filename);
   pixmapwid = gtk_pixmap_new (pixmap, mask);
   
   /* Create a label for the button */
@@ -100,10 +103,12 @@ GtkWidget *xpm_label_box(GtkWidget *parent, gchar *xpm_filename, gchar *label_te
   return(box1);
 }
 
-/* Get the text of the label we packed into a box 
-   in the function above */
-gchar *xpm_label_box_get_text(GtkWidget *box) {
-  gchar *text;
+/* Get the text of the label we packed into a box in the function above */
+
+gchar *xpm_label_box_get_text(GtkWidget *box)
+{
+  gchar *text = NULL;
+
   GList *glist = GTK_BOX(box)->children;
   GtkBoxChild *boxchild = (GtkBoxChild *)glist->next->data;
   GtkWidget *widget = boxchild->widget;
@@ -112,13 +117,15 @@ gchar *xpm_label_box_get_text(GtkWidget *box) {
   return text;
 }
 
-GtkWidget *gtk_button_new_with_label_with_pixmap(gchar *label, gchar *pixmap) {
-  GtkWidget *button, *box;
+GtkWidget *gtk_button_new_with_label_with_pixmap(gchar *label, gchar *pixmap)
+{
+  GtkWidget *button = NULL, *box = NULL;
 
   button = gtk_button_new();
   box = xpm_label_box(button, pixmap, label);
   gtk_widget_show(box);
   gtk_container_add(GTK_CONTAINER(button), box);
+
   return button;
 }
 
@@ -133,17 +140,20 @@ gchar *gtk_button_get_text(GtkWidget *button) {
   }
 }
 
-GtkWidget *gtk_menu_item_new_with_label_with_pixmap(gchar *label, gchar *pixmap) {
+GtkWidget *gtk_menu_item_new_with_label_with_pixmap(gchar *label, gchar *pixmap)
+{
   GtkWidget *menu_item, *box;
 
   menu_item = gtk_menu_item_new();
   box = xpm_label_box(menu_item, pixmap, label);
   gtk_widget_show(box);
   gtk_container_add(GTK_CONTAINER(menu_item), box);
+
   return menu_item;
 }
 
-gchar *gtk_menu_item_get_text(GtkWidget *menu_item) {
+gchar *gtk_menu_item_get_text(GtkWidget *menu_item)
+{
   if (GTK_IS_LABEL(GTK_BIN(menu_item)->child)) {
     gchar *text;
     GtkWidget *label = GTK_BIN(menu_item)->child;
@@ -154,30 +164,56 @@ gchar *gtk_menu_item_get_text(GtkWidget *menu_item) {
   }
 }
 
-GtkWidget *gtk_tree_item_new_with_label_with_pixmap(gchar *label, gchar *pixmap) {
+GtkWidget *gtk_tree_item_new_with_label_with_pixmap(gchar *label, gchar *pixmap)
+{
   GtkWidget *tree_item, *box;
 
   tree_item = gtk_tree_item_new();
   box = xpm_label_box(tree_item, pixmap, label);
   gtk_widget_show(box);
   gtk_container_add(GTK_CONTAINER(tree_item), box);
+
   return tree_item;
 }
 
-gchar *gtk_tree_item_get_text(GtkWidget *tree_item) {
+gchar *gtk_tree_item_get_text(GtkWidget *tree_item)
+{
+  gchar *str = NULL;
+  int i = 0, j;
+  gboolean flag = FALSE;
+
   if (GTK_IS_LABEL(GTK_BIN(tree_item)->child)) {
     gchar *text;
     GtkWidget *label = GTK_BIN(tree_item)->child;
     gtk_label_get(GTK_LABEL(label), &text);
+    g_print("If you see this string this is a bug\n");
     return text;
   } else {
-    return xpm_label_box_get_text(GTK_BIN(tree_item)->child);  
+    str = xpm_label_box_get_text(GTK_BIN(tree_item)->child);
+    j = strlen(str);
+    for (;;) {
+      if (str[i]==' ')
+	if (str[++i]==' ')
+	  if (str[++i]==' ') {
+	    flag=TRUE;
+	    break;
+	  }
+      i++;
+      if (i>j) break;
+    }
+    if (flag) {
+      return g_strndup(str, i-2);
+    } else {
+      return str;
+    }
   }
 }
 
-GtkWidget *gtk_option_menu_new_with_glist(GList *glist) {
+GtkWidget *gtk_option_menu_new_with_glist(GList *glist)
+{
   GtkWidget *option_menu = gtk_option_menu_new();
   GtkWidget *menu = gtk_menu_new();
+
   while (glist->next) {
     GtkWidget *item = gtk_menu_item_new_with_label((gchar *)glist->next->data);    
     gtk_widget_show(item);
@@ -207,59 +243,63 @@ GtkWidget *gtk_icon2widget(gchar *xpm, GtkWidget *parent) {
   path = g_strdup_printf("%s/.jags/pixmaps/", getenv("HOME"));  
   filename = g_strdup_printf("%s/%s", path, xpm);
   
-  //  pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
-
-
-  pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, NULL, filename);
+  pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, 
+					       gtk_widget_get_colormap(parent), 
+					       &mask, NULL, filename);
 
   if (!pixmap) {
-    path = g_strdup_printf("/usr/local/share/jags/pixmaps/");
+    path = g_strdup_printf("%s/share/jags/pixmaps/", JAGS_PREFIX);
     filename = g_strdup_printf("%s%s", path, xpm);
     
-    //    pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
-
-    pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, NULL, filename);
+    pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, 
+						 gtk_widget_get_colormap(parent), 
+						 &mask, NULL, filename);
     if (!pixmap) {
       path = g_strdup_printf("pixmaps/");
       filename = g_strdup_printf("%s%s", path, xpm);
       
-      //      pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, &style->bg[GTK_STATE_NORMAL], filename);
-
-      pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, gtk_widget_get_colormap(parent), &mask, NULL, filename);
+      pixmap = gdk_pixmap_colormap_create_from_xpm(parent->window, 
+						   gtk_widget_get_colormap(parent), 
+						   &mask, NULL, filename);
 
     }
   }
   iconw = gtk_pixmap_new(pixmap, mask);
   return iconw;
-
 }
 
 /* By Robert Kling (robkli-8@student.luth.se */
-void popup_dialog(gint height, gchar *title, gchar *text, gchar *button_text) {
+void popup_dialog(gint height, gchar *title, gchar *text, gchar *button_text)
+{
   GtkWidget *window, *textlabel, *button;
   
   window = gtk_dialog_new();
-  gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(close_popup_dialog), window);
+  gtk_signal_connect(GTK_OBJECT(window), "delete_event", 
+		     GTK_SIGNAL_FUNC(close_popup_dialog), window);
   gtk_widget_set_usize(GTK_WIDGET(window), 300, height);
   gtk_window_set_policy(GTK_WINDOW(window), FALSE, FALSE, FALSE);
   gtk_window_set_title(GTK_WINDOW (window), title);
   gtk_container_set_border_width(GTK_CONTAINER (window), 3);
-  //gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
+  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
   
   textlabel = gtk_label_new(text);
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(window)->vbox), textlabel, TRUE, TRUE, 0);
   gtk_widget_show(textlabel);
   
   button = gtk_button_new_with_label_with_pixmap(button_text, "ok.xpm");
-  gtk_signal_connect(GTK_OBJECT(button), "clicked", GTK_SIGNAL_FUNC(close_popup_dialog), window);
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(window)->action_area), button, FALSE, TRUE, 0);
+  gtk_signal_connect(GTK_OBJECT(button), "clicked", 
+		     GTK_SIGNAL_FUNC(close_popup_dialog), window);
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(window)->action_area), button, 
+		     FALSE, TRUE, 0);
   gtk_widget_show(button);
   
   gtk_widget_show(window);
 }
 
-gint close_popup_dialog(GtkWidget *widget, gpointer data) {
+gint close_popup_dialog(GtkWidget *widget, gpointer data)
+{
   gtk_widget_destroy(GTK_WIDGET(data));
+
   return TRUE;
 }
 

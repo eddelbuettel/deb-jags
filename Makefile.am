@@ -23,6 +23,14 @@ install-data-local:
                done \
 	  done \
 	fi 
+	if test -d src/sounds; then \
+	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/sounds; \
+	  for sound in src/sounds/*; do \
+	    if test -f $$sound; then \
+	      $(INSTALL_DATA) $$sound $(DESTDIR)$(pkgdatadir)/sounds; \
+	    fi \
+	  done \
+	fi 
 	if test -f src/jags.conf.sample; then \
 	  cp src/jags.conf.sample $(DESTDIR)$(pkgdatadir)/jags.conf.sample;	\
 	  echo "";\
@@ -38,25 +46,3 @@ install-data-local:
 	  echo "";\
 	  echo "";\
 	fi
-#	echo "If you're upgrading from a previous version of Jags: ";\
-#	echo "Please run ./upgrade as you regular user to make ";\
-#	echo "sure that your config-files will be updated.";
-# 	      for i in src/plugins/$$plugin/*; do 
-#                 if test -f $$i; then 
-#                   $(INSTALL_DATA) $$i $(DESTDIR)$(pkgdatadir)/plugins/$$plugin; 
-#                 fi 
-#               done 
-# 	    if test -d $$plugin; then \
-#               $(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/plugins/$$plugin; \
-# 	    fi \
-
-# dist-hook:
-# 	if test -d pixmaps; then \
-# 	  mkdir $(distdir)/pixmaps; \
-# 	  for pixmap in pixmaps/*; do \
-# 	    if test -f $$pixmap; then \
-# 	      cp -p $$pixmap $(distdir)/pixmaps; \
-# 	    fi \
-# 	  done \
-# 	fi
-

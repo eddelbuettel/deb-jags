@@ -1,6 +1,5 @@
 /*
- **  CConfig v0.11
- **  Copyright (C) 2000-2001 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg & Anatoly Demchishin
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,32 +15,27 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** cconfig.cpp
- ** 
- ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
- ** 
- ** Started on  Mon Jul   3 20:00:00 2000 Daniel Sundberg 
- ** Last update Thu Mar  29 18:22:00 2000 Daniel Sundberg
  */
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "cconfig.h"
 
-CConfig::CConfig(char *configFileName) {
+CConfig::CConfig(char *configFileName)
+{
   fileName = new char[MAX_CONFIG_FILENAME_LENGTH];
   confKeyList = g_list_alloc();
-  /* Check if we have a global configfile here.
-     Checks if we have a global conf ('/' first), if we don't 
-     we check for the path to the home-dir (must be set ENV-var) */
-  if (configFileName[0] != '/') {
+
+  /* Check if we have a global configfile here. Checks if we have a global 
+     conf ('/' first), if we don't we check for the path to the home-dir 
+     (must be set ENV-var) */
+  if (configFileName[0] != '/') {    
     sprintf(fileName,"%s/%s", getenv("HOME"), configFileName);
-  } else {
+  } else { 
+    delete [] fileName;
     fileName = g_strdup(configFileName);
   }
   //  cout << fileName << '\n';
@@ -53,10 +47,11 @@ CConfig::CConfig(char *configFileName) {
       /* If this is true we found a config-key */
       //cout << buffer << '\n';
       if (strstr(buffer, "=")) {
-	gchar **keydata = g_strsplit(buffer, "=", 2);
+	gchar **keydata = g_strsplit(buffer, "=", 1);
 	/* Add error checking here */
 	confKeyList = g_list_append(confKeyList, (gpointer)g_strdup(keydata[0]));
 	confKeyList = g_list_append(confKeyList, (gpointer)g_strdup(keydata[1]));
+	g_strfreev(keydata);
       }
     }
     fin.close();
@@ -66,18 +61,20 @@ CConfig::CConfig(char *configFileName) {
   }
 }
 
-CConfig::~CConfig() {
+CConfig::~CConfig()
+{
   g_list_free(confKeyList);
+  delete [] fileName;
 }
 
-/*
- * Adds new config-key OR updates a present key
- */
-void CConfig::writeConfigKey(char *key, char *data) {
+/* Adds new config-key OR updates a present key */
+
+void CConfig::writeConfigKey(char *key, char *data)
+{
   GList *glist = g_list_find_custom(confKeyList->next, (gpointer)key, (GCompareFunc)g_strcasecmp);
   /* If key exists */
   if (glist) {
-    glist->next->data = (gpointer)strdup(data);
+    glist->next->data = (gpointer)g_strdup(data);
   } else {
     confKeyList = g_list_append(confKeyList, (gpointer)g_strdup(key));
     confKeyList = g_list_append(confKeyList, (gpointer)g_strdup(data));
@@ -85,78 +82,91 @@ void CConfig::writeConfigKey(char *key, char *data) {
   write();
 }
 
-/*
- * Returns the wanted cfg-key
- */
-char *CConfig::getConfigKey(char *key) {
-  GList *glist = g_list_find_custom(confKeyList->next, (gpointer)key, (GCompareFunc)g_strcasecmp);
-  if (glist) 
+/* Returns the wanted cfg-key */
+
+char *CConfig::getConfigKey(char *key)
+{
+  GList *glist = g_list_find_custom(confKeyList->next, (gpointer)key, 
+				    (GCompareFunc)g_strcasecmp);
+
+  if (glist) {
     return g_strdup((gchar *)glist->next->data);
-  else 
+  } else {
     return g_strdup("");  // empty string
+  }
 }
 
-int CConfig::getNKeys(void) {
+int CConfig::getNKeys(void)
+{
   return (gint)(g_list_length(confKeyList) / 2);
 }
 
-/*
- * Deletes a config-key if it's present
- */
-void CConfig::rmConfigKey(char *key) {
-  GList *glist = g_list_find_custom(confKeyList->next, (gpointer)key, (GCompareFunc)g_strcasecmp);
-  if (glist) {
+/* Deletes a config-key if it's present */
+
+void CConfig::rmConfigKey(char *key)
+{
+  GList *glist = g_list_find_custom(confKeyList->next, (gpointer)key, 
+				    (GCompareFunc)g_strcasecmp);
+ 
+ if (glist) {
     g_list_remove_link(confKeyList, glist->next);
     g_list_remove_link(confKeyList, glist);
     write();
   }
 }
 
-/*
- * Deletes a config key and it's data by the data
- */
-void CConfig::rmConfigKeyByData(char *data) {
-  GList *glist = g_list_find_custom(confKeyList->next, (gpointer)data, (GCompareFunc)g_strcasecmp);
+/* Deletes a config key and it's data by the data */
+
+void CConfig::rmConfigKeyByData(char *data)
+{
+GList *glist = g_list_find_custom(confKeyList->next, (gpointer)data, (GCompareFunc)g_strcasecmp);
+
   if (glist) {
     g_list_remove_link(confKeyList, glist->prev);
     g_list_remove_link(confKeyList, glist);
     write();
   }
-
 }
 
-/*
- * Writes cfg-file to disk
- */
-void CConfig::write(void) {
+/* Writes cfg-file to disk */
+
+void CConfig::write(void)
+{
+  GList *glist=NULL;
+
   /* Write the shit here */
   ofstream fout(fileName);
   if (fout) {
-    GList *glist = g_list_copy(confKeyList);
+    glist = g_list_copy(confKeyList);
     while (glist->next->next) {
-      fout << (gchar *)glist->next->data << "=" << (gchar *)glist->next->next->data << '\n';
-      if (glist->next->next->next)
+      fout << (gchar *)glist->next->data << "=" << 
+	(gchar *)glist->next->next->data << '\n';
+      if (glist->next->next->next) {
 	glist = glist->next->next;
-      else 
+      } else {
 	break;
+      }
     }
     fout.close();
   } else {
-    cout << "Connot open file";
+    cout << "Connot open file";  
   }
 
 }
 
-void CConfig::printCfg(void) {
+void CConfig::printCfg(void)
+{
   GList *glist = g_list_copy(confKeyList);
+
   while (glist->next->next) {
-    g_print("%s=%s\n", 
+    g_print("%s=%s\n",  
 	    (gchar *)glist->next->data, 
 	    (gchar *)glist->next->next->data);
-    if (glist->next->next->next)
+    if (glist->next->next->next) {
       glist = glist->next->next;
-    else 
+    } else {
       break;
+    }
   }
 }
 

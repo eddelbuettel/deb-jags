@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(configure.in)
-AM_INIT_AUTOMAKE(jags, 0.18)
+AM_INIT_AUTOMAKE(jags, 0.22)
 AM_CONFIG_HEADER(config.h)
 
 AC_PROG_CC
@@ -9,6 +9,11 @@ AC_PROG_CXX
 
 AM_PATH_GTK(1.2.0, ,
             AC_MSG_ERROR(Cannot find GTK: Is gtk-config in path?))
+
+myapp_save_prefix="${prefix}"
+test "x${prefix}" = "xNONE" && prefix="${ac_default_prefix}"
+AC_DEFINE_UNQUOTED([JAGS_PREFIX],["${prefix}"],[package prefix])
+prefix="${myapp_save_prefix}"
 
 AC_OUTPUT([
 Makefile

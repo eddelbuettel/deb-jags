@@ -1,6 +1,5 @@
 /*
- **  Data v0.1
- **  Copyright (C) 2000 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg & Anatoly Demchishin
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,71 +15,76 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  **
- ** data.cpp
- ** 
- ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se/software/jags
- ** 
- ** Started on  Mon Jul  3 20:00:00 2000 Daniel Sundberg 
- ** Last update Mon Mar 19 23:01:00 2001 Daniel Sundberg
  */
 
 #include <gtk/gtk.h>
 //#include <stdio.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <string.h>
 
 #include "data.h"
 
-/*
- * This constructor will run the fetchCommand and store 
- * the result in a GList.
- *
- */
-Data::Data(const gchar *fetchCommand, const gchar *plugin) {
+/* This constructor will run the fetchCommand and store the result in a GList */
+Data::Data(const gchar *fetchCommand, const gchar *plugin)
+{
+  gchar *path = NULL, *file = NULL, *command = NULL;
+  gint j;
+  gint i;
+
   glist = g_list_alloc();
   
   /* Open the outfile and read the contents, put this in the GList */
-  gchar *path = g_get_home_dir();
-  gchar *file = g_strdup_printf("%s/.jags/outfile", path);
+  path = g_get_home_dir();
+  file = g_strdup_printf("%s/.jags/outfile", path);
   
   /* Wants to run a script in the plugin-dir and output it to "file" */
-  gchar *command = g_strdup_printf("sh %s/.jags/plugins/%s/%s > %s", path, plugin, fetchCommand, file);
+  command = g_strdup_printf("sh %s/.jags/plugins/%s/%s > %s", path, plugin, 
+			    fetchCommand, file);
   system(command);
+  g_free(command);
 
   ifstream fin(file);
 
   /* Check if we could open the file */
   if (fin) {
-    /* Read the file content and feed the list until we're done
-       Here we need to check wheter the file have content or not... */
+    /* Read the file content and feed the list until we're done. Here we need to check wheter the file have content or not... */
     while (fin.good()) {
-      gchar *buffer = g_new(gchar, 100);
-      fin.getline(buffer, 100, '\n');
-      gint i = strlen(buffer);
+      gchar *buffer= new gchar [200];
+      fin.getline(buffer, 200, '\n');
+      if (!fin.good()) break;
+      i = strlen(buffer);
       if (i > 1) {
-	glist = g_list_append(glist, buffer);
-      }
+      	j=i-1;
+      	while(buffer[j]==' ')
+		j--;
+      	buffer[j+1]=0;
+      }	
+
+      glist = g_list_append(glist, buffer);
     }
     fin.close();
   } else {
-    g_print("Couldn't open %s\n", file);
+    g_print("Couldn't open %s\n", file);  
   }
+
+  g_free(file);
 }
 
-Data::~Data() {
+Data::~Data()
+{	
   g_list_free(glist);
 }
 
-GList *Data::getData(void) {
-  return glist;
+GList *Data::getData(void)
+{  
+  return glist;	
 }
 
 /*
-main() {
+main()
+{
   Data *d = new Data("fetch_master_browser.sh 6AN", "offline.plugin");
   GList *glist = d->getData();
   while (glist->next) {
@@ -89,5 +93,4 @@ main() {
   }
   return 0;
 } 
-
 */

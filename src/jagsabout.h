@@ -1,6 +1,5 @@
 /*
- **  Jags v0.1
- **  Copyright (C) 2000 Daniel Sundberg
+ **  Copyright (C) 2000-2003 Daniel Sundberg <sumpan@sumpan.com>
  **
  **  This program is free software; you can redistribute it and/or modify
  **  it under the terms of the GNU General Public License as published by
@@ -16,14 +15,15 @@
  **  along with this program; if not, write to the Free Software
  **  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  ** 
- ** jagsabout.h 0.1.1
- **
+ ** Jags contact information:
  ** Made by:    Daniel Sundberg
- ** E-Mail:     dansun-8@student.luth.se
- ** Homepage:   http://sumpan.campus.luth.se
+ ** E-Mail:     sumpan@sumpan.com
+ ** Homepage:   http://jags.sf.net
  ** 
- ** Started on  Sat Jul  15 22:59:00 2000 Daniel Sundberg 
- ** Last update Wed Aug  23 11:37:00 2000 Daniel Sundberg
+ ** ChangeLog:
+ **
+ **   Mon June 30 2003 Anatoly Demchishin <demch@iptelecom.net.ua>
+ **     - Various updates
  */
 
 #ifndef __JAGSABOUT_H
@@ -31,17 +31,15 @@
 
 #include <gtk/gtk.h>
 
-class JagsAbout {
+class JagsAbout
+{
  private:
   friend gint on_close(GtkWidget *widget, JagsAbout *about);
   
  public:
-  
   JagsAbout();
   ~JagsAbout();
   
 };
-
-
 
 #endif
