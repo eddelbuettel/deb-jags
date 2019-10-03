@@ -2,8 +2,8 @@ Source: jags
 Section: math
 Priority: optional
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
-Build-Depends: debhelper (>= 7.0.50~), gfortran (>= 4:5.2), liblapack-dev, libltdl-dev (>= 2.2.6b), texlive-base, texlive-latex-base, texlive-generic-recommended, texlive-fonts-recommended, texlive-extra-utils, texlive-latex-recommended, texlive-latex-extra, texinfo, autotools-dev, faketime, g++ (>= 4:5.2), libcppunit-dev, dh-autoreconf, pkg-config, mercurial
-Standards-Version: 3.9.8
+Build-Depends: debhelper (>= 7.0.50~), gfortran (>= 4:5.2), liblapack-dev, libltdl-dev (>= 2.2.6b), texlive-base, texlive-latex-base, texlive-plain-generic, texlive-fonts-recommended, texlive-extra-utils, texlive-latex-recommended, texlive-latex-extra, texinfo, autotools-dev, faketime, g++ (>= 4:5.2), libcppunit-dev, dh-autoreconf, pkg-config, mercurial
+Standards-Version: 4.4.0
 Homepage: http://www-fis.iarc.fr/~martyn/software/jags/
 
 Package: jags

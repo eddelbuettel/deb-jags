@@ -1,3 +1,12 @@
+jags (4.3.0-3) unstable; urgency=medium
+
+  * debian/control: Change Build-Depends: from texlive-generic-recommended
+    to texlive-plain-generic 				(Closes: #941533)
+
+  * debian/control: Set Standards-Version: to current version
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Thu, 03 Oct 2019 13:11:00 -0500
+
 jags (4.3.0-2) unstable; urgency=medium
 
   * debian/control: Adding 'mercurial' to Build-Depends (Closes: #903176)
