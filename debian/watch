@@ -1,2 +1,2 @@
-version=3
-http://www-fis.iarc.fr/~martyn/software/jags/JAGS-(.+)\.tar\.gz
+version=4
+https://sf.net/mcmc-jags/ JAGS-(.+)\.tar\.gz debian uupdate

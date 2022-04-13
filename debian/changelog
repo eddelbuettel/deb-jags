@@ -1,3 +1,16 @@
+jags (4.3.1-1) unstable; urgency=medium
+
+  * New upstream release
+ 
+  * debian/control: Updated Homepage: field 		(Closes: #984820)
+  * debian/control: Set Standards-Version: to current version
+  * debian/watch: Updated to version 4 and sf.net url
+  * debian/control: Use debhelper-compat (= 11)
+  * debian/compat: Removed
+  * debian/control: Remove Build-Depends on autotools-dev and dh-autoreconf
+  
+ -- Dirk Eddelbuettel <edd@debian.org>  Wed, 13 Apr 2022 11:20:07 -0500
+
 jags (4.3.0-3) unstable; urgency=medium
 
   * debian/control: Change Build-Depends: from texlive-generic-recommended
@@ -35,7 +48,7 @@ jags (4.2.0-2) unstable; urgency=medium
 
   * debian/jags.postinst: Add missing shebang		(Closes: #843290)
 
-  * debian/control: Set Standards-Version: to current version 
+  * debian/control: Set Standards-Version: to current version
 
  -- Dirk Eddelbuettel <edd@debian.org>  Sat, 05 Nov 2016 12:59:52 -0500
 
@@ -108,7 +121,7 @@ jags (3.0.0-1) unstable; urgency=low
 
 jags (2.2.0-2) unstable; urgency=low
 
-  * debian/rules: Add short find and perl snippet to process .la files 
+  * debian/rules: Add short find and perl snippet to process .la files
     in order to empty dependency_libs 			(Closes: #621593)
 
  -- Dirk Eddelbuettel <edd@debian.org>  Sun, 08 May 2011 17:16:41 -0500
@@ -121,14 +134,14 @@ jags (2.2.0-1) unstable; urgency=low
 
 jags (2.1.0-2) unstable; urgency=low
 
-  * configure: Once again patched for sh4. 
+  * configure: Once again patched for sh4.
 
   * debian/rules: Also run make docs inside doc/manual/
   * debian/control: Added Build-Depends: for manual creation
   * debian/jags.doc: Install the three pdf manuals
-  
+
  -- Dirk Eddelbuettel <edd@debian.org>  Tue, 18 May 2010 14:46:08 -0500
-  
+
 jags (2.1.0-1) unstable; urgency=low
 
   * New upstream release
@@ -140,7 +153,7 @@ jags (2.0.0-1) unstable; urgency=low
   * New upstream release
 
   * debian/control: Updated Standards-Version: to current version
-  
+
  -- Dirk Eddelbuettel <edd@debian.org>  Mon, 26 Apr 2010 11:05:20 -0500
 
 jags (1.0.4-4) unstable; urgency=low
@@ -166,14 +179,14 @@ jags (1.0.4-2) unstable; urgency=low
 
 jags (1.0.4-1) unstable; urgency=low
 
-  * New upstream release containing new libltdl/ from libtool 2.2.6b 
+  * New upstream release containing new libltdl/ from libtool 2.2.6b
     in regards to CVE-2009-3736[0] 			(Closes: #559816)
 
  -- Dirk Eddelbuettel <edd@debian.org>  Thu, 10 Dec 2009 22:41:47 -0600
 
 jags (1.0.3-2) unstable; urgency=low
 
-  * configure: Applied one-line patch to allow builds on sh architecture. 
+  * configure: Applied one-line patch to allow builds on sh architecture.
     Thanks to Nobuhiro Iwamatsu for the patch. 		(Closes: #554347)
 
   * debian/watch: Addded watch file
@@ -185,4 +198,3 @@ jags (1.0.3-1) unstable; urgency=low
   * Initial build
 
  -- Dirk Eddelbuettel <edd@debian.org>  Mon, 01 Sep 2008 20:04:18 -0500
-
