@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.7.6.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,6 +31,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
 #ifndef YY_YY_PARSER_HH_INCLUDED
 # define YY_YY_PARSER_HH_INCLUDED
 /* Debug traces.  */
@@ -40,40 +45,49 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    VAR = 258,
-    DATA = 259,
-    MODEL = 260,
-    NAME = 261,
-    FUNC = 262,
-    SPECIAL = 263,
-    BADCHAR = 264,
-    IN = 265,
-    ARROW = 266,
-    FOR = 267,
-    GT = 268,
-    GE = 269,
-    LT = 270,
-    LE = 271,
-    EQ = 272,
-    NE = 273,
-    AND = 274,
-    OR = 275,
-    LENGTH = 276,
-    DIM = 277,
-    DOUBLE = 278,
-    INT = 279,
-    NOT = 280,
-    NEG = 281,
-    ENDL = 282,
-    UREPCHAR = 283
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    VAR = 258,                     /* VAR  */
+    DATA = 259,                    /* DATA  */
+    MODEL = 260,                   /* MODEL  */
+    NAME = 261,                    /* NAME  */
+    FUNC = 262,                    /* FUNC  */
+    SPECIAL = 263,                 /* SPECIAL  */
+    BADCHAR = 264,                 /* BADCHAR  */
+    IN = 265,                      /* IN  */
+    ARROW = 266,                   /* ARROW  */
+    FOR = 267,                     /* FOR  */
+    GT = 268,                      /* GT  */
+    GE = 269,                      /* GE  */
+    LT = 270,                      /* LT  */
+    LE = 271,                      /* LE  */
+    EQ = 272,                      /* EQ  */
+    NE = 273,                      /* NE  */
+    AND = 274,                     /* AND  */
+    OR = 275,                      /* OR  */
+    LENGTH = 276,                  /* LENGTH  */
+    DIM = 277,                     /* DIM  */
+    DOUBLE = 278,                  /* DOUBLE  */
+    INT = 279,                     /* INT  */
+    NOT = 280,                     /* NOT  */
+    NEG = 281,                     /* NEG  */
+    ENDL = 282,                    /* ENDL  */
+    UREPCHAR = 283                 /* UREPCHAR  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Tokens.  */
+/* Token kinds.  */
+#define YYEMPTY -2
+#define YYEOF 0
+#define YYerror 256
+#define YYUNDEF 257
 #define VAR 258
 #define DATA 259
 #define MODEL 260
@@ -103,10 +117,9 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 42 "../../../../../../jags-4_patched/src/lib/compiler/parser.yy" /* yacc.c:1909  */
+#line 42 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
 
   /*
     We can't put any C++ class that requires a constructor in
@@ -122,9 +135,9 @@ union YYSTYPE
   jags::ParseTree *ptree;
   std::vector<jags::ParseTree*> *pvec;
 
-#line 126 "parser.hh" /* yacc.c:1909  */
-};
+#line 139 "parser.hh"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

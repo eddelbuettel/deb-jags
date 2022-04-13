@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.7.6.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,6 +31,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
 #ifndef YY_ZZ_PARSER_HH_INCLUDED
 # define YY_ZZ_PARSER_HH_INCLUDED
 /* Debug traces.  */
@@ -40,69 +45,78 @@
 extern int zzdebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    INT = 258,
-    DOUBLE = 259,
-    NAME = 260,
-    STRING = 261,
-    SYSCMD = 262,
-    ENDCMD = 263,
-    MODEL = 264,
-    DATA = 265,
-    IN = 266,
-    TO = 267,
-    INITS = 268,
-    PARAMETERS = 269,
-    COMPILE = 270,
-    INITIALIZE = 271,
-    ADAPT = 272,
-    AUTOADAPT = 273,
-    FORCEADAPT = 274,
-    UPDATE = 275,
-    BY = 276,
-    MONITORS = 277,
-    MONITOR = 278,
-    TYPE = 279,
-    SET = 280,
-    CLEAR = 281,
-    THIN = 282,
-    CODA = 283,
-    STEM = 284,
-    EXIT = 285,
-    NCHAINS = 286,
-    CHAIN = 287,
-    LOAD = 288,
-    UNLOAD = 289,
-    SAMPLER = 290,
-    SAMPLERS = 291,
-    RNGTOK = 292,
-    FACTORY = 293,
-    FACTORIES = 294,
-    MODULES = 295,
-    SEED = 296,
-    LIST = 297,
-    STRUCTURE = 298,
-    DIM = 299,
-    NA = 300,
-    R_NULL = 301,
-    DIMNAMES = 302,
-    ITER = 303,
-    ARROW = 304,
-    ENDDATA = 305,
-    ASINTEGER = 306,
-    DOTDATA = 307,
-    DIRECTORY = 308,
-    CD = 309,
-    PWD = 310,
-    RUN = 311,
-    ENDSCRIPT = 312
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    INT = 258,                     /* INT  */
+    DOUBLE = 259,                  /* DOUBLE  */
+    NAME = 260,                    /* NAME  */
+    STRING = 261,                  /* STRING  */
+    SYSCMD = 262,                  /* SYSCMD  */
+    ENDCMD = 263,                  /* ENDCMD  */
+    MODEL = 264,                   /* MODEL  */
+    DATA = 265,                    /* DATA  */
+    IN = 266,                      /* IN  */
+    TO = 267,                      /* TO  */
+    INITS = 268,                   /* INITS  */
+    PARAMETERS = 269,              /* PARAMETERS  */
+    COMPILE = 270,                 /* COMPILE  */
+    INITIALIZE = 271,              /* INITIALIZE  */
+    ADAPT = 272,                   /* ADAPT  */
+    AUTOADAPT = 273,               /* AUTOADAPT  */
+    FORCEADAPT = 274,              /* FORCEADAPT  */
+    UPDATE = 275,                  /* UPDATE  */
+    BY = 276,                      /* BY  */
+    MONITORS = 277,                /* MONITORS  */
+    MONITOR = 278,                 /* MONITOR  */
+    TYPE = 279,                    /* TYPE  */
+    SET = 280,                     /* SET  */
+    CLEAR = 281,                   /* CLEAR  */
+    THIN = 282,                    /* THIN  */
+    CODA = 283,                    /* CODA  */
+    STEM = 284,                    /* STEM  */
+    EXIT = 285,                    /* EXIT  */
+    NCHAINS = 286,                 /* NCHAINS  */
+    CHAIN = 287,                   /* CHAIN  */
+    LOAD = 288,                    /* LOAD  */
+    UNLOAD = 289,                  /* UNLOAD  */
+    SAMPLER = 290,                 /* SAMPLER  */
+    SAMPLERS = 291,                /* SAMPLERS  */
+    RNGTOK = 292,                  /* RNGTOK  */
+    FACTORY = 293,                 /* FACTORY  */
+    FACTORIES = 294,               /* FACTORIES  */
+    MODULES = 295,                 /* MODULES  */
+    SEED = 296,                    /* SEED  */
+    LIST = 297,                    /* LIST  */
+    STRUCTURE = 298,               /* STRUCTURE  */
+    DIM = 299,                     /* DIM  */
+    NA = 300,                      /* NA  */
+    R_NULL = 301,                  /* R_NULL  */
+    DIMNAMES = 302,                /* DIMNAMES  */
+    ITER = 303,                    /* ITER  */
+    ARROW = 304,                   /* ARROW  */
+    ENDDATA = 305,                 /* ENDDATA  */
+    ASINTEGER = 306,               /* ASINTEGER  */
+    DOTDATA = 307,                 /* DOTDATA  */
+    DIRECTORY = 308,               /* DIRECTORY  */
+    CD = 309,                      /* CD  */
+    PWD = 310,                     /* PWD  */
+    RUN = 311,                     /* RUN  */
+    ENDSCRIPT = 312                /* ENDSCRIPT  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Tokens.  */
+/* Token kinds.  */
+#define YYEMPTY -2
+#define YYEOF 0
+#define YYerror 256
+#define YYUNDEF 257
 #define INT 258
 #define DOUBLE 259
 #define NAME 260
@@ -161,10 +175,9 @@ extern int zzdebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 99 "../../../../../jags-4_patched/src/terminal/parser.yy" /* yacc.c:1909  */
+#line 99 "../../../../jags-4-3_patched/src/terminal/parser.yy"
 
   int intval;
   double val;
@@ -174,9 +187,9 @@ union YYSTYPE
   std::vector<double> *vec;
   std::vector<long> *ivec;
 
-#line 178 "parser.hh" /* yacc.c:1909  */
-};
+#line 191 "parser.hh"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
