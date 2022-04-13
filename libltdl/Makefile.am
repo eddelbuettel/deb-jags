@@ -157,3 +157,7 @@ libltdl/lt__argz.h: libltdl/lt__argz_.h
 	$(AM_V_at)mv $@-t $@
 MOSTLYCLEANFILES += libltdl/lt__argz.h \
 		    libltdl/lt__argz.h-t
+
+# Added by m4/ltdl.m4 but not distcleaned by automake
+distclean-local:
+	rm -f ./$(DEPDIR)/lt__strl.Plo

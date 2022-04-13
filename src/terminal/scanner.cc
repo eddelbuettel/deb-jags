@@ -1,5 +1,5 @@
 
-#line 3 "scanner.cc"
+#line 2 "scanner.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -7,11 +7,17 @@
 
 #define yy_create_buffer zz_create_buffer
 #define yy_delete_buffer zz_delete_buffer
-#define yy_flex_debug zz_flex_debug
+#define yy_scan_buffer zz_scan_buffer
+#define yy_scan_string zz_scan_string
+#define yy_scan_bytes zz_scan_bytes
 #define yy_init_buffer zz_init_buffer
 #define yy_flush_buffer zz_flush_buffer
 #define yy_load_buffer_state zz_load_buffer_state
 #define yy_switch_to_buffer zz_switch_to_buffer
+#define yypush_buffer_state zzpush_buffer_state
+#define yypop_buffer_state zzpop_buffer_state
+#define yyensure_buffer_stack zzensure_buffer_stack
+#define yy_flex_debug zz_flex_debug
 #define yyin zzin
 #define yyleng zzleng
 #define yylex zzlex
@@ -27,9 +33,243 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 1
+#define YY_FLEX_SUBMINOR_VERSION 4
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
+#endif
+
+#ifdef yy_create_buffer
+#define zz_create_buffer_ALREADY_DEFINED
+#else
+#define yy_create_buffer zz_create_buffer
+#endif
+
+#ifdef yy_delete_buffer
+#define zz_delete_buffer_ALREADY_DEFINED
+#else
+#define yy_delete_buffer zz_delete_buffer
+#endif
+
+#ifdef yy_scan_buffer
+#define zz_scan_buffer_ALREADY_DEFINED
+#else
+#define yy_scan_buffer zz_scan_buffer
+#endif
+
+#ifdef yy_scan_string
+#define zz_scan_string_ALREADY_DEFINED
+#else
+#define yy_scan_string zz_scan_string
+#endif
+
+#ifdef yy_scan_bytes
+#define zz_scan_bytes_ALREADY_DEFINED
+#else
+#define yy_scan_bytes zz_scan_bytes
+#endif
+
+#ifdef yy_init_buffer
+#define zz_init_buffer_ALREADY_DEFINED
+#else
+#define yy_init_buffer zz_init_buffer
+#endif
+
+#ifdef yy_flush_buffer
+#define zz_flush_buffer_ALREADY_DEFINED
+#else
+#define yy_flush_buffer zz_flush_buffer
+#endif
+
+#ifdef yy_load_buffer_state
+#define zz_load_buffer_state_ALREADY_DEFINED
+#else
+#define yy_load_buffer_state zz_load_buffer_state
+#endif
+
+#ifdef yy_switch_to_buffer
+#define zz_switch_to_buffer_ALREADY_DEFINED
+#else
+#define yy_switch_to_buffer zz_switch_to_buffer
+#endif
+
+#ifdef yypush_buffer_state
+#define zzpush_buffer_state_ALREADY_DEFINED
+#else
+#define yypush_buffer_state zzpush_buffer_state
+#endif
+
+#ifdef yypop_buffer_state
+#define zzpop_buffer_state_ALREADY_DEFINED
+#else
+#define yypop_buffer_state zzpop_buffer_state
+#endif
+
+#ifdef yyensure_buffer_stack
+#define zzensure_buffer_stack_ALREADY_DEFINED
+#else
+#define yyensure_buffer_stack zzensure_buffer_stack
+#endif
+
+#ifdef yylex
+#define zzlex_ALREADY_DEFINED
+#else
+#define yylex zzlex
+#endif
+
+#ifdef yyrestart
+#define zzrestart_ALREADY_DEFINED
+#else
+#define yyrestart zzrestart
+#endif
+
+#ifdef yylex_init
+#define zzlex_init_ALREADY_DEFINED
+#else
+#define yylex_init zzlex_init
+#endif
+
+#ifdef yylex_init_extra
+#define zzlex_init_extra_ALREADY_DEFINED
+#else
+#define yylex_init_extra zzlex_init_extra
+#endif
+
+#ifdef yylex_destroy
+#define zzlex_destroy_ALREADY_DEFINED
+#else
+#define yylex_destroy zzlex_destroy
+#endif
+
+#ifdef yyget_debug
+#define zzget_debug_ALREADY_DEFINED
+#else
+#define yyget_debug zzget_debug
+#endif
+
+#ifdef yyset_debug
+#define zzset_debug_ALREADY_DEFINED
+#else
+#define yyset_debug zzset_debug
+#endif
+
+#ifdef yyget_extra
+#define zzget_extra_ALREADY_DEFINED
+#else
+#define yyget_extra zzget_extra
+#endif
+
+#ifdef yyset_extra
+#define zzset_extra_ALREADY_DEFINED
+#else
+#define yyset_extra zzset_extra
+#endif
+
+#ifdef yyget_in
+#define zzget_in_ALREADY_DEFINED
+#else
+#define yyget_in zzget_in
+#endif
+
+#ifdef yyset_in
+#define zzset_in_ALREADY_DEFINED
+#else
+#define yyset_in zzset_in
+#endif
+
+#ifdef yyget_out
+#define zzget_out_ALREADY_DEFINED
+#else
+#define yyget_out zzget_out
+#endif
+
+#ifdef yyset_out
+#define zzset_out_ALREADY_DEFINED
+#else
+#define yyset_out zzset_out
+#endif
+
+#ifdef yyget_leng
+#define zzget_leng_ALREADY_DEFINED
+#else
+#define yyget_leng zzget_leng
+#endif
+
+#ifdef yyget_text
+#define zzget_text_ALREADY_DEFINED
+#else
+#define yyget_text zzget_text
+#endif
+
+#ifdef yyget_lineno
+#define zzget_lineno_ALREADY_DEFINED
+#else
+#define yyget_lineno zzget_lineno
+#endif
+
+#ifdef yyset_lineno
+#define zzset_lineno_ALREADY_DEFINED
+#else
+#define yyset_lineno zzset_lineno
+#endif
+
+#ifdef yywrap
+#define zzwrap_ALREADY_DEFINED
+#else
+#define yywrap zzwrap
+#endif
+
+#ifdef yyalloc
+#define zzalloc_ALREADY_DEFINED
+#else
+#define yyalloc zzalloc
+#endif
+
+#ifdef yyrealloc
+#define zzrealloc_ALREADY_DEFINED
+#else
+#define yyrealloc zzrealloc
+#endif
+
+#ifdef yyfree
+#define zzfree_ALREADY_DEFINED
+#else
+#define yyfree zzfree
+#endif
+
+#ifdef yytext
+#define zztext_ALREADY_DEFINED
+#else
+#define yytext zztext
+#endif
+
+#ifdef yyleng
+#define zzleng_ALREADY_DEFINED
+#else
+#define yyleng zzleng
+#endif
+
+#ifdef yyin
+#define zzin_ALREADY_DEFINED
+#else
+#define yyin zzin
+#endif
+
+#ifdef yyout
+#define zzout_ALREADY_DEFINED
+#else
+#define yyout zzout
+#endif
+
+#ifdef yy_flex_debug
+#define zz_flex_debug_ALREADY_DEFINED
+#else
+#define yy_flex_debug zz_flex_debug
+#endif
+
+#ifdef yylineno
+#define zzlineno_ALREADY_DEFINED
+#else
+#define yylineno zzlineno
 #endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
@@ -102,9 +342,15 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX               (~(size_t)0)
+#endif
+
 #endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
+
+/* begin standard C++ headers. */
 
 /* TODO: this is always defined, so inline it */
 #define yyconst const
@@ -118,32 +364,26 @@ typedef unsigned int flex_uint32_t;
 /* Returned upon end-of-file. */
 #define YY_NULL 0
 
-/* Promotes a possibly negative, possibly signed char to an unsigned
- * integer for use as an array index.  If the signed char is negative,
- * we want to instead treat it as an 8-bit unsigned char, hence the
- * double cast.
+/* Promotes a possibly negative, possibly signed char to an
+ *   integer in range [0..255] for use as an array index.
  */
-#define YY_SC_TO_UI(c) ((unsigned int) (unsigned char) c)
+#define YY_SC_TO_UI(c) ((YY_CHAR) (c))
 
 /* Enter a start condition.  This macro really ought to take a parameter,
  * but we do it the disgusting crufty way forced on us by the ()-less
  * definition of BEGIN.
  */
 #define BEGIN (yy_start) = 1 + 2 *
-
 /* Translate the current start state into a value that can be later handed
  * to BEGIN to return to the state.  The YYSTATE alias is for lex
  * compatibility.
  */
 #define YY_START (((yy_start) - 1) / 2)
 #define YYSTATE YY_START
-
 /* Action number for EOF rule of a given start state. */
 #define YY_STATE_EOF(state) (YY_END_OF_BUFFER + state + 1)
-
 /* Special action meaning "start processing a new file". */
-#define YY_NEW_FILE zzrestart(zzin  )
-
+#define YY_NEW_FILE yyrestart( yyin  )
 #define YY_END_OF_BUFFER_CHAR 0
 
 /* Size of default input buffer. */
@@ -173,14 +413,14 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 typedef size_t yy_size_t;
 #endif
 
-extern int zzleng;
+extern int yyleng;
 
-extern FILE *zzin, *zzout;
+extern FILE *yyin, *yyout;
 
 #define EOB_ACT_CONTINUE_SCAN 0
 #define EOB_ACT_END_OF_FILE 1
 #define EOB_ACT_LAST_MATCH 2
-
+    
     #define YY_LESS_LINENO(n)
     #define YY_LINENO_REWIND_TO(ptr)
     
@@ -188,16 +428,15 @@ extern FILE *zzin, *zzout;
 #define yyless(n) \
 	do \
 		{ \
-		/* Undo effects of setting up zztext. */ \
-        yy_size_t yyless_macro_arg = (n); \
+		/* Undo effects of setting up yytext. */ \
+        int yyless_macro_arg = (n); \
         YY_LESS_LINENO(yyless_macro_arg);\
 		*yy_cp = (yy_hold_char); \
 		YY_RESTORE_YY_MORE_OFFSET \
 		(yy_c_buf_p) = yy_cp = yy_bp + yyless_macro_arg - YY_MORE_ADJ; \
-		YY_DO_BEFORE_ACTION; /* set up zztext again */ \
+		YY_DO_BEFORE_ACTION; /* set up yytext again */ \
 		} \
 	while ( 0 )
-
 #define unput(c) yyunput( c, (yytext_ptr)  )
 
 #ifndef YY_STRUCT_YY_BUFFER_STATE
@@ -240,7 +479,7 @@ struct yy_buffer_state
 
     int yy_bs_lineno; /**< The line count. */
     int yy_bs_column; /**< The column count. */
-    
+
 	/* Whether to try to fill the input buffer when we reach the
 	 * end of it.
 	 */
@@ -257,8 +496,8 @@ struct yy_buffer_state
 	 * possible backing-up.
 	 *
 	 * When we actually see the EOF, we change the status to "new"
-	 * (via zzrestart()), so that the user can continue scanning by
-	 * just pointing zzin at a new input file.
+	 * (via yyrestart()), so that the user can continue scanning by
+	 * just pointing yyin at a new input file.
 	 */
 #define YY_BUFFER_EOF_PENDING 2
 
@@ -279,106 +518,98 @@ static YY_BUFFER_STATE * yy_buffer_stack = NULL; /**< Stack as an array. */
 #define YY_CURRENT_BUFFER ( (yy_buffer_stack) \
                           ? (yy_buffer_stack)[(yy_buffer_stack_top)] \
                           : NULL)
-
 /* Same as previous macro, but useful when we know that the buffer stack is not
  * NULL or when we need an lvalue. For internal use only.
  */
 #define YY_CURRENT_BUFFER_LVALUE (yy_buffer_stack)[(yy_buffer_stack_top)]
 
-/* yy_hold_char holds the character lost when zztext is formed. */
+/* yy_hold_char holds the character lost when yytext is formed. */
 static char yy_hold_char;
 static int yy_n_chars;		/* number of characters read into yy_ch_buf */
-int zzleng;
+int yyleng;
 
 /* Points to current character in buffer. */
 static char *yy_c_buf_p = NULL;
 static int yy_init = 0;		/* whether we need to initialize */
 static int yy_start = 0;	/* start state number */
 
-/* Flag which is used to allow zzwrap()'s to do buffer switches
- * instead of setting up a fresh zzin.  A bit of a hack ...
+/* Flag which is used to allow yywrap()'s to do buffer switches
+ * instead of setting up a fresh yyin.  A bit of a hack ...
  */
 static int yy_did_buffer_switch_on_eof;
 
-void zzrestart (FILE *input_file  );
-void zz_switch_to_buffer (YY_BUFFER_STATE new_buffer  );
-YY_BUFFER_STATE zz_create_buffer (FILE *file,int size  );
-void zz_delete_buffer (YY_BUFFER_STATE b  );
-void zz_flush_buffer (YY_BUFFER_STATE b  );
-void zzpush_buffer_state (YY_BUFFER_STATE new_buffer  );
-void zzpop_buffer_state (void );
+void yyrestart ( FILE *input_file  );
+void yy_switch_to_buffer ( YY_BUFFER_STATE new_buffer  );
+YY_BUFFER_STATE yy_create_buffer ( FILE *file, int size  );
+void yy_delete_buffer ( YY_BUFFER_STATE b  );
+void yy_flush_buffer ( YY_BUFFER_STATE b  );
+void yypush_buffer_state ( YY_BUFFER_STATE new_buffer  );
+void yypop_buffer_state ( void );
 
-static void zzensure_buffer_stack (void );
-static void zz_load_buffer_state (void );
-static void zz_init_buffer (YY_BUFFER_STATE b,FILE *file  );
+static void yyensure_buffer_stack ( void );
+static void yy_load_buffer_state ( void );
+static void yy_init_buffer ( YY_BUFFER_STATE b, FILE *file  );
+#define YY_FLUSH_BUFFER yy_flush_buffer( YY_CURRENT_BUFFER )
 
-#define YY_FLUSH_BUFFER zz_flush_buffer(YY_CURRENT_BUFFER )
+YY_BUFFER_STATE yy_scan_buffer ( char *base, yy_size_t size  );
+YY_BUFFER_STATE yy_scan_string ( const char *yy_str  );
+YY_BUFFER_STATE yy_scan_bytes ( const char *bytes, int len  );
 
-YY_BUFFER_STATE zz_scan_buffer (char *base,yy_size_t size  );
-YY_BUFFER_STATE zz_scan_string (yyconst char *yy_str  );
-YY_BUFFER_STATE zz_scan_bytes (yyconst char *bytes,int len  );
+void *yyalloc ( yy_size_t  );
+void *yyrealloc ( void *, yy_size_t  );
+void yyfree ( void *  );
 
-void *zzalloc (yy_size_t  );
-void *zzrealloc (void *,yy_size_t  );
-void zzfree (void *  );
-
-#define yy_new_buffer zz_create_buffer
-
+#define yy_new_buffer yy_create_buffer
 #define yy_set_interactive(is_interactive) \
 	{ \
 	if ( ! YY_CURRENT_BUFFER ){ \
-        zzensure_buffer_stack (); \
+        yyensure_buffer_stack (); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            zz_create_buffer(zzin,YY_BUF_SIZE ); \
+            yy_create_buffer( yyin, YY_BUF_SIZE ); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_is_interactive = is_interactive; \
 	}
-
 #define yy_set_bol(at_bol) \
 	{ \
 	if ( ! YY_CURRENT_BUFFER ){\
-        zzensure_buffer_stack (); \
+        yyensure_buffer_stack (); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            zz_create_buffer(zzin,YY_BUF_SIZE ); \
+            yy_create_buffer( yyin, YY_BUF_SIZE ); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_at_bol = at_bol; \
 	}
-
 #define YY_AT_BOL() (YY_CURRENT_BUFFER_LVALUE->yy_at_bol)
 
 /* Begin user sect3 */
+typedef flex_uint8_t YY_CHAR;
 
-typedef unsigned char YY_CHAR;
-
-FILE *zzin = NULL, *zzout = NULL;
+FILE *yyin = NULL, *yyout = NULL;
 
 typedef int yy_state_type;
 
-extern int zzlineno;
+extern int yylineno;
+int yylineno = 1;
 
-int zzlineno = 1;
-
-extern char *zztext;
+extern char *yytext;
 #ifdef yytext_ptr
 #undef yytext_ptr
 #endif
-#define yytext_ptr zztext
+#define yytext_ptr yytext
 
-static yy_state_type yy_get_previous_state (void );
-static yy_state_type yy_try_NUL_trans (yy_state_type current_state  );
-static int yy_get_next_buffer (void );
-static void yynoreturn yy_fatal_error (yyconst char* msg  );
+static yy_state_type yy_get_previous_state ( void );
+static yy_state_type yy_try_NUL_trans ( yy_state_type current_state  );
+static int yy_get_next_buffer ( void );
+static void yynoreturn yy_fatal_error ( const char* msg  );
 
 /* Done after the current pattern has been matched and before the
- * corresponding action - sets up zztext.
+ * corresponding action - sets up yytext.
  */
 #define YY_DO_BEFORE_ACTION \
 	(yytext_ptr) = yy_bp; \
-	zzleng = (int) (yy_cp - yy_bp); \
+	yyleng = (int) (yy_cp - yy_bp); \
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
-
 #define YY_NUM_RULES 81
 #define YY_END_OF_BUFFER 82
 /* This struct is not used in this scanner,
@@ -388,7 +619,7 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static yyconst flex_int16_t yy_accept[287] =
+static const flex_int16_t yy_accept[287] =
     {   0,
         0,    0,    0,    0,   51,   51,    0,    0,   82,   81,
        54,   57,   81,   81,   81,   42,   43,   46,   39,   78,
@@ -423,7 +654,7 @@ static yyconst flex_int16_t yy_accept[287] =
        77,    0,   73,    0,   76,    0
     } ;
 
-static yyconst YY_CHAR yy_ec[256] =
+static const YY_CHAR yy_ec[256] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    2,    3,
         1,    4,    4,    1,    1,    1,    1,    1,    1,    1,
@@ -455,7 +686,7 @@ static yyconst YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1
     } ;
 
-static yyconst YY_CHAR yy_meta[54] =
+static const YY_CHAR yy_meta[54] =
     {   0,
         1,    1,    2,    1,    1,    1,    1,    1,    1,    3,
         1,    1,    4,    4,    4,    4,    1,    1,    1,    1,
@@ -465,7 +696,7 @@ static yyconst YY_CHAR yy_meta[54] =
         4,    4,    4
     } ;
 
-static yyconst flex_uint16_t yy_base[298] =
+static const flex_int16_t yy_base[298] =
     {   0,
         0,    0,   51,   96,  325,  323,  326,  322,  321, 1235,
        53, 1235,  310,  306,  301, 1235, 1235, 1235, 1235,   42,
@@ -502,7 +733,7 @@ static yyconst flex_uint16_t yy_base[298] =
 
     } ;
 
-static yyconst flex_int16_t yy_def[298] =
+static const flex_int16_t yy_def[298] =
     {   0,
       286,    1,    1,    1,  287,  287,  288,  288,  286,  286,
       286,  286,  289,  290,  291,  286,  286,  286,  286,  292,
@@ -539,7 +770,7 @@ static yyconst flex_int16_t yy_def[298] =
 
     } ;
 
-static yyconst flex_uint16_t yy_nxt[1289] =
+static const flex_int16_t yy_nxt[1289] =
     {   0,
        10,   11,   12,   11,   13,   14,   15,   16,   17,   18,
        10,   19,   20,   21,   22,   23,   24,   25,   26,   27,
@@ -684,7 +915,7 @@ static yyconst flex_uint16_t yy_nxt[1289] =
       286,  286,  286,  286,  286,  286,  286,  286
     } ;
 
-static yyconst flex_int16_t yy_chk[1289] =
+static const flex_int16_t yy_chk[1289] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -832,8 +1063,8 @@ static yyconst flex_int16_t yy_chk[1289] =
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
 
-extern int zz_flex_debug;
-int zz_flex_debug = 0;
+extern int yy_flex_debug;
+int yy_flex_debug = 0;
 
 /* The intent behind this definition is that it'll catch
  * any uses of REJECT which flex missed.
@@ -842,10 +1073,10 @@ int zz_flex_debug = 0;
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-char *zztext;
-#line 1 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+char *yytext;
+#line 1 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 /* -*-C++-*- */
-#line 3 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 3 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -858,10 +1089,9 @@ char *zztext;
     void return_to_main_buffer();
     void close_buffer();
     std::string ExpandFileName(char const *name);
+#line 1092 "scanner.cc"
 
-
-
-#line 865 "scanner.cc"
+#line 1094 "scanner.cc"
 
 #define INITIAL 0
 #define RDATA 1
@@ -880,36 +1110,36 @@ char *zztext;
 #define YY_EXTRA_TYPE void *
 #endif
 
-static int yy_init_globals (void );
+static int yy_init_globals ( void );
 
 /* Accessor methods to globals.
    These are made visible to non-reentrant scanners for convenience. */
 
-int zzlex_destroy (void );
+int yylex_destroy ( void );
 
-int zzget_debug (void );
+int yyget_debug ( void );
 
-void zzset_debug (int debug_flag  );
+void yyset_debug ( int debug_flag  );
 
-YY_EXTRA_TYPE zzget_extra (void );
+YY_EXTRA_TYPE yyget_extra ( void );
 
-void zzset_extra (YY_EXTRA_TYPE user_defined  );
+void yyset_extra ( YY_EXTRA_TYPE user_defined  );
 
-FILE *zzget_in (void );
+FILE *yyget_in ( void );
 
-void zzset_in  (FILE * _in_str  );
+void yyset_in  ( FILE * _in_str  );
 
-FILE *zzget_out (void );
+FILE *yyget_out ( void );
 
-void zzset_out  (FILE * _out_str  );
+void yyset_out  ( FILE * _out_str  );
 
-			int zzget_leng (void );
+			int yyget_leng ( void );
 
-char *zzget_text (void );
+char *yyget_text ( void );
 
-int zzget_lineno (void );
+int yyget_lineno ( void );
 
-void zzset_lineno (int _line_number  );
+void yyset_lineno ( int _line_number  );
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -917,32 +1147,31 @@ void zzset_lineno (int _line_number  );
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-extern "C" int zzwrap (void );
+extern "C" int yywrap ( void );
 #else
-extern int zzwrap (void );
+extern int yywrap ( void );
 #endif
 #endif
 
 #ifndef YY_NO_UNPUT
     
-    static void yyunput (int c,char *buf_ptr  );
+    static void yyunput ( int c, char *buf_ptr  );
     
 #endif
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char *,yyconst char *,int );
+static void yy_flex_strncpy ( char *, const char *, int );
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * );
+static int yy_flex_strlen ( const char * );
 #endif
 
 #ifndef YY_NO_INPUT
-
 #ifdef __cplusplus
-static int yyinput (void );
+static int yyinput ( void );
 #else
-static int input (void );
+static int input ( void );
 #endif
 
 #endif
@@ -962,7 +1191,7 @@ static int input (void );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO do { if (fwrite( zztext, (size_t) zzleng, 1, zzout )) {} } while (0)
+#define ECHO do { if (fwrite( yytext, (size_t) yyleng, 1, yyout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -975,18 +1204,18 @@ static int input (void );
 		int c = '*'; \
 		int n; \
 		for ( n = 0; n < max_size && \
-			     (c = getc( zzin )) != EOF && c != '\n'; ++n ) \
+			     (c = getc( yyin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
 		if ( c == '\n' ) \
 			buf[n++] = (char) c; \
-		if ( c == EOF && ferror( zzin ) ) \
+		if ( c == EOF && ferror( yyin ) ) \
 			YY_FATAL_ERROR( "input in flex scanner failed" ); \
 		result = n; \
 		} \
 	else \
 		{ \
 		errno=0; \
-		while ( (result = (int) fread(buf, 1, (yy_size_t) max_size, zzin)) == 0 && ferror(zzin)) \
+		while ( (result = (int) fread(buf, 1, (yy_size_t) max_size, yyin)) == 0 && ferror(yyin)) \
 			{ \
 			if( errno != EINTR) \
 				{ \
@@ -994,7 +1223,7 @@ static int input (void );
 				break; \
 				} \
 			errno=0; \
-			clearerr(zzin); \
+			clearerr(yyin); \
 			} \
 		}\
 \
@@ -1027,12 +1256,12 @@ static int input (void );
 #ifndef YY_DECL
 #define YY_DECL_IS_OURS 1
 
-extern int zzlex (void);
+extern int yylex (void);
 
-#define YY_DECL int zzlex (void)
+#define YY_DECL int yylex (void)
 #endif /* !YY_DECL */
 
-/* Code executed at the beginning of each rule, after zztext and zzleng
+/* Code executed at the beginning of each rule, after yytext and yyleng
  * have been set up.
  */
 #ifndef YY_USER_ACTION
@@ -1066,32 +1295,32 @@ YY_DECL
 		if ( ! (yy_start) )
 			(yy_start) = 1;	/* first start state */
 
-		if ( ! zzin )
-			zzin = stdin;
+		if ( ! yyin )
+			yyin = stdin;
 
-		if ( ! zzout )
-			zzout = stdout;
+		if ( ! yyout )
+			yyout = stdout;
 
 		if ( ! YY_CURRENT_BUFFER ) {
-			zzensure_buffer_stack ();
+			yyensure_buffer_stack ();
 			YY_CURRENT_BUFFER_LVALUE =
-				zz_create_buffer(zzin,YY_BUF_SIZE );
+				yy_create_buffer( yyin, YY_BUF_SIZE );
 		}
 
-		zz_load_buffer_state( );
+		yy_load_buffer_state(  );
 		}
 
 	{
-#line 26 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 26 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 
 
-#line 1089 "scanner.cc"
+#line 1317 "scanner.cc"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
 		yy_cp = (yy_c_buf_p);
 
-		/* Support of zztext. */
+		/* Support of yytext. */
 		*yy_cp = (yy_hold_char);
 
 		/* yy_bp points to the position in yy_ch_buf of the start of
@@ -1113,9 +1342,9 @@ yy_match:
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
 				if ( yy_current_state >= 287 )
-					yy_c = yy_meta[(unsigned int) yy_c];
+					yy_c = yy_meta[yy_c];
 				}
-			yy_current_state = yy_nxt[yy_base[yy_current_state] + (flex_int16_t) yy_c];
+			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
 		while ( yy_base[yy_current_state] != 1235 );
@@ -1144,302 +1373,302 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 28 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 28 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=MODEL; return MODEL;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 29 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 29 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=DATA; return DATA;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 30 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 30 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=IN; return IN;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 31 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 31 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=TO; return TO;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 32 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 32 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=INITS; return INITS;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 33 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 33 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=PARAMETERS; return PARAMETERS;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 35 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 35 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=COMPILE; return COMPILE;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 36 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 36 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=NCHAINS; return NCHAINS;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 37 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 37 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=INITIALIZE; return INITIALIZE;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 38 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 38 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CHAIN; return CHAIN;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 40 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 40 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=UPDATE; return UPDATE;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 41 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 41 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=ADAPT; return ADAPT;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 42 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 42 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=FORCEADAPT; return FORCEADAPT;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 43 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 43 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=AUTOADAPT; return AUTOADAPT;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 44 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 44 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=BY; return BY;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 46 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 46 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=MONITOR; return MONITOR;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 47 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 47 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=MONITORS; return MONITORS;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 48 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 48 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=TYPE; return TYPE;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 49 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 49 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=SET; return SET;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 50 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 50 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CLEAR; return CLEAR;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 51 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 51 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=THIN; return THIN;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 52 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 52 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=SAMPLER; return SAMPLER;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 53 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 53 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=SAMPLERS; return SAMPLERS;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 54 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 54 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=RNGTOK; return RNGTOK;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 55 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 55 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=FACTORY; return FACTORY;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 56 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 56 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=FACTORIES; return FACTORIES;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 57 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 57 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=MODULES; return MODULES;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 58 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 58 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=SEED; return SEED;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 60 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 60 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CODA; return CODA;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 61 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 61 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=STEM; return STEM;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 63 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 63 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=LOAD; return LOAD;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 64 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 64 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=UNLOAD; return UNLOAD;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 65 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 65 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=EXIT; return EXIT;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 67 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 67 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=DIRECTORY; return DIRECTORY;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 68 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 68 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=CD; return CD;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 69 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 69 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=PWD; return PWD;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 70 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 70 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=RUN; return RUN;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 72 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 72 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 zzlval.intval=LIST; return LIST;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 74 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 74 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ',';
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 75 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 75 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return '[';
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 76 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 76 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ']';
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 77 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 77 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return '(';
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 78 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 78 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ')';
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 79 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 79 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return '=';
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 80 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 80 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ARROW;
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 81 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 81 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return '*';
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 82 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 82 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ':';
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 83 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 83 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ';';
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 84 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 84 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return '`';
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 86 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 86 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 BEGIN(COMMENT);
 	YY_BREAK
 case 51:
 /* rule 51 can match eol */
 YY_RULE_SETUP
-#line 87 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 87 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 /* Eat up anything that's not a '*' */
 	YY_BREAK
 case 52:
 /* rule 52 can match eol */
 YY_RULE_SETUP
-#line 88 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 88 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 /* Eat up '*'s not followed by a '/'  */
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 89 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 89 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 BEGIN(INITIAL);
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 91 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 91 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 /* Eat whitespace */
 	YY_BREAK
 case 55:
 /* rule 55 can match eol */
 YY_RULE_SETUP
-#line 92 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 92 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 /* Eat single-line comments */
 	YY_BREAK
 case 56:
 /* rule 56 can match eol */
 YY_RULE_SETUP
-#line 93 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 93 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 /* Eat newlines */
 	YY_BREAK
 case 57:
 /* rule 57 can match eol */
 YY_RULE_SETUP
-#line 94 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 94 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ENDCMD;
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 96 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 96 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 BEGIN(SYSTEM);
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 97 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 97 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.stringptr = new std::string(zztext);
   return SYSCMD;
@@ -1448,122 +1677,122 @@ YY_RULE_SETUP
 case 60:
 /* rule 60 can match eol */
 YY_RULE_SETUP
-#line 101 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 101 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
     BEGIN(INITIAL); return ENDCMD;
  }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 105 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 105 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 108 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 108 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 111 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 111 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 114 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 114 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 117 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 117 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 120 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 120 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 123 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 123 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.val = atof(zztext); return DOUBLE;
 }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 126 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 126 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.intval = atoi(zztext); return INT;
 }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 130 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 130 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return DIM;
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 131 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 131 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return DOTDATA;
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 132 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 132 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return NA;
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 133 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 133 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return R_NULL;
 	YY_BREAK
 case 73:
-*yy_cp = (yy_hold_char); /* undo effects of setting up zztext */
+*yy_cp = (yy_hold_char); /* undo effects of setting up yytext */
 (yy_c_buf_p) = yy_cp = yy_bp + 9;
-YY_DO_BEFORE_ACTION; /* set up zztext again */
+YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 134 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 134 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return STRUCTURE;
 	YY_BREAK
 case 74:
-*yy_cp = (yy_hold_char); /* undo effects of setting up zztext */
+*yy_cp = (yy_hold_char); /* undo effects of setting up yytext */
 (yy_c_buf_p) = yy_cp = yy_bp + 4;
-YY_DO_BEFORE_ACTION; /* set up zztext again */
+YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 135 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 135 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return LIST;
 	YY_BREAK
 case 75:
-*yy_cp = (yy_hold_char); /* undo effects of setting up zztext */
+*yy_cp = (yy_hold_char); /* undo effects of setting up yytext */
 (yy_c_buf_p) = yy_cp = yy_bp + 1;
-YY_DO_BEFORE_ACTION; /* set up zztext again */
+YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 136 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 136 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return 'c';
 	YY_BREAK
 case 76:
-*yy_cp = (yy_hold_char); /* undo effects of setting up zztext */
+*yy_cp = (yy_hold_char); /* undo effects of setting up yytext */
 (yy_c_buf_p) = yy_cp = yy_bp + 10;
-YY_DO_BEFORE_ACTION; /* set up zztext again */
+YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 137 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 137 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 return ASINTEGER;
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 139 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 139 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 { 
   zzlval.stringptr = new std::string(zztext);
   return NAME;
@@ -1571,7 +1800,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 144 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 144 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   // More general than NAME which is limited to syntactically valid BUGS names
   zzlval.stringptr = new std::string(zztext);
@@ -1581,7 +1810,7 @@ YY_RULE_SETUP
 case 79:
 /* rule 79 can match eol */
 YY_RULE_SETUP
-#line 150 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 150 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
   zzlval.stringptr = new std::string(zztext);
   // Remove enclosing quotes
@@ -1593,7 +1822,7 @@ YY_RULE_SETUP
 case 80:
 /* rule 80 can match eol */
 YY_RULE_SETUP
-#line 158 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 158 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
     zzlval.stringptr = new std::string(zztext);
     zzlval.stringptr->erase(zzlval.stringptr->size() - 1, 1);
@@ -1602,7 +1831,7 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 165 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 165 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
     if (command_buffer_count) {
 	close_buffer();
@@ -1615,7 +1844,7 @@ case YY_STATE_EOF(INITIAL):
 }
 	YY_BREAK
 case YY_STATE_EOF(RDATA):
-#line 175 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 175 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 {
     close_buffer();
     BEGIN(INITIAL);
@@ -1624,10 +1853,10 @@ case YY_STATE_EOF(RDATA):
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 180 "../../../../../jags-4_patched/src/terminal/scanner.ll"
+#line 180 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 ECHO;
 	YY_BREAK
-#line 1631 "scanner.cc"
+#line 1859 "scanner.cc"
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(SYSTEM):
 	yyterminate();
@@ -1645,15 +1874,15 @@ case YY_STATE_EOF(SYSTEM):
 			{
 			/* We're scanning a new file or input source.  It's
 			 * possible that this happened because the user
-			 * just pointed zzin at a new source and called
-			 * zzlex().  If so, then we have to assure
+			 * just pointed yyin at a new source and called
+			 * yylex().  If so, then we have to assure
 			 * consistency between YY_CURRENT_BUFFER and our
 			 * globals.  Here is the right place to do so, because
 			 * this is the first action (other than possibly a
 			 * back-up) that will match for the new input source.
 			 */
 			(yy_n_chars) = YY_CURRENT_BUFFER_LVALUE->yy_n_chars;
-			YY_CURRENT_BUFFER_LVALUE->yy_input_file = zzin;
+			YY_CURRENT_BUFFER_LVALUE->yy_input_file = yyin;
 			YY_CURRENT_BUFFER_LVALUE->yy_buffer_status = YY_BUFFER_NORMAL;
 			}
 
@@ -1706,11 +1935,11 @@ case YY_STATE_EOF(SYSTEM):
 				{
 				(yy_did_buffer_switch_on_eof) = 0;
 
-				if ( zzwrap( ) )
+				if ( yywrap(  ) )
 					{
 					/* Note: because we've taken care in
 					 * yy_get_next_buffer() to have set up
-					 * zztext, we can now set up
+					 * yytext, we can now set up
 					 * yy_c_buf_p so that if some total
 					 * hoser (like flex itself) wants to
 					 * call the scanner after we return the
@@ -1760,7 +1989,7 @@ case YY_STATE_EOF(SYSTEM):
 	} /* end of action switch */
 		} /* end of scanning one token */
 	} /* end of user's declarations */
-} /* end of zzlex */
+} /* end of yylex */
 
 /* yy_get_next_buffer - try to read in a new buffer
  *
@@ -1773,7 +2002,7 @@ static int yy_get_next_buffer (void)
 {
     	char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
 	char *source = (yytext_ptr);
-	yy_size_t number_to_move, i;
+	int number_to_move, i;
 	int ret_val;
 
 	if ( (yy_c_buf_p) > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[(yy_n_chars) + 1] )
@@ -1802,7 +2031,7 @@ static int yy_get_next_buffer (void)
 	/* Try to read more data. */
 
 	/* First move last chars to start of buffer. */
-	number_to_move = (yy_size_t) ((yy_c_buf_p) - (yytext_ptr)) - 1;
+	number_to_move = (int) ((yy_c_buf_p) - (yytext_ptr) - 1);
 
 	for ( i = 0; i < number_to_move; ++i )
 		*(dest++) = *(source++);
@@ -1838,7 +2067,8 @@ static int yy_get_next_buffer (void)
 
 				b->yy_ch_buf = (char *)
 					/* Include room in for 2 EOB chars. */
-					zzrealloc((void *) b->yy_ch_buf,(yy_size_t) (b->yy_buf_size + 2)  );
+					yyrealloc( (void *) b->yy_ch_buf,
+							 (yy_size_t) (b->yy_buf_size + 2)  );
 				}
 			else
 				/* Can't grow it, we don't own it. */
@@ -1870,7 +2100,7 @@ static int yy_get_next_buffer (void)
 		if ( number_to_move == YY_MORE_ADJ )
 			{
 			ret_val = EOB_ACT_END_OF_FILE;
-			zzrestart(zzin  );
+			yyrestart( yyin  );
 			}
 
 		else
@@ -1884,12 +2114,15 @@ static int yy_get_next_buffer (void)
 	else
 		ret_val = EOB_ACT_CONTINUE_SCAN;
 
-	if ((int) ((yy_n_chars) + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
+	if (((yy_n_chars) + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
 		/* Extend the array by 50%, plus the number we really need. */
 		int new_size = (yy_n_chars) + number_to_move + ((yy_n_chars) >> 1);
-		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) zzrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,(yy_size_t) new_size  );
+		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) yyrealloc(
+			(void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf, (yy_size_t) new_size  );
 		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
 			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
+		/* "- 2" to take care of EOB's */
+		YY_CURRENT_BUFFER_LVALUE->yy_buf_size = (int) (new_size - 2);
 	}
 
 	(yy_n_chars) += number_to_move;
@@ -1922,9 +2155,9 @@ static int yy_get_next_buffer (void)
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
 			if ( yy_current_state >= 287 )
-				yy_c = yy_meta[(unsigned int) yy_c];
+				yy_c = yy_meta[yy_c];
 			}
-		yy_current_state = yy_nxt[yy_base[yy_current_state] + (flex_int16_t) yy_c];
+		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 		}
 
 	return yy_current_state;
@@ -1950,9 +2183,9 @@ static int yy_get_next_buffer (void)
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
 		if ( yy_current_state >= 287 )
-			yy_c = yy_meta[(unsigned int) yy_c];
+			yy_c = yy_meta[yy_c];
 		}
-	yy_current_state = yy_nxt[yy_base[yy_current_state] + (flex_int16_t) yy_c];
+	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 	yy_is_jam = (yy_current_state == 286);
 
 		return yy_is_jam ? 0 : yy_current_state;
@@ -1966,7 +2199,7 @@ static int yy_get_next_buffer (void)
     
     yy_cp = (yy_c_buf_p);
 
-	/* undo effects of setting up zztext */
+	/* undo effects of setting up yytext */
 	*yy_cp = (yy_hold_char);
 
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
@@ -2023,7 +2256,7 @@ static int yy_get_next_buffer (void)
 
 		else
 			{ /* need more input */
-			int offset = (yy_c_buf_p) - (yytext_ptr);
+			int offset = (int) ((yy_c_buf_p) - (yytext_ptr));
 			++(yy_c_buf_p);
 
 			switch ( yy_get_next_buffer(  ) )
@@ -2040,13 +2273,13 @@ static int yy_get_next_buffer (void)
 					 */
 
 					/* Reset buffer status. */
-					zzrestart(zzin );
+					yyrestart( yyin );
 
 					/*FALLTHROUGH*/
 
 				case EOB_ACT_END_OF_FILE:
 					{
-					if ( zzwrap( ) )
+					if ( yywrap(  ) )
 						return 0;
 
 					if ( ! (yy_did_buffer_switch_on_eof) )
@@ -2066,7 +2299,7 @@ static int yy_get_next_buffer (void)
 		}
 
 	c = *(unsigned char *) (yy_c_buf_p);	/* cast for 8-bit char's */
-	*(yy_c_buf_p) = '\0';	/* preserve zztext */
+	*(yy_c_buf_p) = '\0';	/* preserve yytext */
 	(yy_hold_char) = *++(yy_c_buf_p);
 
 	return c;
@@ -2078,32 +2311,32 @@ static int yy_get_next_buffer (void)
  * 
  * @note This function does not reset the start condition to @c INITIAL .
  */
-    void zzrestart  (FILE * input_file )
+    void yyrestart  (FILE * input_file )
 {
     
 	if ( ! YY_CURRENT_BUFFER ){
-        zzensure_buffer_stack ();
+        yyensure_buffer_stack ();
 		YY_CURRENT_BUFFER_LVALUE =
-            zz_create_buffer(zzin,YY_BUF_SIZE );
+            yy_create_buffer( yyin, YY_BUF_SIZE );
 	}
 
-	zz_init_buffer(YY_CURRENT_BUFFER,input_file );
-	zz_load_buffer_state( );
+	yy_init_buffer( YY_CURRENT_BUFFER, input_file );
+	yy_load_buffer_state(  );
 }
 
 /** Switch to a different input buffer.
  * @param new_buffer The new input buffer.
  * 
  */
-    void zz_switch_to_buffer  (YY_BUFFER_STATE  new_buffer )
+    void yy_switch_to_buffer  (YY_BUFFER_STATE  new_buffer )
 {
     
 	/* TODO. We should be able to replace this entire function body
 	 * with
-	 *		zzpop_buffer_state();
-	 *		zzpush_buffer_state(new_buffer);
+	 *		yypop_buffer_state();
+	 *		yypush_buffer_state(new_buffer);
      */
-	zzensure_buffer_stack ();
+	yyensure_buffer_stack ();
 	if ( YY_CURRENT_BUFFER == new_buffer )
 		return;
 
@@ -2116,21 +2349,21 @@ static int yy_get_next_buffer (void)
 		}
 
 	YY_CURRENT_BUFFER_LVALUE = new_buffer;
-	zz_load_buffer_state( );
+	yy_load_buffer_state(  );
 
 	/* We don't actually know whether we did this switch during
-	 * EOF (zzwrap()) processing, but the only time this flag
-	 * is looked at is after zzwrap() is called, so it's safe
+	 * EOF (yywrap()) processing, but the only time this flag
+	 * is looked at is after yywrap() is called, so it's safe
 	 * to go ahead and always set it.
 	 */
 	(yy_did_buffer_switch_on_eof) = 1;
 }
 
-static void zz_load_buffer_state  (void)
+static void yy_load_buffer_state  (void)
 {
     	(yy_n_chars) = YY_CURRENT_BUFFER_LVALUE->yy_n_chars;
 	(yytext_ptr) = (yy_c_buf_p) = YY_CURRENT_BUFFER_LVALUE->yy_buf_pos;
-	zzin = YY_CURRENT_BUFFER_LVALUE->yy_input_file;
+	yyin = YY_CURRENT_BUFFER_LVALUE->yy_input_file;
 	(yy_hold_char) = *(yy_c_buf_p);
 }
 
@@ -2140,35 +2373,35 @@ static void zz_load_buffer_state  (void)
  * 
  * @return the allocated buffer state.
  */
-    YY_BUFFER_STATE zz_create_buffer  (FILE * file, int  size )
+    YY_BUFFER_STATE yy_create_buffer  (FILE * file, int  size )
 {
 	YY_BUFFER_STATE b;
     
-	b = (YY_BUFFER_STATE) zzalloc(sizeof( struct yy_buffer_state )  );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state )  );
 	if ( ! b )
-		YY_FATAL_ERROR( "out of dynamic memory in zz_create_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
 	b->yy_buf_size = size;
 
 	/* yy_ch_buf has to be 2 characters longer than the size given because
 	 * we need to put in 2 end-of-buffer characters.
 	 */
-	b->yy_ch_buf = (char *) zzalloc((yy_size_t) (b->yy_buf_size + 2)  );
+	b->yy_ch_buf = (char *) yyalloc( (yy_size_t) (b->yy_buf_size + 2)  );
 	if ( ! b->yy_ch_buf )
-		YY_FATAL_ERROR( "out of dynamic memory in zz_create_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
 	b->yy_is_our_buffer = 1;
 
-	zz_init_buffer(b,file );
+	yy_init_buffer( b, file );
 
 	return b;
 }
 
 /** Destroy the buffer.
- * @param b a buffer created with zz_create_buffer()
+ * @param b a buffer created with yy_create_buffer()
  * 
  */
-    void zz_delete_buffer (YY_BUFFER_STATE  b )
+    void yy_delete_buffer (YY_BUFFER_STATE  b )
 {
     
 	if ( ! b )
@@ -2178,27 +2411,27 @@ static void zz_load_buffer_state  (void)
 		YY_CURRENT_BUFFER_LVALUE = (YY_BUFFER_STATE) 0;
 
 	if ( b->yy_is_our_buffer )
-		zzfree((void *) b->yy_ch_buf  );
+		yyfree( (void *) b->yy_ch_buf  );
 
-	zzfree((void *) b  );
+	yyfree( (void *) b  );
 }
 
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
- * such as during a zzrestart() or at EOF.
+ * such as during a yyrestart() or at EOF.
  */
-    static void zz_init_buffer  (YY_BUFFER_STATE  b, FILE * file )
+    static void yy_init_buffer  (YY_BUFFER_STATE  b, FILE * file )
 
 {
 	int oerrno = errno;
     
-	zz_flush_buffer(b );
+	yy_flush_buffer( b );
 
 	b->yy_input_file = file;
 	b->yy_fill_buffer = 1;
 
-    /* If b is the current buffer, then zz_init_buffer was _probably_
-     * called from zzrestart() or through yy_get_next_buffer.
+    /* If b is the current buffer, then yy_init_buffer was _probably_
+     * called from yyrestart() or through yy_get_next_buffer.
      * In that case, we don't want to reset the lineno or column.
      */
     if (b != YY_CURRENT_BUFFER){
@@ -2215,7 +2448,7 @@ static void zz_load_buffer_state  (void)
  * @param b the buffer state to be flushed, usually @c YY_CURRENT_BUFFER.
  * 
  */
-    void zz_flush_buffer (YY_BUFFER_STATE  b )
+    void yy_flush_buffer (YY_BUFFER_STATE  b )
 {
     	if ( ! b )
 		return;
@@ -2235,7 +2468,7 @@ static void zz_load_buffer_state  (void)
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
 	if ( b == YY_CURRENT_BUFFER )
-		zz_load_buffer_state( );
+		yy_load_buffer_state(  );
 }
 
 /** Pushes the new state onto the stack. The new state becomes
@@ -2244,14 +2477,14 @@ static void zz_load_buffer_state  (void)
  *  @param new_buffer The new state.
  *  
  */
-void zzpush_buffer_state (YY_BUFFER_STATE new_buffer )
+void yypush_buffer_state (YY_BUFFER_STATE new_buffer )
 {
     	if (new_buffer == NULL)
 		return;
 
-	zzensure_buffer_stack();
+	yyensure_buffer_stack();
 
-	/* This block is copied from zz_switch_to_buffer. */
+	/* This block is copied from yy_switch_to_buffer. */
 	if ( YY_CURRENT_BUFFER )
 		{
 		/* Flush out information for old buffer. */
@@ -2265,8 +2498,8 @@ void zzpush_buffer_state (YY_BUFFER_STATE new_buffer )
 		(yy_buffer_stack_top)++;
 	YY_CURRENT_BUFFER_LVALUE = new_buffer;
 
-	/* copied from zz_switch_to_buffer. */
-	zz_load_buffer_state( );
+	/* copied from yy_switch_to_buffer. */
+	yy_load_buffer_state(  );
 	(yy_did_buffer_switch_on_eof) = 1;
 }
 
@@ -2274,18 +2507,18 @@ void zzpush_buffer_state (YY_BUFFER_STATE new_buffer )
  *  The next element becomes the new top.
  *  
  */
-void zzpop_buffer_state (void)
+void yypop_buffer_state (void)
 {
     	if (!YY_CURRENT_BUFFER)
 		return;
 
-	zz_delete_buffer(YY_CURRENT_BUFFER );
+	yy_delete_buffer(YY_CURRENT_BUFFER );
 	YY_CURRENT_BUFFER_LVALUE = NULL;
 	if ((yy_buffer_stack_top) > 0)
 		--(yy_buffer_stack_top);
 
 	if (YY_CURRENT_BUFFER) {
-		zz_load_buffer_state( );
+		yy_load_buffer_state(  );
 		(yy_did_buffer_switch_on_eof) = 1;
 	}
 }
@@ -2293,9 +2526,9 @@ void zzpop_buffer_state (void)
 /* Allocates the stack if it does not exist.
  *  Guarantees space for at least one push.
  */
-static void zzensure_buffer_stack (void)
+static void yyensure_buffer_stack (void)
 {
-	int num_to_alloc;
+	yy_size_t num_to_alloc;
     
 	if (!(yy_buffer_stack)) {
 
@@ -2304,14 +2537,14 @@ static void zzensure_buffer_stack (void)
 		 * immediate realloc on the next call.
          */
       num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
-		(yy_buffer_stack) = (struct yy_buffer_state**)zzalloc
+		(yy_buffer_stack) = (struct yy_buffer_state**)yyalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								);
 		if ( ! (yy_buffer_stack) )
-			YY_FATAL_ERROR( "out of dynamic memory in zzensure_buffer_stack()" );
-								  
+			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
+
 		memset((yy_buffer_stack), 0, num_to_alloc * sizeof(struct yy_buffer_state*));
-				
+
 		(yy_buffer_stack_max) = num_to_alloc;
 		(yy_buffer_stack_top) = 0;
 		return;
@@ -2323,12 +2556,12 @@ static void zzensure_buffer_stack (void)
 		yy_size_t grow_size = 8 /* arbitrary grow size */;
 
 		num_to_alloc = (yy_buffer_stack_max) + grow_size;
-		(yy_buffer_stack) = (struct yy_buffer_state**)zzrealloc
+		(yy_buffer_stack) = (struct yy_buffer_state**)yyrealloc
 								((yy_buffer_stack),
 								num_to_alloc * sizeof(struct yy_buffer_state*)
 								);
 		if ( ! (yy_buffer_stack) )
-			YY_FATAL_ERROR( "out of dynamic memory in zzensure_buffer_stack()" );
+			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
 
 		/* zero only the new slots.*/
 		memset((yy_buffer_stack) + (yy_buffer_stack_max), 0, grow_size * sizeof(struct yy_buffer_state*));
@@ -2340,9 +2573,9 @@ static void zzensure_buffer_stack (void)
  * @param base the character buffer
  * @param size the size in bytes of the character buffer
  * 
- * @return the newly allocated buffer state object. 
+ * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE zz_scan_buffer  (char * base, yy_size_t  size )
+YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 {
 	YY_BUFFER_STATE b;
     
@@ -2352,9 +2585,9 @@ YY_BUFFER_STATE zz_scan_buffer  (char * base, yy_size_t  size )
 		/* They forgot to leave room for the EOB's. */
 		return NULL;
 
-	b = (YY_BUFFER_STATE) zzalloc(sizeof( struct yy_buffer_state )  );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state )  );
 	if ( ! b )
-		YY_FATAL_ERROR( "out of dynamic memory in zz_scan_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_buffer()" );
 
 	b->yy_buf_size = (int) (size - 2);	/* "- 2" to take care of EOB's */
 	b->yy_buf_pos = b->yy_ch_buf = base;
@@ -2366,53 +2599,53 @@ YY_BUFFER_STATE zz_scan_buffer  (char * base, yy_size_t  size )
 	b->yy_fill_buffer = 0;
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
-	zz_switch_to_buffer(b  );
+	yy_switch_to_buffer( b  );
 
 	return b;
 }
 
-/** Setup the input buffer state to scan a string. The next call to zzlex() will
+/** Setup the input buffer state to scan a string. The next call to yylex() will
  * scan from a @e copy of @a str.
  * @param yystr a NUL-terminated string to scan
  * 
  * @return the newly allocated buffer state object.
  * @note If you want to scan bytes that may contain NUL values, then use
- *       zz_scan_bytes() instead.
+ *       yy_scan_bytes() instead.
  */
-YY_BUFFER_STATE zz_scan_string (yyconst char * yystr )
+YY_BUFFER_STATE yy_scan_string (const char * yystr )
 {
     
-	return zz_scan_bytes(yystr,(int) strlen(yystr) );
+	return yy_scan_bytes( yystr, (int) strlen(yystr) );
 }
 
-/** Setup the input buffer state to scan the given bytes. The next call to zzlex() will
+/** Setup the input buffer state to scan the given bytes. The next call to yylex() will
  * scan from a @e copy of @a bytes.
  * @param yybytes the byte buffer to scan
  * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
  * 
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE zz_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
+YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
 {
 	YY_BUFFER_STATE b;
 	char *buf;
 	yy_size_t n;
-	yy_size_t i;
+	int i;
     
 	/* Get memory for full buffer, including space for trailing EOB's. */
-	n = (yy_size_t) _yybytes_len + 2;
-	buf = (char *) zzalloc(n  );
+	n = (yy_size_t) (_yybytes_len + 2);
+	buf = (char *) yyalloc( n  );
 	if ( ! buf )
-		YY_FATAL_ERROR( "out of dynamic memory in zz_scan_bytes()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_bytes()" );
 
 	for ( i = 0; i < _yybytes_len; ++i )
 		buf[i] = yybytes[i];
 
 	buf[_yybytes_len] = buf[_yybytes_len+1] = YY_END_OF_BUFFER_CHAR;
 
-	b = zz_scan_buffer(buf,n );
+	b = yy_scan_buffer( buf, n );
 	if ( ! b )
-		YY_FATAL_ERROR( "bad buffer in zz_scan_bytes()" );
+		YY_FATAL_ERROR( "bad buffer in yy_scan_bytes()" );
 
 	/* It's okay to grow etc. this buffer, and we should throw it
 	 * away when we're done.
@@ -2426,9 +2659,9 @@ YY_BUFFER_STATE zz_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
 #define YY_EXIT_FAILURE 2
 #endif
 
-static void yynoreturn yy_fatal_error (yyconst char* msg )
+static void yynoreturn yy_fatal_error (const char* msg )
 {
-			(void) fprintf( stderr, "%s\n", msg );
+			fprintf( stderr, "%s\n", msg );
 	exit( YY_EXIT_FAILURE );
 }
 
@@ -2438,14 +2671,14 @@ static void yynoreturn yy_fatal_error (yyconst char* msg )
 #define yyless(n) \
 	do \
 		{ \
-		/* Undo effects of setting up zztext. */ \
-        yy_size_t yyless_macro_arg = (n); \
+		/* Undo effects of setting up yytext. */ \
+        int yyless_macro_arg = (n); \
         YY_LESS_LINENO(yyless_macro_arg);\
-		zztext[zzleng] = (yy_hold_char); \
-		(yy_c_buf_p) = zztext + yyless_macro_arg; \
+		yytext[yyleng] = (yy_hold_char); \
+		(yy_c_buf_p) = yytext + yyless_macro_arg; \
 		(yy_hold_char) = *(yy_c_buf_p); \
 		*(yy_c_buf_p) = '\0'; \
-		zzleng = yyless_macro_arg; \
+		yyleng = yyless_macro_arg; \
 		} \
 	while ( 0 )
 
@@ -2454,85 +2687,85 @@ static void yynoreturn yy_fatal_error (yyconst char* msg )
 /** Get the current line number.
  * 
  */
-int zzget_lineno  (void)
+int yyget_lineno  (void)
 {
-        
-    return zzlineno;
+    
+    return yylineno;
 }
 
 /** Get the input stream.
  * 
  */
-FILE *zzget_in  (void)
+FILE *yyget_in  (void)
 {
-        return zzin;
+        return yyin;
 }
 
 /** Get the output stream.
  * 
  */
-FILE *zzget_out  (void)
+FILE *yyget_out  (void)
 {
-        return zzout;
+        return yyout;
 }
 
 /** Get the length of the current token.
  * 
  */
-int zzget_leng  (void)
+int yyget_leng  (void)
 {
-        return zzleng;
+        return yyleng;
 }
 
 /** Get the current token.
  * 
  */
 
-char *zzget_text  (void)
+char *yyget_text  (void)
 {
-        return zztext;
+        return yytext;
 }
 
 /** Set the current line number.
  * @param _line_number line number
  * 
  */
-void zzset_lineno (int  _line_number )
+void yyset_lineno (int  _line_number )
 {
     
-    zzlineno = _line_number;
+    yylineno = _line_number;
 }
 
 /** Set the input stream. This does not discard the current
  * input buffer.
  * @param _in_str A readable stream.
  * 
- * @see zz_switch_to_buffer
+ * @see yy_switch_to_buffer
  */
-void zzset_in (FILE *  _in_str )
+void yyset_in (FILE *  _in_str )
 {
-        zzin = _in_str ;
+        yyin = _in_str ;
 }
 
-void zzset_out (FILE *  _out_str )
+void yyset_out (FILE *  _out_str )
 {
-        zzout = _out_str ;
+        yyout = _out_str ;
 }
 
-int zzget_debug  (void)
+int yyget_debug  (void)
 {
-        return zz_flex_debug;
+        return yy_flex_debug;
 }
 
-void zzset_debug (int  _bdebug )
+void yyset_debug (int  _bdebug )
 {
-        zz_flex_debug = _bdebug ;
+        yy_flex_debug = _bdebug ;
 }
 
 static int yy_init_globals (void)
 {
         /* Initialization is the same as for the non-reentrant scanner.
-     * This function is called from zzlex_destroy(), so don't allocate here.
+     * This function is called from yylex_destroy(), so don't allocate here.
      */
 
     (yy_buffer_stack) = NULL;
@@ -2544,36 +2777,36 @@ static int yy_init_globals (void)
 
 /* Defined in main.c */
 #ifdef YY_STDINIT
-    zzin = stdin;
-    zzout = stdout;
+    yyin = stdin;
+    yyout = stdout;
 #else
-    zzin = NULL;
-    zzout = NULL;
+    yyin = NULL;
+    yyout = NULL;
 #endif
 
     /* For future reference: Set errno on error, since we are called by
-     * zzlex_init()
+     * yylex_init()
      */
     return 0;
 }
 
-/* zzlex_destroy is for both reentrant and non-reentrant scanners. */
-int zzlex_destroy  (void)
+/* yylex_destroy is for both reentrant and non-reentrant scanners. */
+int yylex_destroy  (void)
 {
     
     /* Pop the buffer stack, destroying each element. */
 	while(YY_CURRENT_BUFFER){
-		zz_delete_buffer(YY_CURRENT_BUFFER  );
+		yy_delete_buffer( YY_CURRENT_BUFFER  );
 		YY_CURRENT_BUFFER_LVALUE = NULL;
-		zzpop_buffer_state();
+		yypop_buffer_state();
 	}
 
 	/* Destroy the stack itself. */
-	zzfree((yy_buffer_stack) );
+	yyfree((yy_buffer_stack) );
 	(yy_buffer_stack) = NULL;
 
     /* Reset the globals. This is important in a non-reentrant scanner so the next time
-     * zzlex() is called, initialization will occur. */
+     * yylex() is called, initialization will occur. */
     yy_init_globals( );
 
     return 0;
@@ -2584,7 +2817,7 @@ int zzlex_destroy  (void)
  */
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char* s1, yyconst char * s2, int n )
+static void yy_flex_strncpy (char* s1, const char * s2, int n )
 {
 		
 	int i;
@@ -2594,7 +2827,7 @@ static void yy_flex_strncpy (char* s1, yyconst char * s2, int n )
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * s )
+static int yy_flex_strlen (const char * s )
 {
 	int n;
 	for ( n = 0; s[n]; ++n )
@@ -2604,12 +2837,12 @@ static int yy_flex_strlen (yyconst char * s )
 }
 #endif
 
-void *zzalloc (yy_size_t  size )
+void *yyalloc (yy_size_t  size )
 {
 			return malloc(size);
 }
 
-void *zzrealloc  (void * ptr, yy_size_t  size )
+void *yyrealloc  (void * ptr, yy_size_t  size )
 {
 		
 	/* The cast to (char *) in the following accommodates both
@@ -2622,15 +2855,14 @@ void *zzrealloc  (void * ptr, yy_size_t  size )
 	return realloc(ptr, size);
 }
 
-void zzfree (void * ptr )
+void yyfree (void * ptr )
 {
-			free( (char *) ptr );	/* see zzrealloc() for (char *) cast */
+			free( (char *) ptr );	/* see yyrealloc() for (char *) cast */
 }
 
 #define YYTABLES_NAME "yytables"
 
-#line 180 "../../../../../jags-4_patched/src/terminal/scanner.ll"
-
+#line 180 "../../../../jags-4-3_patched/src/terminal/scanner.ll"
 
 
 int zzwrap()
