@@ -1,3 +1,12 @@
+jags (4.3.2-1) unstable; urgency=medium
+
+  * New upstream release
+
+  * debian/control: Set Standards-Version: to current version 
+  * debian/control: Switch to virtual debhelper-compat (= 12)
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Tue, 07 Mar 2023 19:28:57 -0600
+
 jags (4.3.1-1) unstable; urgency=medium
 
   * New upstream release
