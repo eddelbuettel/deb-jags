@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -46,10 +46,10 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output, and Bison version.  */
-#define YYBISON 30706
+#define YYBISON 30802
 
 /* Bison version string.  */
-#define YYBISON_VERSION "3.7.6"
+#define YYBISON_VERSION "3.8.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -63,7 +63,8 @@
 /* Pull parsers.  */
 #define YYPULL 1
 
-
+/* Substitute the type names.  */
+#define YYSTYPE         ZZSTYPE
 /* Substitute the variable and function names.  */
 #define yyparse         zzparse
 #define yylex           zzlex
@@ -169,7 +170,7 @@
 	// so the parent function should evaluate the value and return; if appriopriate
     
 
-#line 173 "parser.cc"
+#line 174 "parser.cc"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -197,22 +198,30 @@
 #ifndef YY_ZZ_PARSER_HH_INCLUDED
 # define YY_ZZ_PARSER_HH_INCLUDED
 /* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
+#ifndef ZZDEBUG
+# if defined YYDEBUG
 #if YYDEBUG
+#   define ZZDEBUG 1
+#  else
+#   define ZZDEBUG 0
+#  endif
+# else /* ! defined YYDEBUG */
+#  define ZZDEBUG 0
+# endif /* ! defined YYDEBUG */
+#endif  /* ! defined ZZDEBUG */
+#if ZZDEBUG
 extern int zzdebug;
 #endif
 
 /* Token kinds.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
+#ifndef ZZTOKENTYPE
+# define ZZTOKENTYPE
+  enum zztokentype
   {
-    YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 257,                 /* "invalid token"  */
+    ZZEMPTY = -2,
+    ZZEOF = 0,                     /* "end of file"  */
+    ZZerror = 256,                 /* error  */
+    ZZUNDEF = 257,                 /* "invalid token"  */
     INT = 258,                     /* INT  */
     DOUBLE = 259,                  /* DOUBLE  */
     NAME = 260,                    /* NAME  */
@@ -269,13 +278,13 @@ extern int zzdebug;
     RUN = 311,                     /* RUN  */
     ENDSCRIPT = 312                /* ENDSCRIPT  */
   };
-  typedef enum yytokentype yytoken_kind_t;
+  typedef enum zztokentype zztoken_kind_t;
 #endif
 /* Token kinds.  */
-#define YYEMPTY -2
-#define YYEOF 0
-#define YYerror 256
-#define YYUNDEF 257
+#define ZZEMPTY -2
+#define ZZEOF 0
+#define ZZerror 256
+#define ZZUNDEF 257
 #define INT 258
 #define DOUBLE 259
 #define NAME 260
@@ -333,8 +342,8 @@ extern int zzdebug;
 #define ENDSCRIPT 312
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-union YYSTYPE
+#if ! defined ZZSTYPE && ! defined ZZSTYPE_IS_DECLARED
+union ZZSTYPE
 {
 #line 99 "../../../../jags-4-3_patched/src/terminal/parser.yy"
 
@@ -346,18 +355,20 @@ union YYSTYPE
   std::vector<double> *vec;
   std::vector<long> *ivec;
 
-#line 350 "parser.cc"
+#line 359 "parser.cc"
 
 };
-typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
+typedef union ZZSTYPE ZZSTYPE;
+# define ZZSTYPE_IS_TRIVIAL 1
+# define ZZSTYPE_IS_DECLARED 1
 #endif
 
 
-extern YYSTYPE zzlval;
+extern ZZSTYPE zzlval;
+
 
 int zzparse (void);
+
 
 #endif /* !YY_ZZ_PARSER_HH_INCLUDED  */
 /* Symbol kind.  */
@@ -650,12 +661,18 @@ typedef int yy_state_fast_t;
 # define YY_USE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
+# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
+# else
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
+# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -753,7 +770,7 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 
 #if (! defined yyoverflow \
      && (! defined __cplusplus \
-         || (defined YYSTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
+         || (defined ZZSTYPE_IS_TRIVIAL && ZZSTYPE_IS_TRIVIAL)))
 
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
@@ -874,8 +891,8 @@ static const yytype_int8 yytranslate[] =
       55,    56,    57
 };
 
-#if YYDEBUG
-  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+#if ZZDEBUG
+/* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
        0,   181,   181,   185,   191,   192,   193,   194,   195,   196,
@@ -899,7 +916,7 @@ static const yytype_int16 yyrline[] =
 /** Accessing symbol of state STATE.  */
 #define YY_ACCESSING_SYMBOL(State) YY_CAST (yysymbol_kind_t, yystos[State])
 
-#if YYDEBUG || 0
+#if ZZDEBUG || 0
 /* The user-facing name of the symbol whose (internal) number is
    YYSYMBOL.  No bounds checking.  */
 static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
@@ -940,21 +957,6 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#ifdef YYPRINT
-/* YYTOKNUM[NUM] -- (External) token number corresponding to the
-   (internal) symbol number NUM (which must be that of a token).  */
-static const yytype_int16 yytoknum[] =
-{
-       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
-     295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
-     305,   306,   307,   308,   309,   310,   311,   312,    44,    40,
-      41,    91,    93,    58,    42,    59,    96,    61,    99
-};
-#endif
-
 #define YYPACT_NINF (-206)
 
 #define yypact_value_is_default(Yyn) \
@@ -965,8 +967,8 @@ static const yytype_int16 yytoknum[] =
 #define yytable_value_is_error(Yyn) \
   0
 
-  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-     STATE-NUM.  */
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
     -206,   100,  -206,    97,   104,  -206,    -7,    77,    29,   140,
@@ -1003,9 +1005,9 @@ static const yytype_int16 yypact[] =
     -206,  -206,  -206,  -206,  -206
 };
 
-  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-     Performed when YYTABLE does not specify something else to do.  Zero
-     means the default is an error.  */
+/* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
+   Performed when YYTABLE does not specify something else to do.  Zero
+   means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
        2,     0,     1,     0,     0,     4,     0,     0,     0,     0,
@@ -1042,7 +1044,7 @@ static const yytype_uint8 yydefact[] =
      143,   131,   129,   141,   145
 };
 
-  /* YYPGOTO[NTERM-NUM].  */
+/* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
     -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,
@@ -1053,7 +1055,7 @@ static const yytype_int16 yypgoto[] =
      -30,  -205,   -14,  -206,  -206,  -206,  -206,  -206,  -206,  -206
 };
 
-  /* YYDEFGOTO[NTERM-NUM].  */
+/* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
        0,     1,    30,    31,    32,    33,    34,    35,    36,    37,
@@ -1064,9 +1066,9 @@ static const yytype_int16 yydefgoto[] =
      292,   293,   278,   299,   279,   300,    59,    60,    61,    62
 };
 
-  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-     positive, shift that token.  If negative, reduce the rule whose
-     number is the opposite.  If YYTABLE_NINF, syntax error.  */
+/* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule whose
+   number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
       94,   198,    95,   213,    65,   141,   156,   216,   156,   156,
@@ -1137,8 +1139,8 @@ static const yytype_int16 yycheck[] =
       67,    59,    59,    67,    59,    -1,    60
 };
 
-  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
-     symbol of state STATE-NUM.  */
+/* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
+   state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
        0,    70,     0,     1,     7,     8,     9,    10,    13,    14,
@@ -1175,7 +1177,7 @@ static const yytype_uint8 yystos[] =
       60,   120,   119,     4,     6
 };
 
-  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_uint8 yyr1[] =
 {
        0,    69,    70,    70,    71,    71,    71,    71,    71,    71,
@@ -1195,7 +1197,7 @@ static const yytype_uint8 yyr1[] =
      122,   122,   123,   123,   124,   124,   125,   126,   127,   128
 };
 
-  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
+/* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     2,     1,     2,     2,     1,     2,     2,
@@ -1219,18 +1221,19 @@ static const yytype_int8 yyr2[] =
 enum { YYENOMEM = -2 };
 
 #define yyerrok         (yyerrstatus = 0)
-#define yyclearin       (yychar = YYEMPTY)
+#define yyclearin       (yychar = ZZEMPTY)
 
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
+#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
 #define YYBACKUP(Token, Value)                                    \
   do                                                              \
-    if (yychar == YYEMPTY)                                        \
+    if (yychar == ZZEMPTY)                                        \
       {                                                           \
         yychar = (Token);                                         \
         yylval = (Value);                                         \
@@ -1246,12 +1249,12 @@ enum { YYENOMEM = -2 };
   while (0)
 
 /* Backward compatibility with an undocumented macro.
-   Use YYerror or YYUNDEF. */
-#define YYERRCODE YYUNDEF
+   Use ZZerror or ZZUNDEF. */
+#define YYERRCODE ZZUNDEF
 
 
 /* Enable debugging if requested.  */
-#if YYDEBUG
+#if ZZDEBUG
 
 # ifndef YYFPRINTF
 #  include <stdio.h> /* INFRINGES ON USER NAME SPACE */
@@ -1264,10 +1267,7 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-/* This macro is provided for backward compatibility. */
-# ifndef YY_LOCATION_PRINT
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
+
 
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
@@ -1294,10 +1294,6 @@ yy_symbol_value_print (FILE *yyo,
   YY_USE (yyoutput);
   if (!yyvaluep)
     return;
-# ifdef YYPRINT
-  if (yykind < YYNTOKENS)
-    YYPRINT (yyo, yytoknum[yykind], *yyvaluep);
-# endif
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
@@ -1376,12 +1372,12 @@ do {                                    \
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
 int yydebug;
-#else /* !YYDEBUG */
+#else /* !ZZDEBUG */
 # define YYDPRINTF(Args) ((void) 0)
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)
 # define YY_STACK_PRINT(Bottom, Top)
 # define YY_REDUCE_PRINT(Rule)
-#endif /* !YYDEBUG */
+#endif /* !ZZDEBUG */
 
 
 /* YYINITDEPTH -- initial size of the parser's stacks.  */
@@ -1481,7 +1477,8 @@ yyparse (void)
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
-  yychar = YYEMPTY; /* Cause a token to be read.  */
+  yychar = ZZEMPTY; /* Cause a token to be read.  */
+
   goto yysetstate;
 
 
@@ -1507,7 +1504,7 @@ yysetstate:
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    goto yyexhaustedlab;
+    YYNOMEM;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -1535,7 +1532,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        goto yyexhaustedlab;
+        YYNOMEM;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -1546,7 +1543,7 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          goto yyexhaustedlab;
+          YYNOMEM;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
@@ -1567,6 +1564,7 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
+
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -1589,25 +1587,25 @@ yybackup:
   /* Not known => get a lookahead token if don't already have one.  */
 
   /* YYCHAR is either empty, or end-of-input, or a valid lookahead.  */
-  if (yychar == YYEMPTY)
+  if (yychar == ZZEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token\n"));
       yychar = yylex ();
     }
 
-  if (yychar <= YYEOF)
+  if (yychar <= ZZEOF)
     {
-      yychar = YYEOF;
+      yychar = ZZEOF;
       yytoken = YYSYMBOL_YYEOF;
       YYDPRINTF ((stderr, "Now at end of input.\n"));
     }
-  else if (yychar == YYerror)
+  else if (yychar == ZZerror)
     {
       /* The scanner already issued an error message, process directly
          to error recovery.  But do not keep the error token as
          lookahead, it is too special and may lead us to an endless
          loop in error recovery. */
-      yychar = YYUNDEF;
+      yychar = ZZUNDEF;
       yytoken = YYSYMBOL_YYerror;
       goto yyerrlab1;
     }
@@ -1644,7 +1642,7 @@ yybackup:
   YY_IGNORE_MAYBE_UNINITIALIZED_END
 
   /* Discard the shifted token.  */
-  yychar = YYEMPTY;
+  yychar = ZZEMPTY;
   goto yynewstate;
 
 
@@ -1685,7 +1683,7 @@ yyreduce:
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
 }
-#line 1689 "parser.cc"
+#line 1687 "parser.cc"
     break;
 
   case 3: /* input: input line  */
@@ -1694,43 +1692,43 @@ yyreduce:
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
 }
-#line 1698 "parser.cc"
+#line 1696 "parser.cc"
     break;
 
   case 4: /* line: ENDCMD  */
 #line 191 "../../../../jags-4-3_patched/src/terminal/parser.yy"
              {}
-#line 1704 "parser.cc"
+#line 1702 "parser.cc"
     break;
 
   case 5: /* line: command ENDCMD  */
 #line 192 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                  {}
-#line 1710 "parser.cc"
+#line 1708 "parser.cc"
     break;
 
   case 6: /* line: error ENDCMD  */
 #line 193 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                {if(interactive) yyerrok; else exit(1); }
-#line 1716 "parser.cc"
+#line 1714 "parser.cc"
     break;
 
   case 7: /* line: run_script  */
 #line 194 "../../../../jags-4-3_patched/src/terminal/parser.yy"
              {}
-#line 1722 "parser.cc"
+#line 1720 "parser.cc"
     break;
 
   case 8: /* line: ENDSCRIPT ENDCMD  */
 #line 195 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                    {}
-#line 1728 "parser.cc"
+#line 1726 "parser.cc"
     break;
 
   case 9: /* line: SYSCMD ENDCMD  */
 #line 196 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                 { doSystem((yyvsp[-1].stringptr)); delete (yyvsp[-1].stringptr);}
-#line 1734 "parser.cc"
+#line 1732 "parser.cc"
     break;
 
   case 36: /* model: MODEL IN file_name  */
@@ -1747,7 +1745,7 @@ yyreduce:
     }
     delete (yyvsp[0].stringptr);
  }
-#line 1751 "parser.cc"
+#line 1749 "parser.cc"
     break;
 
   case 37: /* model: MODEL CLEAR  */
@@ -1755,7 +1753,7 @@ yyreduce:
               {
     console->clearModel();
  }
-#line 1759 "parser.cc"
+#line 1757 "parser.cc"
     break;
 
   case 38: /* data_in: data r_assignment_list ENDDATA  */
@@ -1768,7 +1766,7 @@ yyreduce:
     }
     delete_pvec((yyvsp[-1].pvec));
  }
-#line 1772 "parser.cc"
+#line 1770 "parser.cc"
     break;
 
   case 39: /* data_in: data  */
@@ -1777,7 +1775,7 @@ yyreduce:
     // Failed to open the data file 
     if (!interactive) exit(1);
   }
-#line 1781 "parser.cc"
+#line 1779 "parser.cc"
     break;
 
   case 40: /* data_to: DATA TO file_name  */
@@ -1786,7 +1784,7 @@ yyreduce:
     doDump(*(yyvsp[0].stringptr), jags::DUMP_DATA, 1);
     delete (yyvsp[0].stringptr);
 }
-#line 1790 "parser.cc"
+#line 1788 "parser.cc"
     break;
 
   case 41: /* data: DATA IN file_name  */
@@ -1801,7 +1799,7 @@ yyreduce:
     }
     delete (yyvsp[0].stringptr);
  }
-#line 1805 "parser.cc"
+#line 1803 "parser.cc"
     break;
 
   case 42: /* data_clear: DATA CLEAR  */
@@ -1810,7 +1808,7 @@ yyreduce:
     std::cout << "Clearing data table " << std::endl;
     _data_table.clear();
 }
-#line 1814 "parser.cc"
+#line 1812 "parser.cc"
     break;
 
   case 43: /* parameters_in: parameters r_assignment_list ENDDATA  */
@@ -1840,7 +1838,7 @@ yyreduce:
     print_unused_variables(parameter_table, false);
 
 }
-#line 1844 "parser.cc"
+#line 1842 "parser.cc"
     break;
 
   case 44: /* parameters_in: parameters r_assignment_list ENDDATA ',' CHAIN '(' INT ')'  */
@@ -1858,13 +1856,13 @@ yyreduce:
     Jtry(console->setParameters(parameter_table, (yyvsp[-1].intval)));
     print_unused_variables(parameter_table, false);
 }
-#line 1862 "parser.cc"
+#line 1860 "parser.cc"
     break;
 
   case 45: /* parameters_in: parameters  */
 #line 322 "../../../../jags-4-3_patched/src/terminal/parser.yy"
              {}
-#line 1868 "parser.cc"
+#line 1866 "parser.cc"
     break;
 
   case 46: /* parameters_to: PARAMETERS TO file_name  */
@@ -1873,7 +1871,7 @@ yyreduce:
     doDump(*(yyvsp[0].stringptr), jags::DUMP_PARAMETERS, 1);
     delete (yyvsp[0].stringptr);
 }
-#line 1877 "parser.cc"
+#line 1875 "parser.cc"
     break;
 
   case 47: /* parameters_to: PARAMETERS TO file_name ',' CHAIN '(' INT ')'  */
@@ -1882,7 +1880,7 @@ yyreduce:
     doDump(*(yyvsp[-5].stringptr), jags::DUMP_PARAMETERS, (yyvsp[-1].intval));
     delete (yyvsp[-5].stringptr);
 }
-#line 1886 "parser.cc"
+#line 1884 "parser.cc"
     break;
 
   case 48: /* parameters: PARAMETERS IN file_name  */
@@ -1896,7 +1894,7 @@ yyreduce:
   }
   delete (yyvsp[0].stringptr);
 }
-#line 1900 "parser.cc"
+#line 1898 "parser.cc"
     break;
 
   case 49: /* parameters: INITS IN file_name  */
@@ -1911,7 +1909,7 @@ yyreduce:
   }
   delete (yyvsp[0].stringptr);
 }
-#line 1915 "parser.cc"
+#line 1913 "parser.cc"
     break;
 
   case 50: /* compile: COMPILE  */
@@ -1920,7 +1918,7 @@ yyreduce:
     Jtry(console->compile(_data_table, 1, true));
     print_unused_variables(_data_table, true);
  }
-#line 1924 "parser.cc"
+#line 1922 "parser.cc"
     break;
 
   case 51: /* compile: COMPILE ',' NCHAINS '(' INT ')'  */
@@ -1929,7 +1927,7 @@ yyreduce:
     Jtry(console->compile(_data_table, (yyvsp[-1].intval), true));
     print_unused_variables(_data_table, true);
 }
-#line 1933 "parser.cc"
+#line 1931 "parser.cc"
     break;
 
   case 52: /* initialize: INITIALIZE  */
@@ -1939,7 +1937,7 @@ yyreduce:
 	errordump();
     }
 }
-#line 1943 "parser.cc"
+#line 1941 "parser.cc"
     break;
 
   case 53: /* autoadapt: AUTOADAPT INT  */
@@ -1948,7 +1946,7 @@ yyreduce:
     long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
     autoadaptstar((yyvsp[0].intval), refresh, 50);
 }
-#line 1952 "parser.cc"
+#line 1950 "parser.cc"
     break;
 
   case 54: /* autoadapt: AUTOADAPT INT ',' BY '(' INT ')'  */
@@ -1956,7 +1954,7 @@ yyreduce:
                                    {
     autoadaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
 }
-#line 1960 "parser.cc"
+#line 1958 "parser.cc"
     break;
 
   case 55: /* forceadapt: FORCEADAPT INT  */
@@ -1965,7 +1963,7 @@ yyreduce:
     long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
     adaptstar((yyvsp[0].intval), refresh, 50, true);
 }
-#line 1969 "parser.cc"
+#line 1967 "parser.cc"
     break;
 
   case 56: /* forceadapt: FORCEADAPT INT ',' BY '(' INT ')'  */
@@ -1973,7 +1971,7 @@ yyreduce:
                                     {
     adaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50, true);
 }
-#line 1977 "parser.cc"
+#line 1975 "parser.cc"
     break;
 
   case 57: /* adapt: ADAPT INT  */
@@ -1982,7 +1980,7 @@ yyreduce:
     long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
     adaptstar((yyvsp[0].intval), refresh, 50, false);
 }
-#line 1986 "parser.cc"
+#line 1984 "parser.cc"
     break;
 
   case 58: /* adapt: ADAPT INT ',' BY '(' INT ')'  */
@@ -1990,7 +1988,7 @@ yyreduce:
                                {
     adaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50, false);
 }
-#line 1994 "parser.cc"
+#line 1992 "parser.cc"
     break;
 
   case 59: /* update: UPDATE INT  */
@@ -1999,7 +1997,7 @@ yyreduce:
     long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
     updatestar((yyvsp[0].intval), refresh, 50);
 }
-#line 2003 "parser.cc"
+#line 2001 "parser.cc"
     break;
 
   case 60: /* update: UPDATE INT ',' BY '(' INT ')'  */
@@ -2007,13 +2005,13 @@ yyreduce:
                                 {
   updatestar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
 }
-#line 2011 "parser.cc"
+#line 2009 "parser.cc"
     break;
 
   case 61: /* exit: EXIT  */
 #line 409 "../../../../jags-4-3_patched/src/terminal/parser.yy"
            { return 0; }
-#line 2017 "parser.cc"
+#line 2015 "parser.cc"
     break;
 
   case 62: /* var: NAME  */
@@ -2021,7 +2019,7 @@ yyreduce:
           {
   (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[0].stringptr));
 }
-#line 2025 "parser.cc"
+#line 2023 "parser.cc"
     break;
 
   case 63: /* var: NAME '[' range_list ']'  */
@@ -2030,7 +2028,7 @@ yyreduce:
   (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[-3].stringptr));
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 2034 "parser.cc"
+#line 2032 "parser.cc"
     break;
 
   case 64: /* range_list: range_element  */
@@ -2038,7 +2036,7 @@ yyreduce:
                           {
   (yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree)); 
 }
-#line 2042 "parser.cc"
+#line 2040 "parser.cc"
     break;
 
   case 65: /* range_list: range_list ',' range_element  */
@@ -2046,7 +2044,7 @@ yyreduce:
                                {
   (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 2050 "parser.cc"
+#line 2048 "parser.cc"
     break;
 
   case 66: /* range_element: index  */
@@ -2054,7 +2052,7 @@ yyreduce:
                      {
   (yyval.ptree) = new jags::ParseTree(jags::P_RANGE); setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
-#line 2058 "parser.cc"
+#line 2056 "parser.cc"
     break;
 
   case 67: /* range_element: index ':' index  */
@@ -2062,13 +2060,13 @@ yyreduce:
                   {
   (yyval.ptree) = new jags::ParseTree(jags::P_RANGE); setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
-#line 2066 "parser.cc"
+#line 2064 "parser.cc"
     break;
 
   case 68: /* index: INT  */
 #line 438 "../../../../jags-4-3_patched/src/terminal/parser.yy"
            {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].intval));}
-#line 2072 "parser.cc"
+#line 2070 "parser.cc"
     break;
 
   case 71: /* monitor_set: MONITOR SET var  */
@@ -2076,7 +2074,7 @@ yyreduce:
                               { 
     setMonitor((yyvsp[0].ptree), 1, "trace"); delete (yyvsp[0].ptree);
 }
-#line 2080 "parser.cc"
+#line 2078 "parser.cc"
     break;
 
   case 72: /* monitor_set: MONITOR SET var ',' THIN '(' INT ')'  */
@@ -2084,7 +2082,7 @@ yyreduce:
                                        { 
     setMonitor((yyvsp[-5].ptree), (yyvsp[-1].intval), "trace"); delete (yyvsp[-5].ptree);
 }
-#line 2088 "parser.cc"
+#line 2086 "parser.cc"
     break;
 
   case 73: /* monitor_set: MONITOR var  */
@@ -2092,7 +2090,7 @@ yyreduce:
               {
     setMonitor((yyvsp[0].ptree), 1, "trace"); delete (yyvsp[0].ptree);
 }
-#line 2096 "parser.cc"
+#line 2094 "parser.cc"
     break;
 
   case 74: /* monitor_set: MONITOR var ',' THIN '(' INT ')'  */
@@ -2100,7 +2098,7 @@ yyreduce:
                                    { 
     setMonitor((yyvsp[-5].ptree), (yyvsp[-1].intval), "trace"); delete (yyvsp[-5].ptree);
 }
-#line 2104 "parser.cc"
+#line 2102 "parser.cc"
     break;
 
   case 75: /* monitor_set: MONITOR var ',' TYPE '(' NAME ')'  */
@@ -2109,7 +2107,7 @@ yyreduce:
     setMonitor((yyvsp[-5].ptree), 1, *(yyvsp[-1].stringptr));
     delete (yyvsp[-1].stringptr);
 }
-#line 2113 "parser.cc"
+#line 2111 "parser.cc"
     break;
 
   case 76: /* monitor_set: MONITOR var ',' TYPE '(' NAME ')' THIN '(' INT ')'  */
@@ -2118,7 +2116,7 @@ yyreduce:
     setMonitor((yyvsp[-9].ptree), (yyvsp[-1].intval), *(yyvsp[-5].stringptr)); 
     delete (yyvsp[-5].stringptr);
 }
-#line 2122 "parser.cc"
+#line 2120 "parser.cc"
     break;
 
   case 77: /* monitor_set: MONITOR var ',' THIN '(' INT ')' TYPE '(' NAME ')'  */
@@ -2127,7 +2125,7 @@ yyreduce:
     setMonitor((yyvsp[-9].ptree), (yyvsp[-5].intval), *(yyvsp[-1].stringptr)); 
     delete (yyvsp[-1].stringptr);
 }
-#line 2131 "parser.cc"
+#line 2129 "parser.cc"
     break;
 
   case 78: /* monitor_clear: MONITOR CLEAR var  */
@@ -2135,7 +2133,7 @@ yyreduce:
                                  {
     clearMonitor((yyvsp[0].ptree), "trace"); delete (yyvsp[0].ptree);
 }
-#line 2139 "parser.cc"
+#line 2137 "parser.cc"
     break;
 
   case 79: /* monitor_clear: MONITOR CLEAR var ',' TYPE '(' NAME ')'  */
@@ -2144,7 +2142,7 @@ yyreduce:
     clearMonitor((yyvsp[-5].ptree), *(yyvsp[-1].stringptr));
     delete (yyvsp[-1].stringptr);
 }
-#line 2148 "parser.cc"
+#line 2146 "parser.cc"
     break;
 
   case 80: /* monitors_to: MONITORS TO file_name  */
@@ -2153,7 +2151,7 @@ yyreduce:
     dumpMonitors(*(yyvsp[0].stringptr), "trace");
     delete (yyvsp[0].stringptr);
 }
-#line 2157 "parser.cc"
+#line 2155 "parser.cc"
     break;
 
   case 81: /* monitors_to: MONITORS TO file_name ',' TYPE '(' NAME ')'  */
@@ -2163,19 +2161,19 @@ yyreduce:
     delete (yyvsp[-5].stringptr);
     delete (yyvsp[-1].stringptr); 
 }
-#line 2167 "parser.cc"
+#line 2165 "parser.cc"
     break;
 
   case 82: /* file_name: NAME  */
 #line 498 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                 { (yyval.stringptr) = (yyvsp[0].stringptr);}
-#line 2173 "parser.cc"
+#line 2171 "parser.cc"
     break;
 
   case 83: /* file_name: STRING  */
 #line 499 "../../../../jags-4-3_patched/src/terminal/parser.yy"
          { (yyval.stringptr) = (yyvsp[0].stringptr); }
-#line 2179 "parser.cc"
+#line 2177 "parser.cc"
     break;
 
   case 84: /* coda: CODA var  */
@@ -2183,7 +2181,7 @@ yyreduce:
                {
   doCoda ((yyvsp[0].ptree), "CODA"); delete (yyvsp[0].ptree);
 }
-#line 2187 "parser.cc"
+#line 2185 "parser.cc"
     break;
 
   case 85: /* coda: CODA var ',' STEM '(' file_name ')'  */
@@ -2191,7 +2189,7 @@ yyreduce:
                                       {
   doCoda ((yyvsp[-5].ptree), *(yyvsp[-1].stringptr)); delete (yyvsp[-5].ptree); delete (yyvsp[-1].stringptr);
 }
-#line 2195 "parser.cc"
+#line 2193 "parser.cc"
     break;
 
   case 86: /* coda: CODA '*'  */
@@ -2199,7 +2197,7 @@ yyreduce:
            {
   doAllCoda ("CODA"); 
 }
-#line 2203 "parser.cc"
+#line 2201 "parser.cc"
     break;
 
   case 87: /* coda: CODA '*' ',' STEM '(' file_name ')'  */
@@ -2207,19 +2205,19 @@ yyreduce:
                                       {
   doAllCoda (*(yyvsp[-1].stringptr)); delete (yyvsp[-1].stringptr); 
 }
-#line 2211 "parser.cc"
+#line 2209 "parser.cc"
     break;
 
   case 88: /* load: LOAD file_name  */
 #line 516 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                      { loadModule(*(yyvsp[0].stringptr)); }
-#line 2217 "parser.cc"
+#line 2215 "parser.cc"
     break;
 
   case 89: /* unload: UNLOAD NAME  */
 #line 519 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                     { unloadModule(*(yyvsp[0].stringptr)); }
-#line 2223 "parser.cc"
+#line 2221 "parser.cc"
     break;
 
   case 90: /* samplers_to: SAMPLERS TO file_name  */
@@ -2228,7 +2226,7 @@ yyreduce:
     dumpSamplers(*(yyvsp[0].stringptr));
     delete (yyvsp[0].stringptr);
 }
-#line 2232 "parser.cc"
+#line 2230 "parser.cc"
     break;
 
   case 91: /* list_factories: LIST FACTORIES ',' TYPE '(' SAMPLER ')'  */
@@ -2236,7 +2234,7 @@ yyreduce:
 {
     listFactories(jags::SAMPLER_FACTORY);
 }
-#line 2240 "parser.cc"
+#line 2238 "parser.cc"
     break;
 
   case 92: /* list_factories: LIST FACTORIES ',' TYPE '(' RNGTOK ')'  */
@@ -2244,7 +2242,7 @@ yyreduce:
 {
     listFactories(jags::RNG_FACTORY);
 }
-#line 2248 "parser.cc"
+#line 2246 "parser.cc"
     break;
 
   case 93: /* list_factories: LIST FACTORIES ',' TYPE '(' MONITOR ')'  */
@@ -2252,7 +2250,7 @@ yyreduce:
 {
     listFactories(jags::MONITOR_FACTORY);
 }
-#line 2256 "parser.cc"
+#line 2254 "parser.cc"
     break;
 
   case 94: /* list_modules: LIST MODULES  */
@@ -2260,7 +2258,7 @@ yyreduce:
 {
     listModules();
 }
-#line 2264 "parser.cc"
+#line 2262 "parser.cc"
     break;
 
   case 95: /* set_factory: SET FACTORY STRING NAME ',' TYPE '(' SAMPLER ')'  */
@@ -2270,7 +2268,7 @@ yyreduce:
     delete (yyvsp[-6].stringptr);
     delete (yyvsp[-5].stringptr);
 }
-#line 2274 "parser.cc"
+#line 2272 "parser.cc"
     break;
 
   case 96: /* set_factory: SET FACTORY NAME NAME ',' TYPE '(' RNGTOK ')'  */
@@ -2280,7 +2278,7 @@ yyreduce:
     delete (yyvsp[-6].stringptr);
     delete (yyvsp[-5].stringptr);
 }
-#line 2284 "parser.cc"
+#line 2282 "parser.cc"
     break;
 
   case 97: /* set_factory: SET FACTORY NAME NAME ',' TYPE '(' MONITOR ')'  */
@@ -2290,7 +2288,7 @@ yyreduce:
     delete (yyvsp[-6].stringptr);
     delete (yyvsp[-5].stringptr);
 }
-#line 2294 "parser.cc"
+#line 2292 "parser.cc"
     break;
 
   case 98: /* set_seed: SET SEED INT  */
@@ -2298,7 +2296,7 @@ yyreduce:
 {
     setSeed((yyvsp[0].intval));
 }
-#line 2302 "parser.cc"
+#line 2300 "parser.cc"
     break;
 
   case 99: /* r_assignment_list: r_assignment  */
@@ -2306,7 +2304,7 @@ yyreduce:
                                 {
   (yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree));
 }
-#line 2310 "parser.cc"
+#line 2308 "parser.cc"
     break;
 
   case 100: /* r_assignment_list: r_assignment_list r_assignment  */
@@ -2314,7 +2312,7 @@ yyreduce:
                                  {
   (yyval.pvec) = (yyvsp[-1].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 2318 "parser.cc"
+#line 2316 "parser.cc"
     break;
 
   case 101: /* r_assignment_list: r_assignment_list ';' r_assignment  */
@@ -2322,7 +2320,7 @@ yyreduce:
                                      {
   (yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 2326 "parser.cc"
+#line 2324 "parser.cc"
     break;
 
   case 102: /* r_assignment: r_name ARROW r_structure  */
@@ -2330,7 +2328,7 @@ yyreduce:
                                        {
   (yyval.ptree) = (yyvsp[0].ptree); setName((yyval.ptree), (yyvsp[-2].stringptr));
 }
-#line 2334 "parser.cc"
+#line 2332 "parser.cc"
     break;
 
   case 103: /* r_assignment: r_name ARROW r_collection  */
@@ -2340,7 +2338,7 @@ yyreduce:
   setName((yyval.ptree), (yyvsp[-2].stringptr));
   setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
-#line 2344 "parser.cc"
+#line 2342 "parser.cc"
     break;
 
   case 104: /* r_assignment: r_name ARROW STRING  */
@@ -2351,7 +2349,7 @@ yyreduce:
   jags::ParseTree *p = new jags::ParseTree(jags::P_VAR); setName(p, (yyvsp[0].stringptr));
   setParameters((yyval.ptree), p);
 }
-#line 2355 "parser.cc"
+#line 2353 "parser.cc"
     break;
 
   case 107: /* r_name: '`' NAME '`'  */
@@ -2360,7 +2358,7 @@ yyreduce:
     /* R >= 2.4.0 uses backticks for quoted names */
     (yyval.stringptr) = (yyvsp[-1].stringptr);
 }
-#line 2364 "parser.cc"
+#line 2362 "parser.cc"
     break;
 
   case 109: /* r_data: DOTDATA '=' r_collection  */
@@ -2368,7 +2366,7 @@ yyreduce:
                            {
     (yyval.ptree) = (yyvsp[0].ptree);
 }
-#line 2372 "parser.cc"
+#line 2370 "parser.cc"
     break;
 
   case 110: /* r_structure: STRUCTURE '(' r_data ',' r_attribute_list ')'  */
@@ -2380,7 +2378,7 @@ yyreduce:
   else
     setParameters((yyval.ptree), (yyvsp[-3].ptree));
 }
-#line 2384 "parser.cc"
+#line 2382 "parser.cc"
     break;
 
   case 111: /* r_structure: STRUCTURE '(' r_data ')'  */
@@ -2389,19 +2387,19 @@ yyreduce:
     (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
     setParameters((yyval.ptree), (yyvsp[-1].ptree));
 }
-#line 2393 "parser.cc"
+#line 2391 "parser.cc"
     break;
 
   case 113: /* r_attribute_list: r_generic_attribute  */
 #line 636 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                       {(yyval.ptree)=0;}
-#line 2399 "parser.cc"
+#line 2397 "parser.cc"
     break;
 
   case 115: /* r_attribute_list: r_attribute_list ',' r_dim  */
 #line 638 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                              {(yyval.ptree)=(yyvsp[0].ptree);}
-#line 2405 "parser.cc"
+#line 2403 "parser.cc"
     break;
 
   case 116: /* r_dim: DIM '=' r_collection  */
@@ -2409,7 +2407,7 @@ yyreduce:
                             {
   (yyval.ptree) = (yyvsp[0].ptree);
 }
-#line 2413 "parser.cc"
+#line 2411 "parser.cc"
     break;
 
   case 117: /* r_dim: DIM '=' range_element  */
@@ -2417,13 +2415,13 @@ yyreduce:
                         {
   (yyval.ptree) = (yyvsp[0].ptree);
 }
-#line 2421 "parser.cc"
+#line 2419 "parser.cc"
     break;
 
   case 120: /* r_integer_collection: ASINTEGER '(' r_value_collection ')'  */
 #line 653 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                                            {(yyval.ptree) = (yyvsp[-1].ptree);}
-#line 2427 "parser.cc"
+#line 2425 "parser.cc"
     break;
 
   case 121: /* r_value_collection: r_value  */
@@ -2432,7 +2430,7 @@ yyreduce:
   (yyval.ptree) = new jags::ParseTree(jags::P_VECTOR); 
   setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
-#line 2436 "parser.cc"
+#line 2434 "parser.cc"
     break;
 
   case 122: /* r_value_collection: 'c' '(' r_value_list ')'  */
@@ -2441,139 +2439,139 @@ yyreduce:
   (yyval.ptree) = new jags::ParseTree(jags::P_VECTOR);
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 2445 "parser.cc"
+#line 2443 "parser.cc"
     break;
 
   case 123: /* r_value_list: r_value  */
 #line 666 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                       {(yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree)); }
-#line 2451 "parser.cc"
+#line 2449 "parser.cc"
     break;
 
   case 124: /* r_value_list: r_value_list ',' r_value  */
 #line 667 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                            {(yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));}
-#line 2457 "parser.cc"
+#line 2455 "parser.cc"
     break;
 
   case 125: /* r_value: DOUBLE  */
 #line 670 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                 {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].val));}
-#line 2463 "parser.cc"
+#line 2461 "parser.cc"
     break;
 
   case 126: /* r_value: NA  */
 #line 671 "../../../../jags-4-3_patched/src/terminal/parser.yy"
      {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
-#line 2469 "parser.cc"
+#line 2467 "parser.cc"
     break;
 
   case 127: /* r_generic_attribute: NAME '=' r_generic_vector  */
 #line 677 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                                {;}
-#line 2475 "parser.cc"
+#line 2473 "parser.cc"
     break;
 
   case 128: /* r_generic_list: r_generic_list_element  */
 #line 680 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                        {;}
-#line 2481 "parser.cc"
+#line 2479 "parser.cc"
     break;
 
   case 129: /* r_generic_list: r_generic_list ',' r_generic_list_element  */
 #line 681 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                             {;}
-#line 2487 "parser.cc"
+#line 2485 "parser.cc"
     break;
 
   case 130: /* r_generic_list_element: r_generic_vector  */
 #line 684 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                          {;}
-#line 2493 "parser.cc"
+#line 2491 "parser.cc"
     break;
 
   case 131: /* r_generic_list_element: NAME '=' r_generic_vector  */
 #line 685 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                             {;}
-#line 2499 "parser.cc"
+#line 2497 "parser.cc"
     break;
 
   case 132: /* r_generic_vector: r_numeric_vector  */
 #line 688 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                    {;}
-#line 2505 "parser.cc"
+#line 2503 "parser.cc"
     break;
 
   case 133: /* r_generic_vector: ASINTEGER '(' r_numeric_vector ')'  */
 #line 689 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                      {;}
-#line 2511 "parser.cc"
+#line 2509 "parser.cc"
     break;
 
   case 134: /* r_generic_vector: r_character_vector  */
 #line 690 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                      {;}
-#line 2517 "parser.cc"
+#line 2515 "parser.cc"
     break;
 
   case 135: /* r_generic_vector: LIST '(' r_generic_list ')'  */
 #line 691 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                               {;}
-#line 2523 "parser.cc"
+#line 2521 "parser.cc"
     break;
 
   case 136: /* r_generic_vector: STRUCTURE '(' r_generic_list ')'  */
 #line 692 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                                    {;}
-#line 2529 "parser.cc"
+#line 2527 "parser.cc"
     break;
 
   case 137: /* r_generic_vector: R_NULL  */
 #line 693 "../../../../jags-4-3_patched/src/terminal/parser.yy"
          {;}
-#line 2535 "parser.cc"
+#line 2533 "parser.cc"
     break;
 
   case 138: /* r_numeric_vector: DOUBLE  */
 #line 696 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                          {;}
-#line 2541 "parser.cc"
+#line 2539 "parser.cc"
     break;
 
   case 140: /* r_double_list: DOUBLE  */
 #line 700 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                       {;}
-#line 2547 "parser.cc"
+#line 2545 "parser.cc"
     break;
 
   case 141: /* r_double_list: r_double_list ',' DOUBLE  */
 #line 701 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                            {;}
-#line 2553 "parser.cc"
+#line 2551 "parser.cc"
     break;
 
   case 142: /* r_character_vector: STRING  */
 #line 704 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                            {;}
-#line 2559 "parser.cc"
+#line 2557 "parser.cc"
     break;
 
   case 143: /* r_character_vector: 'c' '(' r_string_list ')'  */
 #line 705 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                             {;}
-#line 2565 "parser.cc"
+#line 2563 "parser.cc"
     break;
 
   case 144: /* r_string_list: STRING  */
 #line 708 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                       {;}
-#line 2571 "parser.cc"
+#line 2569 "parser.cc"
     break;
 
   case 145: /* r_string_list: r_string_list ',' STRING  */
 #line 709 "../../../../jags-4-3_patched/src/terminal/parser.yy"
                            {;}
-#line 2577 "parser.cc"
+#line 2575 "parser.cc"
     break;
 
   case 146: /* get_working_dir: PWD  */
@@ -2587,7 +2585,7 @@ yyreduce:
 	std::cout << "ERROR: " << name << std::endl;
     }
 }
-#line 2591 "parser.cc"
+#line 2589 "parser.cc"
     break;
 
   case 147: /* set_working_dir: CD file_name  */
@@ -2598,7 +2596,7 @@ yyreduce:
     }
     delete (yyvsp[0].stringptr);
 }
-#line 2602 "parser.cc"
+#line 2600 "parser.cc"
     break;
 
   case 148: /* read_dir: DIRECTORY  */
@@ -2625,7 +2623,7 @@ yyreduce:
 	std::cerr << "Unable to open working directory" << std::endl;
     }
 }
-#line 2629 "parser.cc"
+#line 2627 "parser.cc"
     break;
 
   case 149: /* run_script: RUN file_name  */
@@ -2639,11 +2637,11 @@ yyreduce:
     }
     delete (yyvsp[0].stringptr);
  }
-#line 2643 "parser.cc"
+#line 2641 "parser.cc"
     break;
 
 
-#line 2647 "parser.cc"
+#line 2645 "parser.cc"
 
       default: break;
     }
@@ -2685,7 +2683,7 @@ yyreduce:
 yyerrlab:
   /* Make sure we have latest lookahead translation.  See comments at
      user semantic actions for why this is necessary.  */
-  yytoken = yychar == YYEMPTY ? YYSYMBOL_YYEMPTY : YYTRANSLATE (yychar);
+  yytoken = yychar == ZZEMPTY ? YYSYMBOL_YYEMPTY : YYTRANSLATE (yychar);
   /* If not already recovering from an error, report this error.  */
   if (!yyerrstatus)
     {
@@ -2698,17 +2696,17 @@ yyerrlab:
       /* If just tried and failed to reuse lookahead token after an
          error, discard it.  */
 
-      if (yychar <= YYEOF)
+      if (yychar <= ZZEOF)
         {
           /* Return failure if at end of input.  */
-          if (yychar == YYEOF)
+          if (yychar == ZZEOF)
             YYABORT;
         }
       else
         {
           yydestruct ("Error: discarding",
                       yytoken, &yylval);
-          yychar = YYEMPTY;
+          yychar = ZZEMPTY;
         }
     }
 
@@ -2725,6 +2723,7 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
+  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -2785,7 +2784,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
 /*-----------------------------------.
@@ -2793,25 +2792,23 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
-#if !defined yyoverflow
-/*-------------------------------------------------.
-| yyexhaustedlab -- memory exhaustion comes here.  |
-`-------------------------------------------------*/
+/*-----------------------------------------------------------.
+| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
+`-----------------------------------------------------------*/
 yyexhaustedlab:
   yyerror (YY_("memory exhausted"));
   yyresult = 2;
-  goto yyreturn;
-#endif
+  goto yyreturnlab;
 
 
-/*-------------------------------------------------------.
-| yyreturn -- parsing is finished, clean up and return.  |
-`-------------------------------------------------------*/
-yyreturn:
-  if (yychar != YYEMPTY)
+/*----------------------------------------------------------.
+| yyreturnlab -- parsing is finished, clean up and return.  |
+`----------------------------------------------------------*/
+yyreturnlab:
+  if (yychar != ZZEMPTY)
     {
       /* Make sure we have latest lookahead translation.  See comments at
          user semantic actions for why this is necessary.  */

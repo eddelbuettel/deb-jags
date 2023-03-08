@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -38,22 +38,30 @@
 #ifndef YY_ZZ_PARSER_HH_INCLUDED
 # define YY_ZZ_PARSER_HH_INCLUDED
 /* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
+#ifndef ZZDEBUG
+# if defined YYDEBUG
 #if YYDEBUG
+#   define ZZDEBUG 1
+#  else
+#   define ZZDEBUG 0
+#  endif
+# else /* ! defined YYDEBUG */
+#  define ZZDEBUG 0
+# endif /* ! defined YYDEBUG */
+#endif  /* ! defined ZZDEBUG */
+#if ZZDEBUG
 extern int zzdebug;
 #endif
 
 /* Token kinds.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
+#ifndef ZZTOKENTYPE
+# define ZZTOKENTYPE
+  enum zztokentype
   {
-    YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 257,                 /* "invalid token"  */
+    ZZEMPTY = -2,
+    ZZEOF = 0,                     /* "end of file"  */
+    ZZerror = 256,                 /* error  */
+    ZZUNDEF = 257,                 /* "invalid token"  */
     INT = 258,                     /* INT  */
     DOUBLE = 259,                  /* DOUBLE  */
     NAME = 260,                    /* NAME  */
@@ -110,13 +118,13 @@ extern int zzdebug;
     RUN = 311,                     /* RUN  */
     ENDSCRIPT = 312                /* ENDSCRIPT  */
   };
-  typedef enum yytokentype yytoken_kind_t;
+  typedef enum zztokentype zztoken_kind_t;
 #endif
 /* Token kinds.  */
-#define YYEMPTY -2
-#define YYEOF 0
-#define YYerror 256
-#define YYUNDEF 257
+#define ZZEMPTY -2
+#define ZZEOF 0
+#define ZZerror 256
+#define ZZUNDEF 257
 #define INT 258
 #define DOUBLE 259
 #define NAME 260
@@ -174,8 +182,8 @@ extern int zzdebug;
 #define ENDSCRIPT 312
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-union YYSTYPE
+#if ! defined ZZSTYPE && ! defined ZZSTYPE_IS_DECLARED
+union ZZSTYPE
 {
 #line 99 "../../../../jags-4-3_patched/src/terminal/parser.yy"
 
@@ -187,17 +195,19 @@ union YYSTYPE
   std::vector<double> *vec;
   std::vector<long> *ivec;
 
-#line 191 "parser.hh"
+#line 199 "parser.hh"
 
 };
-typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
+typedef union ZZSTYPE ZZSTYPE;
+# define ZZSTYPE_IS_TRIVIAL 1
+# define ZZSTYPE_IS_DECLARED 1
 #endif
 
 
-extern YYSTYPE zzlval;
+extern ZZSTYPE zzlval;
+
 
 int zzparse (void);
+
 
 #endif /* !YY_ZZ_PARSER_HH_INCLUDED  */
