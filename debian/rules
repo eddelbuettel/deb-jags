@@ -1,5 +1,9 @@
 #!/usr/bin/make -f
 
+## cf #1108104 and cross-build ability
+DPKG_EXPORT_BUILDTOOLS := 1
+include /usr/share/dpkg/buildtools.mk
+
 ## cf https://wiki.debian.org/ReproducibleBuilds/TimestampsInPDFGeneratedByLaTeX
 DEB_DATE_RFC_2822 := $(shell dpkg-parsechangelog -S date)                     
 DEB_DATE_RFC_3339 := $(shell date -u "--rfc-3339=seconds" -d "$(DEB_DATE_RFC_2822)")         

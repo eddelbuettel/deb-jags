@@ -1,3 +1,16 @@
+jags (4.3.2-2) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * Fix FTCBFS: Multiarchify toolchain dependencies. (Closes: #1108104)
+
+  [ Dirk Eddelbuettel ]
+  * debian/control: Set Standards-Version: to current version 
+  * debian/control: Switch to virtual debhelper-compat (= 13)
+  * debian/control: Switch to 'pkgconf' instead of 'pkg-config'
+  * debian/watch: Specify source directory
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sat, 17 Jan 2026 06:25:48 -0600
+
 jags (4.3.2-1) unstable; urgency=medium
 
   * New upstream release

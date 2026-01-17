@@ -1,2 +1,2 @@
 version=4
-https://sf.net/mcmc-jags/ JAGS-(.+)\.tar\.gz debian uupdate
+https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Source/JAGS-(.+)\.tar\.gz.*
