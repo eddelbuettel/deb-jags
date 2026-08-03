@@ -1,3 +1,14 @@
+jags (5.0.0-1) experimental; urgency=medium
+
+  * New (major) upstream release, into experimental for now
+
+  * debian/control: Set Standards-Version: to current version
+  * debian/watch: Switch to watch version 4, and 5.x upstream location
+  
+  * debian/control: Add Vcs-{Browser,Git} fields   (Closes: #1132086)
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Mon, 03 Aug 2026 16:15:04 -0500
+
 jags (4.3.2-2) unstable; urgency=medium
 
   [ Helmut Grohne ]

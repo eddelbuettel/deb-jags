@@ -3,8 +3,10 @@ Section: math
 Priority: optional
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
 Build-Depends: debhelper-compat (= 13), gfortran-for-host (>= 4:5.2), liblapack-dev, libltdl-dev (>= 2.2.6b), texlive-base, texlive-latex-base, texlive-plain-generic, texlive-fonts-recommended, texlive-extra-utils, texlive-latex-recommended, texlive-latex-extra, texinfo, faketime, g++-for-host (>= 4:5.2), libcppunit-dev, pkgconf, mercurial:native
-Standards-Version: 4.7.3
+Standards-Version: 4.7.4
 Homepage: https://mcmc-jags.sourceforge.io
+Vcs-Browser: https://salsa.debian.org/edd/jags
+Vcs-Git: https://salsa.debian.org/edd/jags.git
 
 Package: jags
 Architecture: any

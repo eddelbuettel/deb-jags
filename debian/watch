@@ -1,2 +1,2 @@
 version=4
-https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Source/JAGS-(.+)\.tar\.gz.*
+https://sourceforge.net/projects/mcmc-jags/files/JAGS/5.x/Source/JAGS-(.+)\.tar\.gz.*
