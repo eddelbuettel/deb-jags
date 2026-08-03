@@ -9,8 +9,8 @@ using std::logic_error;
 namespace jags {
 
 ParseTree::ParseTree(TreeClass tclass, int line)
-    : _tclass(tclass), _parameters(), _parent(0), _name(), _value(0), 
-      _line(line)
+    : _tclass(tclass), _parameters(), _parent(nullptr), _name(),
+      _value(0), _line(line)
 {
 }
 
@@ -19,7 +19,7 @@ ParseTree::~ParseTree()
   for (vector<ParseTree*>::iterator p = _parameters.begin();
        p != _parameters.end(); p++) 
     {
-      if (*p != 0) {
+      if (*p != nullptr) {
 	delete *p;
       }
     }
@@ -27,14 +27,16 @@ ParseTree::~ParseTree()
 
 void ParseTree::setName(string const &name)
 {
-  switch(_tclass) {
-  case P_VAR: case P_COUNTER: case P_FUNCTION: case P_DENSITY: case P_LINK:
-  case P_ARRAY:
-    _name = name;
-    break;
-  default:
-    throw logic_error("Can't set name of ParseTree object");
-  }
+    switch(_tclass) {
+    case P_VAR: case P_COUNTER: case P_FUNCTION: case P_DENSITY: case P_LINK:
+    case P_ARRAY: case P_DISTMOD:
+	_name = name;
+	break;
+    case P_VALUE: case P_STOCHREL: case P_DETRMREL:
+    case P_FOR: case  P_RELATIONS: case P_VECTOR: case P_SUBSET:
+    case P_STRUCT: case P_NULL:
+	throw logic_error("Can't set name of ParseTree object");
+    }
 }
 
 void ParseTree::setValue(double value)
@@ -59,16 +61,18 @@ TreeClass ParseTree::treeClass() const
 
 string const &ParseTree::name() const
 {
-  switch(_tclass) {
-  case P_VAR: case P_COUNTER: case P_FUNCTION: case P_DENSITY: case P_LINK:
-  case P_ARRAY:
-    break;
-  default:
-    throw logic_error("Can't get name of ParseTree: invalid treeClass");
-  }
-  return _name;
+    switch(_tclass) {
+    case P_VAR: case P_COUNTER: case P_FUNCTION: case P_DENSITY: case P_LINK:
+    case P_ARRAY: case P_DISTMOD:
+	break;
+    case P_VALUE: case P_STOCHREL: case P_DETRMREL:
+    case P_FOR: case  P_RELATIONS: case P_VECTOR:  case P_SUBSET:
+    case P_STRUCT: case P_NULL:
+	throw logic_error("Can't get name of ParseTree: invalid treeClass");
+    }
+    return _name;
 }
-
+    
 double ParseTree::value() const
 {
   if (_tclass != P_VALUE) {
@@ -77,9 +81,9 @@ double ParseTree::value() const
   return _value;
 }
 
-int ParseTree::line() const
+unsigned long ParseTree::line() const
 {
-    return _line;
+    return static_cast<unsigned long>(_line);
 }
 
 void ParseTree::setParameters(vector<ParseTree *> const &parameters)
@@ -87,15 +91,15 @@ void ParseTree::setParameters(vector<ParseTree *> const &parameters)
   if (!_parameters.empty()) {
     throw logic_error("Parameters already set in ParseTree");
   }
-  if (_parent != 0) {
+  if (_parent != nullptr) {
     throw logic_error("Can't set parameters of ParseTree: node already has parent");
   }
-  for (unsigned int i = 0; i < parameters.size(); ++i) {
+  for (unsigned long i = 0; i < parameters.size(); ++i) {
     if (parameters[i] == this) {
       throw logic_error("ParseTree cannot be a parameter of itself");
     }
-    if (parameters[i] != 0) {
-      if (parameters[i]->_parent == 0) {
+    if (parameters[i] != nullptr) {
+      if (parameters[i]->_parent == nullptr) {
 	parameters[i]->_parent = this;
       }
       else {

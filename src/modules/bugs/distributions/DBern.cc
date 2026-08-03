@@ -27,9 +27,9 @@ DBern::checkParameterValue (vector<double const *> const &parameters) const
     return  (PROB(parameters) >= 0.0 && PROB(parameters) <= 1.0);
 }
 
-double DBern::logDensity(double x, PDFType type,
+double DBern::logDensity(double x, PDFType ,
 			 vector<double const *> const &parameters,
-			 double const *lbound, double const *ubound) const 
+			 double const *, double const *) const 
 {
     double d = 0;
     if (x == 1)
@@ -41,16 +41,10 @@ double DBern::logDensity(double x, PDFType type,
 }
 
 double DBern::randomSample(vector<double const *> const &parameters, 
-			   double const *lbound, double const *ubound,
+			   double const *, double const *,
 			   RNG *rng) const
 {
     return rng->uniform() < PROB(parameters) ? 1 : 0;
-}
-
-double DBern::typicalValue(vector<double const *> const &parameters,
-			   double const *lbound, double const *ubound) const
-{
-    return PROB(parameters) > 0.5 ? 1 : 0;
 }
 
 bool DBern::canBound() const
@@ -58,7 +52,7 @@ bool DBern::canBound() const
     return false;
 }
 
-bool DBern::isDiscreteValued(vector<bool> const &mask) const
+bool DBern::isDiscreteValued(vector<bool> const &) const
 {
     return true;
 }
@@ -81,4 +75,24 @@ bool DBern::isDiscreteValued(vector<bool> const &mask) const
 	}
     }
 
+    bool DBern::hasScore(unsigned long i) const
+    {
+	return i == 1;
+    }
+    
+    double DBern::score(double x, vector<double const *> const &parameters,
+			unsigned long i) const
+    {
+	double s = 0;
+	if (i == 1) {
+	    if (x == 1) {
+		s = 1/PROB(parameters);
+	    }
+	    else if (x == 0) {
+		s = -1/(1 - PROB(parameters));
+	    }
+	}
+	return s;
+    }
+    
 }}

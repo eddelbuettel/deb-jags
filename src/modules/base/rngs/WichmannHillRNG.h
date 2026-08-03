@@ -1,5 +1,5 @@
-#ifndef _WICHMANN_HILL_RNG_H_
-#define _WICHMANN_HILL_RNG_H_
+#ifndef WICHMANN_HILL_RNG_H_
+#define WICHMANN_HILL_RNG_H_
 
 #include <rng/RmathRNG.h>
 
@@ -12,12 +12,12 @@ namespace base {
 	void fixupSeeds();
     public:
 	WichmannHillRNG(unsigned int seed, NormKind norm_kind);
-	double uniform();
-	void init(unsigned int seed);
-	bool setState(std::vector<int> const &state);
-	void getState(std::vector<int> &state) const;
+	double uniform() override;
+	void init(unsigned int seed) override;
+	bool setState(std::vector<int> const &state) override;
+	void getState(std::vector<int> &state) const override;
     };
 
 }}
 
-#endif /* _WICHMANN_HILL_RNG_H_ */
+#endif /* WICHMANN_HILL_RNG_H_ */

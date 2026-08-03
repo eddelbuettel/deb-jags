@@ -18,7 +18,7 @@ using std::logic_error;
 
 namespace jags {
 
-static unsigned int valueLength(VectorFunction const *func, 
+static unsigned long valueLength(VectorFunction const *func, 
 				vector<Node const *> const &parents)
 {
     /* 
@@ -27,10 +27,10 @@ static unsigned int valueLength(VectorFunction const *func,
     */
     
     unsigned long N = parents.size();
-    vector<unsigned int> lengths(N);
+    vector<unsigned long> lengths(N);
     vector<bool> fixed(N), discrete(N);
     vector<double const *> values(N);
-    for (unsigned int j = 0; j < N; ++j) {
+    for (unsigned long j = 0; j < N; ++j) {
 	lengths[j] = parents[j]->length();
 	fixed[j] = parents[j]->isFixed();
 	values[j] = parents[j]->value(0);
@@ -55,10 +55,10 @@ static unsigned int valueLength(VectorFunction const *func,
     return func->length(lengths, values);
 }
 
-static vector<unsigned int> const &
+static vector<unsigned long> const &
 parameterLengths(vector<Node const *> const &parameters) {
-    vector<unsigned int> lengths(parameters.size());
-    for (unsigned int j = 0; j < parameters.size(); ++j) {
+    vector<unsigned long> lengths(parameters.size());
+    for (unsigned long j = 0; j < parameters.size(); ++j) {
         lengths[j] = parameters[j]->length();
 	
     }
@@ -68,15 +68,11 @@ parameterLengths(vector<Node const *> const &parameters) {
 VectorLogicalNode::VectorLogicalNode(VectorFunction const *function,
 				     unsigned int nchain,
 				     vector<Node const *> const &parameters)
-    : LogicalNode(vector<unsigned int>(1,valueLength(function, parameters)),
+    : LogicalNode(vector<unsigned long>(1,valueLength(function, parameters)),
 		  nchain, parameters, function),
       _func(function), _lengths(parameterLengths(parameters))
 {
-    if (isFixed()) {
-	for (unsigned int ch = 0; ch < _nchain; ++ch) {
-	    deterministicSample(ch);
-	}
-    }
+    initializeFixed();
 }
 
 void VectorLogicalNode::deterministicSample(unsigned int chain)
@@ -88,6 +84,17 @@ bool VectorLogicalNode::checkParentValues(unsigned int chain) const
 {
     return _func->checkParameterValue(_parameters[chain], _lengths);
 }
+
+    void VectorLogicalNode::gradient(double *grad, Node const *arg,
+				     unsigned int chain) const
+    {
+	auto par = parents();
+	for (unsigned long i = 0; i < par.size(); ++i) {
+	    if (par[i] == arg) {
+		_func->gradient(grad, _parameters[chain], _lengths, i);
+	    }
+	}
+    }
 
     /*
 DeterministicNode *

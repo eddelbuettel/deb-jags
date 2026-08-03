@@ -1,8 +1,13 @@
 /* -*-C++-*- */
 %{
-/* Note the use of trailing context in the rules for the functions,
-   allowing function names to be used as variable names.  This occurs
-   in the "otree" example where "mean" is used as a variable name.
+/* 
+   We need trailing context for the distribution modifiers T(,) and
+   I(,).  The BUGS language allows these modifiers to follow a
+   syntactically valid stochastic relation separated by only white
+   space.  To distinguish a modifier from the start of another
+   stochastic relation, "T" and "I" are reserved names when followed
+   by an opening bracket, but otherwise we allow the use of "T" and
+   "I" as variable names in user code.
 */
 
 #include <compiler/ParseTree.h>
@@ -11,7 +16,13 @@
 
 #include <stdexcept>
 
-void jags_scanner_error(const char *msg);
+/* 
+   The default error function yy_fatal_error will terminate the
+   program. To avoid this, we define our own error function which
+   throws an exception. Note: gcc -Wunused-function will generate a
+   warning about yy_fatal_error defined but not used.
+*/
+[[noreturn]] void jags_scanner_error(const char *msg);
 #define YY_FATAL_ERROR(msg) jags_scanner_error (msg)
 
 %}
@@ -29,10 +40,7 @@ BRACKET		[ \t]*\(
 "var"			return VAR;
 "data"                  return DATA;
 "model"			return MODEL;
-"length"/{BRACKET}      return LENGTH;
-"dim"/{BRACKET}         return DIM;
-"for"/{BRACKET}        	return FOR;
-"in"/{BRACKET}		return IN;
+"for"        	        return FOR;
 "in"                    return IN;
 ";"			return ';';
 ","			return ',';
@@ -61,6 +69,7 @@ BRACKET		[ \t]*\(
 "**"                    return '^';
 "*"			return '*';
 "/"			return '/';
+"|>"                    return PIPE; 
 
 "T"/{BRACKET}           return 'T';
 "I"/{BRACKET}           return 'I';
@@ -79,7 +88,6 @@ BRACKET		[ \t]*\(
 [ \t\r\n\f]+            /* Eat whitespace */
 "#".*\n                 /* Eat comments */
 
-
 ([0-9]+){EXPONENT}? {
   yylval.val = atof(yytext); return DOUBLE;
 }
@@ -90,11 +98,6 @@ BRACKET		[ \t]*\(
   yylval.val = atof(yytext); return DOUBLE;
 }
 
-([a-zA-Z]+[a-zA-Z0-9\._]*)/{BRACKET} {
-  yylval.stringptr = new std::string(yytext);
-  return FUNC;
-}
-
 [a-zA-Z]+[a-zA-Z0-9\._]*	 {
   yylval.stringptr = new std::string(yytext);
   return NAME;
@@ -103,7 +106,8 @@ BRACKET		[ \t]*\(
 <<EOF>>	yyterminate();
 
 \357\277\275 {
-  throw std::logic_error("Coding error in file (UTF-8 replacement char U+FFFD found by parser)");
+    /* Slightly more informative than returning BADCHAR (See below) */
+    jags_scanner_error("Coding error in file (UTF-8 replacement char U+FFFD found by parser)");
 }
 
 . {
@@ -121,7 +125,7 @@ int yywrap()
   return 1;
 }
 
-void jags_scanner_error (char const *msg)
+[[noreturn]] void jags_scanner_error (char const *msg)
 {
     throw std::runtime_error(msg);
 }

@@ -12,17 +12,33 @@ namespace bugs {
     }
 
     double Sum::scalarEval(vector <double const *> const &args,
-			   vector<unsigned int> const &lengths) const
+			   vector<unsigned long> const &lengths) const
     {
 	double value = 0;
-	for (unsigned int j = 0; j < args.size(); ++j) {
-	    for (unsigned int i = 0; i < lengths[j]; ++i) {
+	for (unsigned long j = 0; j < args.size(); ++j) {
+	    for (unsigned long i = 0; i < lengths[j]; ++i) {
 		value += args[j][i];
 	    }
 	}
 	return value;
     }
 
+    bool Sum::hasGradient(unsigned long i) const
+    {
+	return true;
+    }
+    
+    void Sum::gradient(double *grad, vector<double const *> const &args,
+		       vector<unsigned long> const &lengths,
+		       unsigned long i) const
+    {
+	if (i >= args.size()) return;
+	
+	for (unsigned long j = 0; j < lengths[i]; ++j) {
+	    grad[j] += 1.0;
+	}
+    }
+    
     bool Sum::isDiscreteValued(vector<bool> const &mask) const
     {
 	return allTrue(mask);
@@ -33,7 +49,7 @@ namespace bugs {
     {
 	//Only one argument may be additive. 
 	bool found = false;
-	for (unsigned int i = 0; i < mask.size(); ++i) {
+	for (unsigned long i = 0; i < mask.size(); ++i) {
 	    if (mask[i]) {
 		if (found) return false;
 		else found = true;
@@ -45,12 +61,12 @@ namespace bugs {
 	return found;
     }
     
-    bool Sum::isScale(vector<bool> const &mask, vector<bool> const &fix) const
+    bool Sum::isScale(vector<bool> const &mask, vector<bool> const &) const
     {
 	return allTrue(mask);
     }
 
-    bool Sum::isLinear(vector<bool> const &mask, vector<bool> const &fix) const
+    bool Sum::isLinear(vector<bool> const &, vector<bool> const &) const
     {
 	return true;
     }

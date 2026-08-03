@@ -21,13 +21,13 @@ namespace jags {
 ScalarLogicalNode::ScalarLogicalNode(ScalarFunction const *function,
 				     unsigned int nchain,
 				     vector<Node const *> const &parameters)
-    : LogicalNode(vector<unsigned int>(1,1), nchain, parameters, function),
+    : LogicalNode(vector<unsigned long>(1,1), nchain, parameters, function),
       _func(function)
 {
     if (!function) {
 	throw logic_error("NULL function in ScalarLogicalNode constructor");
     }
-    for (unsigned int j = 0; j < parameters.size(); ++j) {
+    for (unsigned long j = 0; j < parameters.size(); ++j) {
 	if (isFlat(parameters[j]->dim())) {
 	    string msg("Invalid zero-length parameter to function ");
 	    msg.append(function->name());
@@ -40,11 +40,7 @@ ScalarLogicalNode::ScalarLogicalNode(ScalarFunction const *function,
 	}
     }
 
-    if (isFixed()) {
-	for (unsigned int ch = 0; ch < nchain; ++ch) {
-	    deterministicSample(ch);
-	}
-    }
+    initializeFixed();
 }
 
 void ScalarLogicalNode::deterministicSample(unsigned int chain)
@@ -56,7 +52,18 @@ bool ScalarLogicalNode::checkParentValues(unsigned int chain) const
 {
     return _func->checkParameterValue(_parameters[chain]);
 }
-
+  
+    void ScalarLogicalNode::gradient(double *grad, Node const *arg,
+				     unsigned int chain) const
+    {
+	auto par = parents();
+	for (unsigned long i = 0; i < par.size(); ++i) {
+	    if (par[i] == arg) {
+		*grad += _func->gradient(_parameters[chain], i);
+	    }
+	}
+    }
+    
     /*
 DeterministicNode *
 ScalarLogicalNode::clone(vector<Node const*> const &parents) const

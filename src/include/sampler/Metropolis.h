@@ -27,7 +27,7 @@ class Metropolis : public MutableSampleMethod
     Metropolis &operator=(Metropolis const &);
 public:
     Metropolis(std::vector<double> const &value);
-    ~Metropolis();
+    ~Metropolis() override;
     /**
      * Gets the current value array of the Metropolis object. 
      */
@@ -63,15 +63,15 @@ public:
      * adaptation is specific to each subclass and is defined by the
      * rescale member function
      */
-    bool isAdaptive() const;
+    bool isAdaptive() const override;
     /**
      * Turns off adaptive mode
      */
-    void adaptOff();
+    void adaptOff() override;
     /**
      * length of the value vector
      */
-    unsigned int length() const;
+    unsigned long length() const;
 };
 
 } /* namespace jags */

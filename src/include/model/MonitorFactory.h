@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <util/Factory.h>
+
 namespace jags {
 
 class Monitor;
@@ -15,9 +17,10 @@ class Range;
 /**
  * @short Factory for Monitor objects
  */
-class MonitorFactory {
+class MonitorFactory : public Factory
+{
 public:
-    virtual ~MonitorFactory();
+    ~MonitorFactory() override = default;
     /**
      * Creates a monitor of the given type by name and range. If a
      * monitor cannot be created, then a null pointer is returned.
@@ -30,7 +33,11 @@ public:
      *
      * @param model Pointer to a BUGSModel
      *
-     * @param type String indicating what type of monitor is requested
+     * @param stat String indicating what statistic is to be monitored 
+     * (e.g. "value", "logdensity", ...)
+     *
+     * @param summary String indicating how the monitored valeus are to be summarized
+     * (e.g. "trace", "mean", "variance", ...)
      *
      * @param msg An error message may be written to this argument on
      * exit if the monitor cannot be created due to an error.  It is
@@ -41,12 +48,10 @@ public:
      * returns the requested monitor.
      */
     virtual Monitor *getMonitor(std::string const &name, Range const &range,
-				BUGSModel *model, std::string const &type,
+				BUGSModel *model,
+				std::string const &stat,
+				std::string const &summary,
 				std::string &msg) = 0;
-    /**
-     * Returns the name of the monitor factory
-     */
-    virtual std::string name() const = 0;
 };
 
 } /* namespace jags */

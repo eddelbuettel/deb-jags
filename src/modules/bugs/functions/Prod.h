@@ -8,10 +8,10 @@ namespace bugs {
 
     /**
      * @short Product of an array
-     * Sum calculates the product of the elements of an array
+     * Sum calculates the product of all arguments
      * @see Sum
      * <pre>
-     * y <- prod(x[])
+     * y <- prod(x1[], x2[], ...)
      * </pre>
      */
     class Prod : public ScalarVectorFunction
@@ -19,8 +19,13 @@ namespace bugs {
     public:
 	Prod ();
 	double scalarEval(std::vector <double const *> const &args,
-			  std::vector<unsigned int> const &lengths) const;
-	bool isDiscreteValued(std::vector<bool> const &mask) const;
+			  std::vector<unsigned long> const &lengths)
+	    const override;
+	bool hasGradient(unsigned long i) const override;
+	void gradient(double *x, std::vector <double const *> const &args,
+		      std::vector<unsigned long> const &lengths,
+		      unsigned long i) const override;
+	bool isDiscreteValued(std::vector<bool> const &mask) const override;
     };
 
 }}

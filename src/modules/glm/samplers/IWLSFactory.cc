@@ -5,6 +5,7 @@
 #include "NormalLinear.h"
 #include "IWLSOutcome.h"
 
+#include <glm.h>
 #include <graph/StochasticNode.h>
 #include <sampler/GraphView.h>
 
@@ -27,7 +28,7 @@ namespace glm {
     GLMMethod *
     IWLSFactory::newMethod(GraphView const *view,
 			   vector<SingletonGraphView const *> const &sub_views,
-			   unsigned int chain, bool gibbs) const
+			   unsigned int chain, bool ) const
     {
         bool linear = true;
         vector<Outcome*> outcomes;
@@ -35,7 +36,7 @@ namespace glm {
         for (vector<StochasticNode *>::const_iterator p = view->stochasticChildren().begin();
              p != view->stochasticChildren().end(); ++p)
         {
-            Outcome *outcome = 0;
+            Outcome *outcome = nullptr;
             if (NormalLinear::canRepresent(*p)) {
                 outcome = new NormalLinear(*p, chain);
             }
@@ -47,10 +48,10 @@ namespace glm {
         }
 
         if (linear) {
-            return new GLMBlock(view, sub_views, outcomes, chain);
+            return new GLMBlock(view, sub_views, outcomes, chain, workspace(chain));
         }
 	
-	return new IWLS(view, sub_views, outcomes, chain);
+	return new IWLS(view, sub_views, outcomes, chain, workspace(chain));
     }
     
     bool IWLSFactory::canSample(StochasticNode const *snode) const

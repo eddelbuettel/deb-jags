@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <util/Factory.h>
+
 namespace jags {
 
 struct RNG;
@@ -11,15 +13,10 @@ struct RNG;
 /**
  * @short Factory for RNG objects
  */
-class RNGFactory
+class RNGFactory : public Factory
 {
-    
   public:
-    /**
-     * Destructor. An RNGFactory retains ownership of the RNG objects
-     * it generates, and should delete them when the destructor is called.
-     */
-    virtual ~RNGFactory() {};
+    ~RNGFactory() override = default;
     /**
      * Sets the random seed of the RNG factory so that a reproducible
      * sequence of RNGs can be produced.
@@ -31,7 +28,7 @@ class RNGFactory
     /**
      * Returns a vector of newly allocated RNG objects.
      *
-     * @param n Number of RNGs requested. Note that an RNG factory have the
+     * @param n Number of RNGs requested. Note that an RNG factory may have the
      * capacity to make only m < n independent samplers (where m may be zero).
      * In this case it should return a vector of length m.
      */
@@ -44,10 +41,6 @@ class RNGFactory
      * way will generate independent streams.
      */
     virtual RNG * makeRNG(std::string const &name) = 0;
-    /**
-     * Returns the name of the RNG factory
-     */
-    virtual std::string name() const = 0;
 };
 
 } /* namespace jags */

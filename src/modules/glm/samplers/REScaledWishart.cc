@@ -17,8 +17,6 @@
 using std::vector;
 using std::sqrt;
 
-extern cholmod_common *glm_wk;
-
 namespace jags {
     namespace glm {
 
@@ -26,8 +24,8 @@ namespace jags {
 	    GraphView const *eps,
 	    vector<SingletonGraphView const *> const &sub_eps,
 	    vector<Outcome *> const &outcomes,
-	    unsigned int chain)
-	    : REMethod(tau, eps, sub_eps, outcomes, chain),
+            unsigned int chain, cholmod_common *wk)
+	    : REMethod(tau, eps, sub_eps, outcomes, chain, wk),
 	      _sigma(eps->nodes()[0]->length())
 	{
 	    vector<Node const*> const &par = tau->node()->parents();
@@ -35,8 +33,8 @@ namespace jags {
 	    double tdf = *par[1]->value(chain); //Prior degrees of freedom
 	    double const *x = tau->node()->value(chain);
 	    //Initialize hyper-parameter _sigma
-	    unsigned int m = _sigma.size();
-	    for (unsigned int j = 0; j < m; ++j) {
+	    unsigned long m = _sigma.size();
+	    for (unsigned long j = 0; j < m; ++j) {
 		double a_shape = (m + tdf)/2.0;
 		double a_rate = tdf * x[j + m*j] + 1.0/(S[j]*S[j]);
 		double a = a_shape/a_rate; 
@@ -46,14 +44,14 @@ namespace jags {
 
 	void REScaledWishart::updateTau(RNG *rng)
 	{
-	    int m = _sigma.size();
-	    int m2 = m * m;
+	    unsigned long m = _sigma.size();
+	    unsigned long m2 = m * m;
 	    double tdf = *_tau->node()->parents()[1]->value(_chain);
 
 	    //Prior 
 	    double wdf = m + tdf - 1; //Degrees of freedom for Wishart
 	    vector<double> R(m2, 0); //Scale matrix for Wishart
-	    for (int j = 0; j < m; ++j) {
+	    for (unsigned long j = 0; j < m; ++j) {
 		R[j*m + j] = tdf * _sigma[j] * _sigma[j];
 	    }
 
@@ -65,8 +63,8 @@ namespace jags {
 		double const *Y = (*p)->value(_chain);
 		double const *mu = (*p)->parents()[0]->value(_chain);
 		//FIXME: We could use blas call dsyr here
-		for (int j = 0; j < m; j++) {
-		    for (int k = 0; k < m; k++) {
+		for (unsigned long j = 0; j < m; j++) {
+		    for (unsigned long k = 0; k < m; k++) {
 			R[j*m + k] += (Y[j] - mu[j]) * (Y[k] - mu[k]);
 		    }
 		}
@@ -87,8 +85,8 @@ namespace jags {
 	    vector<Node const*> const &par = _tau->node()->parents();
 	    double const *S = par[0]->value(_chain);
 
-	    unsigned int m  = _z->ncol;
-	    unsigned int m2 = m * m;
+	    unsigned long m  = _z->ncol;
+	    unsigned long m2 = m * m;
 	    
 	    //Get parameters of posterior distribution for _sigma
 	    //Precision is A and mean is inverse(A) %*% b

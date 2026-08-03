@@ -1,0 +1,12 @@
+#ifndef JAGS_VERSION_H_
+#define JAGS_VERSION_H_
+
+#define JAGS_MAJOR @JAGS_MAJOR@
+#define JAGS_MINOR @JAGS_MINOR@
+#define JAGS_PATCH @JAGS_PATCH@
+
+extern "C" {
+   char const * jags_version();
+}
+
+#endif /* JAGS_VERSION_H_ */

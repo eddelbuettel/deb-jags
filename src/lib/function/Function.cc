@@ -6,7 +6,7 @@ using std::string;
 
 namespace jags {
 
-Function::Function (string const &name, unsigned int npar)
+Function::Function (string const &name, unsigned long npar)
   : _name (name), _npar (npar)
 {
 }
@@ -26,19 +26,18 @@ string Function::alias() const
     return "";
 }
 
-    unsigned int Function::npar() const
+    unsigned long Function::npar() const
     {
 	return _npar;
     }
 
 
-bool Function::isDiscreteValued(vector<bool> const &mask) const
+bool Function::isDiscreteValued(vector<bool> const &) const
 {
   return false;
 }
 
-bool Function::isScale(vector<bool> const &mask,
-		       vector<bool> const &isfixed) const
+bool Function::isScale(vector<bool> const &, vector<bool> const &) const
 {
     return false;
 }
@@ -49,14 +48,13 @@ bool Function::isLinear(vector<bool> const &mask,
     return isScale(mask, isfixed);
 }
 
-bool Function::isAdditive(vector<bool> const &mask,
-			  vector<bool> const &isfixed) const
+bool Function::isAdditive(vector<bool> const &, vector<bool> const &) const
 {
     return false;
 }
     
 bool 
-Function::isPower(vector<bool> const &mask, vector<bool> const &isfixed) const
+Function::isPower(vector<bool> const &, vector<bool> const &) const
 {
     return false;
 }
@@ -65,7 +63,7 @@ string Function::deparse(vector<string> const &par) const
 {
     string name = this->name();
     name.append("(");
-    for (unsigned int i = 0; i < par.size(); ++i) {
+    for (unsigned long i = 0; i < par.size(); ++i) {
 	if (i > 0) {
 	    name.append(",");
 	}
@@ -76,14 +74,19 @@ string Function::deparse(vector<string> const &par) const
     return name;
 }
 
-    bool Function::checkParameterDiscrete(vector<bool> const &mask) const
+    bool Function::checkParameterDiscrete(vector<bool> const &) const
     {
 	return true;
     }
 
-    bool Function::checkParameterFixed(std::vector<bool> const &mask) const
+    bool Function::checkParameterFixed(std::vector<bool> const &) const
     {
 	return true;
     }
 
+    bool Function::hasGradient(unsigned long) const
+    {
+	return false;
+    }
+    
 } //namespace jags

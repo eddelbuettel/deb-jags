@@ -6,19 +6,19 @@ using std::string;
 namespace jags {
 
 DistPtr::DistPtr()
-    : sdist(0), vdist(0), adist(0)
+    : sdist(nullptr), vdist(nullptr), adist(nullptr)
 {}
 
 DistPtr::DistPtr(ScalarDist const *sf)
-    : sdist(sf), vdist(0), adist(0)
+    : sdist(sf), vdist(nullptr), adist(nullptr)
 {}
 
 DistPtr::DistPtr(VectorDist const *vf)
-    : sdist(0), vdist(vf), adist(0)
+    : sdist(nullptr), vdist(vf), adist(nullptr)
 {}
 
 DistPtr::DistPtr(ArrayDist const *af)
-    : sdist(0), vdist(0), adist(af)
+    : sdist(nullptr), vdist(nullptr), adist(af)
 {}
 
 string const &DistPtr::name() const
@@ -34,6 +34,18 @@ string const &DistPtr::name() const
 	return nullstring;
 }
 
+string DistPtr::alias() const
+{
+    if (sdist)
+	return sdist->alias();
+    else if (vdist)
+	return vdist->alias();
+    else if (adist)
+	return adist->alias();
+    else
+	return "";
+}
+    
 ScalarDist const * SCALAR(DistPtr const &p) { 
     return p.sdist; 
 }
@@ -53,7 +65,7 @@ bool DistPtr::operator==(DistPtr const &rhs) const
 
 bool isNULL(DistPtr const &p)
 {
-    return (p.sdist == 0 && p.vdist == 0 && p.adist == 0);
+    return (p.sdist == nullptr && p.vdist == nullptr && p.adist == nullptr);
 }
 
 } //namespace jags

@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -46,10 +46,10 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output, and Bison version.  */
-#define YYBISON 30706
+#define YYBISON 30802
 
 /* Bison version string.  */
-#define YYBISON_VERSION "3.7.6"
+#define YYBISON_VERSION "3.8.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -67,7 +67,7 @@
 
 
 /* First part of user prologue.  */
-#line 2 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 2 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
 
 #include <compiler/ParseTree.h>
 #include "remap.h"
@@ -79,7 +79,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
-
+    
 using std::malloc;
 using std::free;
 using jags::ParseTree;
@@ -91,9 +91,9 @@ using jags::ParseTree;
   
 #define YYDEBUG 1
   
-  static std::vector<ParseTree *> * _pvariables = 0;
-  static ParseTree *_pdata = 0;
-  static ParseTree *_prelations = 0;
+  static std::vector<ParseTree *> * _pvariables = nullptr;
+  static ParseTree *_pdata = nullptr;
+  static ParseTree *_prelations = nullptr;
   
   static void setName(ParseTree *p, std::string *name);
   static void setParameters(ParseTree *p, std::vector<ParseTree*> *parameters);
@@ -102,8 +102,8 @@ using jags::ParseTree;
 			    ParseTree *param2);
   static void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2,
 			    ParseTree *param3);
-  static ParseTree *Truncated (ParseTree *left, ParseTree *right);
-  static ParseTree *Interval(ParseTree *left, ParseTree *right);
+  static ParseTree *Truncated (std::vector<ParseTree *> *bounds);
+  static ParseTree *Interval(std::vector<ParseTree *> *bounds);
   
 
 #line 110 "parser.cc"
@@ -154,28 +154,26 @@ extern int yydebug;
     DATA = 259,                    /* DATA  */
     MODEL = 260,                   /* MODEL  */
     NAME = 261,                    /* NAME  */
-    FUNC = 262,                    /* FUNC  */
-    SPECIAL = 263,                 /* SPECIAL  */
-    BADCHAR = 264,                 /* BADCHAR  */
-    IN = 265,                      /* IN  */
-    ARROW = 266,                   /* ARROW  */
-    FOR = 267,                     /* FOR  */
-    GT = 268,                      /* GT  */
-    GE = 269,                      /* GE  */
-    LT = 270,                      /* LT  */
-    LE = 271,                      /* LE  */
-    EQ = 272,                      /* EQ  */
-    NE = 273,                      /* NE  */
-    AND = 274,                     /* AND  */
-    OR = 275,                      /* OR  */
-    LENGTH = 276,                  /* LENGTH  */
-    DIM = 277,                     /* DIM  */
+    SPECIAL = 262,                 /* SPECIAL  */
+    BADCHAR = 263,                 /* BADCHAR  */
+    IN = 264,                      /* IN  */
+    ARROW = 265,                   /* ARROW  */
+    FOR = 266,                     /* FOR  */
+    GT = 267,                      /* GT  */
+    GE = 268,                      /* GE  */
+    LT = 269,                      /* LT  */
+    LE = 270,                      /* LE  */
+    EQ = 271,                      /* EQ  */
+    NE = 272,                      /* NE  */
+    AND = 273,                     /* AND  */
+    OR = 274,                      /* OR  */
+    LENGTH = 275,                  /* LENGTH  */
+    DIM = 276,                     /* DIM  */
+    PIPE = 277,                    /* PIPE  */
     DOUBLE = 278,                  /* DOUBLE  */
     INT = 279,                     /* INT  */
     NOT = 280,                     /* NOT  */
-    NEG = 281,                     /* NEG  */
-    ENDL = 282,                    /* ENDL  */
-    UREPCHAR = 283                 /* UREPCHAR  */
+    NEG = 281                      /* NEG  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -188,34 +186,32 @@ extern int yydebug;
 #define DATA 259
 #define MODEL 260
 #define NAME 261
-#define FUNC 262
-#define SPECIAL 263
-#define BADCHAR 264
-#define IN 265
-#define ARROW 266
-#define FOR 267
-#define GT 268
-#define GE 269
-#define LT 270
-#define LE 271
-#define EQ 272
-#define NE 273
-#define AND 274
-#define OR 275
-#define LENGTH 276
-#define DIM 277
+#define SPECIAL 262
+#define BADCHAR 263
+#define IN 264
+#define ARROW 265
+#define FOR 266
+#define GT 267
+#define GE 268
+#define LT 269
+#define LE 270
+#define EQ 271
+#define NE 272
+#define AND 273
+#define OR 274
+#define LENGTH 275
+#define DIM 276
+#define PIPE 277
 #define DOUBLE 278
 #define INT 279
 #define NOT 280
 #define NEG 281
-#define ENDL 282
-#define UREPCHAR 283
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 42 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 42 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
 
   /*
     We can't put any C++ class that requires a constructor in
@@ -231,7 +227,7 @@ union YYSTYPE
   jags::ParseTree *ptree;
   std::vector<jags::ParseTree*> *pvec;
 
-#line 235 "parser.cc"
+#line 231 "parser.cc"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -242,7 +238,9 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE yylval;
 
+
 int yyparse (void);
+
 
 #endif /* !YY_YY_PARSER_HH_INCLUDED  */
 /* Symbol kind.  */
@@ -256,22 +254,22 @@ enum yysymbol_kind_t
   YYSYMBOL_DATA = 4,                       /* DATA  */
   YYSYMBOL_MODEL = 5,                      /* MODEL  */
   YYSYMBOL_NAME = 6,                       /* NAME  */
-  YYSYMBOL_FUNC = 7,                       /* FUNC  */
-  YYSYMBOL_SPECIAL = 8,                    /* SPECIAL  */
-  YYSYMBOL_BADCHAR = 9,                    /* BADCHAR  */
-  YYSYMBOL_IN = 10,                        /* IN  */
-  YYSYMBOL_ARROW = 11,                     /* ARROW  */
-  YYSYMBOL_FOR = 12,                       /* FOR  */
-  YYSYMBOL_GT = 13,                        /* GT  */
-  YYSYMBOL_GE = 14,                        /* GE  */
-  YYSYMBOL_LT = 15,                        /* LT  */
-  YYSYMBOL_LE = 16,                        /* LE  */
-  YYSYMBOL_EQ = 17,                        /* EQ  */
-  YYSYMBOL_NE = 18,                        /* NE  */
-  YYSYMBOL_AND = 19,                       /* AND  */
-  YYSYMBOL_OR = 20,                        /* OR  */
-  YYSYMBOL_LENGTH = 21,                    /* LENGTH  */
-  YYSYMBOL_DIM = 22,                       /* DIM  */
+  YYSYMBOL_SPECIAL = 7,                    /* SPECIAL  */
+  YYSYMBOL_BADCHAR = 8,                    /* BADCHAR  */
+  YYSYMBOL_IN = 9,                         /* IN  */
+  YYSYMBOL_ARROW = 10,                     /* ARROW  */
+  YYSYMBOL_FOR = 11,                       /* FOR  */
+  YYSYMBOL_GT = 12,                        /* GT  */
+  YYSYMBOL_GE = 13,                        /* GE  */
+  YYSYMBOL_LT = 14,                        /* LT  */
+  YYSYMBOL_LE = 15,                        /* LE  */
+  YYSYMBOL_EQ = 16,                        /* EQ  */
+  YYSYMBOL_NE = 17,                        /* NE  */
+  YYSYMBOL_AND = 18,                       /* AND  */
+  YYSYMBOL_OR = 19,                        /* OR  */
+  YYSYMBOL_LENGTH = 20,                    /* LENGTH  */
+  YYSYMBOL_DIM = 21,                       /* DIM  */
+  YYSYMBOL_PIPE = 22,                      /* PIPE  */
   YYSYMBOL_DOUBLE = 23,                    /* DOUBLE  */
   YYSYMBOL_INT = 24,                       /* INT  */
   YYSYMBOL_NOT = 25,                       /* NOT  */
@@ -282,46 +280,42 @@ enum yysymbol_kind_t
   YYSYMBOL_30_ = 30,                       /* ':'  */
   YYSYMBOL_NEG = 31,                       /* NEG  */
   YYSYMBOL_32_ = 32,                       /* '^'  */
-  YYSYMBOL_ENDL = 33,                      /* ENDL  */
-  YYSYMBOL_UREPCHAR = 34,                  /* UREPCHAR  */
-  YYSYMBOL_35_ = 35,                       /* ';'  */
-  YYSYMBOL_36_ = 36,                       /* ','  */
-  YYSYMBOL_37_ = 37,                       /* '['  */
-  YYSYMBOL_38_ = 38,                       /* ']'  */
-  YYSYMBOL_39_ = 39,                       /* '{'  */
-  YYSYMBOL_40_ = 40,                       /* '}'  */
-  YYSYMBOL_41_ = 41,                       /* '('  */
-  YYSYMBOL_42_ = 42,                       /* ')'  */
-  YYSYMBOL_43_ = 43,                       /* '='  */
-  YYSYMBOL_44_ = 44,                       /* '~'  */
-  YYSYMBOL_45_T_ = 45,                     /* 'T'  */
-  YYSYMBOL_46_I_ = 46,                     /* 'I'  */
-  YYSYMBOL_YYACCEPT = 47,                  /* $accept  */
-  YYSYMBOL_input = 48,                     /* input  */
-  YYSYMBOL_var_stmt = 49,                  /* var_stmt  */
-  YYSYMBOL_dec_list = 50,                  /* dec_list  */
-  YYSYMBOL_node_dec = 51,                  /* node_dec  */
-  YYSYMBOL_dim_list = 52,                  /* dim_list  */
-  YYSYMBOL_data_stmt = 53,                 /* data_stmt  */
-  YYSYMBOL_model_stmt = 54,                /* model_stmt  */
-  YYSYMBOL_relations = 55,                 /* relations  */
-  YYSYMBOL_relation_list = 56,             /* relation_list  */
-  YYSYMBOL_relation = 57,                  /* relation  */
-  YYSYMBOL_for_loop = 58,                  /* for_loop  */
-  YYSYMBOL_counter = 59,                   /* counter  */
-  YYSYMBOL_assignment = 60,                /* assignment  */
-  YYSYMBOL_determ_relation = 61,           /* determ_relation  */
-  YYSYMBOL_stoch_relation = 62,            /* stoch_relation  */
-  YYSYMBOL_product = 63,                   /* product  */
-  YYSYMBOL_sum = 64,                       /* sum  */
-  YYSYMBOL_expression = 65,                /* expression  */
-  YYSYMBOL_expression_list = 66,           /* expression_list  */
-  YYSYMBOL_range_list = 67,                /* range_list  */
-  YYSYMBOL_range_element = 68,             /* range_element  */
-  YYSYMBOL_distribution = 69,              /* distribution  */
-  YYSYMBOL_truncated = 70,                 /* truncated  */
-  YYSYMBOL_interval = 71,                  /* interval  */
-  YYSYMBOL_var = 72                        /* var  */
+  YYSYMBOL_33_ = 33,                       /* ';'  */
+  YYSYMBOL_34_ = 34,                       /* ','  */
+  YYSYMBOL_35_ = 35,                       /* '['  */
+  YYSYMBOL_36_ = 36,                       /* ']'  */
+  YYSYMBOL_37_ = 37,                       /* '{'  */
+  YYSYMBOL_38_ = 38,                       /* '}'  */
+  YYSYMBOL_39_ = 39,                       /* '('  */
+  YYSYMBOL_40_ = 40,                       /* ')'  */
+  YYSYMBOL_41_ = 41,                       /* '='  */
+  YYSYMBOL_42_ = 42,                       /* '~'  */
+  YYSYMBOL_43_T_ = 43,                     /* 'T'  */
+  YYSYMBOL_44_I_ = 44,                     /* 'I'  */
+  YYSYMBOL_YYACCEPT = 45,                  /* $accept  */
+  YYSYMBOL_input = 46,                     /* input  */
+  YYSYMBOL_var_stmt = 47,                  /* var_stmt  */
+  YYSYMBOL_dec_list = 48,                  /* dec_list  */
+  YYSYMBOL_node_dec = 49,                  /* node_dec  */
+  YYSYMBOL_data_stmt = 50,                 /* data_stmt  */
+  YYSYMBOL_model_stmt = 51,                /* model_stmt  */
+  YYSYMBOL_relations = 52,                 /* relations  */
+  YYSYMBOL_relation_list = 53,             /* relation_list  */
+  YYSYMBOL_relation = 54,                  /* relation  */
+  YYSYMBOL_for_loop = 55,                  /* for_loop  */
+  YYSYMBOL_counter = 56,                   /* counter  */
+  YYSYMBOL_assignment = 57,                /* assignment  */
+  YYSYMBOL_determ_relation = 58,           /* determ_relation  */
+  YYSYMBOL_stoch_relation = 59,            /* stoch_relation  */
+  YYSYMBOL_product = 60,                   /* product  */
+  YYSYMBOL_sum = 61,                       /* sum  */
+  YYSYMBOL_expression = 62,                /* expression  */
+  YYSYMBOL_arg_list = 63,                  /* arg_list  */
+  YYSYMBOL_arg = 64,                       /* arg  */
+  YYSYMBOL_distribution = 65,              /* distribution  */
+  YYSYMBOL_truncated = 66,                 /* truncated  */
+  YYSYMBOL_interval = 67,                  /* interval  */
+  YYSYMBOL_var = 68                        /* var  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -479,12 +473,18 @@ typedef int yy_state_fast_t;
 # define YY_USE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
+# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
+# else
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
+# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -643,19 +643,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  13
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   477
+#define YYLAST   244
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  47
+#define YYNTOKENS  45
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  26
+#define YYNNTS  24
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  77
+#define YYNRULES  69
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  157
+#define YYNSTATES  145
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   283
+#define YYMAXUTOK   281
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -673,15 +673,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      41,    42,    28,    26,    36,    27,     2,    29,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    30,    35,
-       2,    43,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    46,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,    45,     2,     2,     2,     2,     2,
-       2,    37,     2,    38,    32,     2,     2,     2,     2,     2,
+      39,    40,    28,    26,    34,    27,     2,    29,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    30,    33,
+       2,    41,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,    44,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,    43,     2,     2,     2,     2,     2,
+       2,    35,     2,    36,    32,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    39,     2,    40,    44,     2,     2,     2,
+       2,     2,     2,    37,     2,    38,    42,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -697,21 +697,20 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
-      25,    31,    33,    34
+      25,    31
 };
 
 #if YYDEBUG
-  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+/* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   105,   105,   106,   107,   108,   109,   112,   113,   116,
-     117,   120,   123,   129,   130,   133,   140,   147,   153,   154,
-     157,   158,   159,   160,   161,   164,   170,   176,   177,   180,
-     184,   200,   204,   208,   214,   219,   229,   234,   243,   244,
-     245,   249,   253,   257,   261,   265,   269,   273,   277,   281,
-     285,   289,   293,   297,   301,   305,   309,   313,   317,   321,
-     324,   325,   328,   329,   332,   333,   339,   344,   354,   355,
-     356,   357,   360,   361,   362,   363,   366,   369
+       0,    98,    98,    99,   100,   101,   102,   105,   106,   109,
+     110,   113,   116,   122,   129,   136,   142,   143,   146,   147,
+     148,   149,   150,   153,   159,   165,   166,   169,   173,   189,
+     193,   197,   201,   205,   209,   213,   219,   224,   234,   239,
+     248,   249,   250,   254,   258,   262,   266,   270,   274,   278,
+     282,   286,   290,   294,   298,   302,   306,   310,   314,   318,
+     322,   326,   329,   336,   339,   344,   351,   353,   355,   358
 };
 #endif
 
@@ -728,16 +727,15 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "VAR", "DATA", "MODEL",
-  "NAME", "FUNC", "SPECIAL", "BADCHAR", "IN", "ARROW", "FOR", "GT", "GE",
-  "LT", "LE", "EQ", "NE", "AND", "OR", "LENGTH", "DIM", "DOUBLE", "INT",
-  "NOT", "'+'", "'-'", "'*'", "'/'", "':'", "NEG", "'^'", "ENDL",
-  "UREPCHAR", "';'", "','", "'['", "']'", "'{'", "'}'", "'('", "')'",
-  "'='", "'~'", "'T'", "'I'", "$accept", "input", "var_stmt", "dec_list",
-  "node_dec", "dim_list", "data_stmt", "model_stmt", "relations",
-  "relation_list", "relation", "for_loop", "counter", "assignment",
-  "determ_relation", "stoch_relation", "product", "sum", "expression",
-  "expression_list", "range_list", "range_element", "distribution",
-  "truncated", "interval", "var", YY_NULLPTR
+  "NAME", "SPECIAL", "BADCHAR", "IN", "ARROW", "FOR", "GT", "GE", "LT",
+  "LE", "EQ", "NE", "AND", "OR", "LENGTH", "DIM", "PIPE", "DOUBLE", "INT",
+  "NOT", "'+'", "'-'", "'*'", "'/'", "':'", "NEG", "'^'", "';'", "','",
+  "'['", "']'", "'{'", "'}'", "'('", "')'", "'='", "'~'", "'T'", "'I'",
+  "$accept", "input", "var_stmt", "dec_list", "node_dec", "data_stmt",
+  "model_stmt", "relations", "relation_list", "relation", "for_loop",
+  "counter", "assignment", "determ_relation", "stoch_relation", "product",
+  "sum", "expression", "arg_list", "arg", "distribution", "truncated",
+  "interval", "var", YY_NULLPTR
 };
 
 static const char *
@@ -747,20 +745,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#ifdef YYPRINT
-/* YYTOKNUM[NUM] -- (External) token number corresponding to the
-   (internal) symbol number NUM (which must be that of a token).  */
-static const yytype_int16 yytoknum[] =
-{
-       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277,   278,   279,   280,    43,    45,    42,    47,
-      58,   281,    94,   282,   283,    59,    44,    91,    93,   123,
-     125,    40,    41,    61,   126,    84,    73
-};
-#endif
-
-#define YYPACT_NINF (-109)
+#define YYPACT_NINF (-44)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -770,220 +755,169 @@ static const yytype_int16 yytoknum[] =
 #define yytable_value_is_error(Yyn) \
   ((Yyn) == YYTABLE_NINF)
 
-  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-     STATE-NUM.  */
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-      27,    -4,   -26,   -21,    21,    78,    39,  -109,    42,   139,
-    -109,   149,   149,  -109,    39,  -109,  -109,   160,  -109,    -4,
-      63,    -8,    35,     5,  -109,  -109,    65,    76,    92,    -7,
-      28,  -109,    79,    91,    96,  -109,   160,   160,   -22,   120,
-     114,   376,  -109,  -109,   160,   156,   163,  -109,  -109,   149,
-    -109,  -109,  -109,  -109,  -109,   164,   160,  -109,   160,   156,
-     156,   141,   176,   160,  -109,   160,   160,   160,   160,   160,
-     160,   160,   160,   160,   160,   160,   160,   160,   160,   160,
-     160,   160,   376,    85,  -109,   134,   170,    86,   144,   133,
-     376,   376,    33,   155,   157,  -109,   376,   117,    -3,   106,
-     422,   422,   422,   422,   422,   422,   445,   399,    -3,    -3,
-     117,   117,   138,   141,   160,  -109,     4,   160,  -109,     1,
-     145,   147,  -109,  -109,   160,  -109,  -109,  -109,  -109,   160,
-     158,  -109,    36,    74,   136,   376,   376,  -109,  -109,    64,
-     326,    67,   351,  -109,   206,   112,  -109,   236,   123,  -109,
-    -109,   266,  -109,  -109,   296,  -109,  -109
+     128,    11,   -28,    36,    21,    72,    80,   -44,    71,   131,
+     -44,    49,    49,   -44,    80,   -44,   -44,    42,   -44,    11,
+     -29,    77,    14,   -44,   -44,    83,   102,   112,    12,    52,
+     -44,    78,   -44,    42,    42,    42,   133,   137,   140,   100,
+     -44,   -44,   -44,    42,   169,   177,   -44,   -44,    49,   -44,
+     -44,   -44,   -44,   -44,     6,    42,   -44,    42,   188,   152,
+      82,    42,    42,    42,    42,    42,    42,    42,    42,    42,
+      42,    42,    42,    42,    42,    42,    42,    42,    42,   -44,
+     108,   150,   146,   178,    64,   149,   158,   159,   -17,   140,
+     -21,   -44,    54,    75,   116,   212,   212,   212,   212,   212,
+     212,   188,   164,    75,    75,    54,    54,   130,   152,   -44,
+     -44,    18,    42,   -44,    42,   183,   183,   106,   160,   167,
+     -44,   -44,   -44,    42,   111,   -16,   173,   174,   -44,   -44,
+      42,    42,   140,   -44,   -44,    42,    42,    22,    34,    38,
+      81,   -44,   -44,   -44,   -44
 };
 
-  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-     Performed when YYTABLE does not specify something else to do.  Zero
-     means the default is an error.  */
+/* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
+   Performed when YYTABLE does not specify something else to do.  Zero
+   means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
        2,     0,     0,     0,     0,     0,     0,     3,    11,     7,
-       9,     0,     0,     1,     0,     4,     5,     0,     8,     0,
-      76,     0,     0,     0,    18,    22,     0,    21,    20,     0,
-       0,     6,     0,     0,     0,    39,     0,     0,     0,    43,
-      45,    13,    38,    10,    64,     0,     0,    15,    19,     0,
-      25,    24,    23,    27,    28,     0,     0,    16,     0,     0,
-       0,    47,     0,     0,    12,     0,     0,     0,     0,     0,
+       9,     0,     0,     1,     0,     4,     5,    63,     8,     0,
+      68,     0,     0,    16,    20,     0,    19,    18,     0,     0,
+       6,    68,    41,     0,     0,     0,    43,    45,    64,     0,
+      61,    40,    10,    63,     0,     0,    13,    17,     0,    23,
+      22,    21,    25,    26,     0,     0,    14,    63,    48,    47,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,    65,     0,    62,     0,     0,     0,     0,    31,
-      29,    60,     0,     0,     0,    59,    14,    35,    37,    58,
-      49,    50,    51,    52,    53,    54,    55,    56,    36,    46,
-      34,    44,    48,    57,    64,    77,     0,    64,    17,     0,
-       0,     0,    32,    33,     0,    42,    40,    41,    63,     0,
-       0,    67,     0,     0,     0,    61,    30,    26,    66,     0,
-       0,     0,     0,    71,     0,     0,    75,     0,     0,    69,
-      70,     0,    73,    74,     0,    68,    72
+       0,     0,     0,     0,     0,     0,     0,     0,    63,    12,
+       0,    68,     0,     0,     0,     0,     0,     0,    29,    27,
+       0,    60,    37,    39,    59,    50,    51,    52,    53,    54,
+      55,    56,    57,    38,    46,    36,    44,    49,    58,    62,
+      69,     0,     0,    15,    63,     0,     0,     0,     0,     0,
+      30,    31,    42,     0,     0,     0,     0,     0,    34,    35,
+      63,    63,    28,    24,    65,    63,    63,     0,     0,     0,
+       0,    66,    67,    32,    33
 };
 
-  /* YYPGOTO[NTERM-NUM].  */
+/* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -109,  -109,  -109,  -109,   179,  -109,   202,   146,  -109,   -11,
-     -20,  -109,  -109,    93,  -109,  -109,  -109,  -109,   -17,    94,
-    -109,  -108,  -109,  -109,  -109,    54
+     -44,   -44,   -44,   -44,   190,   205,     2,   -44,     3,   -18,
+     -44,   -44,   101,   -44,   -44,   -44,   -44,   -32,   -43,   135,
+      58,    94,   104,    35
 };
 
-  /* YYDEFGOTO[NTERM-NUM].  */
+/* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     4,     5,     9,    10,    38,     6,     7,    50,    23,
-      24,    25,    26,    56,    27,    28,    39,    40,    82,    92,
-      83,    84,    89,   122,   123,    42
+       0,     4,     5,     9,    10,     6,     7,    49,    22,    23,
+      24,    25,    55,    26,    27,    36,    37,    38,    39,    40,
+      88,   120,   121,    41
 };
 
-  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-     positive, shift that token.  If negative, reduce the rule whose
-     number is the opposite.  If YYTABLE_NINF, syntax error.  */
+/* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule whose
+   number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      41,    30,     8,    48,    53,    67,   128,    20,    32,   130,
-      48,    20,    21,    11,    63,    53,    64,    22,    12,    61,
-      62,    13,    33,    34,    35,    78,    79,    80,    36,    81,
-       1,     2,     3,    45,    20,    21,    54,    55,    87,    90,
-      22,    91,    37,   131,     3,    47,    96,    54,    97,    98,
-      99,   100,   101,   102,   103,   104,   105,   106,   107,   108,
-     109,   110,   111,   112,   113,    29,    29,    48,    57,   124,
-      20,    32,   124,    20,    32,   125,    46,    29,   138,    17,
-      20,    32,     2,     3,    29,    33,    34,    35,    33,    34,
-      35,    36,    20,    21,    36,    33,    34,    35,    22,    85,
-      44,    36,    91,    29,    49,    37,   143,   135,    37,   146,
-     139,    51,   136,    93,    94,    37,   140,   142,    20,    32,
-      58,   114,   144,   115,   147,    67,   118,    52,   151,    20,
-      32,   154,    59,    33,    34,    35,    80,    60,    81,    36,
-      66,    29,    20,    32,    33,    34,    35,    80,    65,    81,
-      36,    15,    16,    37,   150,    20,    21,    33,    34,    35,
-      31,    22,    20,    36,    37,   153,    20,    32,    -1,    86,
-      81,    88,   141,    81,    18,    19,   116,    37,   120,   121,
-     117,    33,    34,    35,    67,   119,   133,    36,   134,    68,
-      69,    70,    71,    72,    73,    74,    75,   126,    43,   127,
-     137,    37,    76,    77,    78,    79,    80,    14,    81,   129,
-       0,     0,     0,   132,    67,     0,     0,     0,    95,    68,
-      69,    70,    71,    72,    73,    74,    75,     0,     0,     0,
-       0,     0,    76,    77,    78,    79,    80,     0,    81,     0,
-       0,     0,     0,     0,    67,     0,     0,     0,   149,    68,
-      69,    70,    71,    72,    73,    74,    75,     0,     0,     0,
-       0,     0,    76,    77,    78,    79,    80,     0,    81,     0,
-       0,     0,     0,     0,    67,     0,     0,     0,   152,    68,
-      69,    70,    71,    72,    73,    74,    75,     0,     0,     0,
-       0,     0,    76,    77,    78,    79,    80,     0,    81,     0,
-       0,     0,     0,     0,    67,     0,     0,     0,   155,    68,
-      69,    70,    71,    72,    73,    74,    75,     0,     0,     0,
-       0,     0,    76,    77,    78,    79,    80,     0,    81,     0,
-       0,     0,     0,     0,    67,     0,     0,     0,   156,    68,
-      69,    70,    71,    72,    73,    74,    75,     0,     0,     0,
-       0,     0,    76,    77,    78,    79,    80,     0,    81,    67,
-       0,     0,   145,     0,    68,    69,    70,    71,    72,    73,
-      74,    75,     0,     0,     0,     0,     0,    76,    77,    78,
-      79,    80,     0,    81,    67,     0,     0,   148,     0,    68,
-      69,    70,    71,    72,    73,    74,    75,     0,     0,     0,
-       0,     0,    76,    77,    78,    79,    80,    67,    81,     0,
-       0,     0,    68,    69,    70,    71,    72,    73,    74,     0,
-       0,     0,     0,     0,     0,    76,    77,    78,    79,    80,
-      67,    81,     0,     0,     0,    -1,    -1,    -1,    -1,    -1,
-      -1,     0,     0,     0,     0,     0,     0,     0,    76,    77,
-      78,    79,    80,    67,    81,     0,     0,     0,    68,    69,
-      70,    71,    72,    73,     0,     0,     0,     0,     0,     0,
-       0,    76,    77,    78,    79,    80,     0,    81
+      80,    58,    59,    60,    47,   117,    43,    15,    16,    11,
+      44,    47,    85,    78,    90,    29,    30,     8,    78,   122,
+      20,    13,    52,    89,   134,    21,   118,   119,    52,    92,
+      93,    94,    95,    96,    97,    98,    99,   100,   101,   102,
+     103,   104,   105,   106,   107,   108,    28,    28,    31,    86,
+      87,    84,    46,    53,    54,    20,    78,    28,    20,    53,
+      21,    63,   141,    21,    28,    32,    47,    33,    78,    34,
+      20,   125,    78,    12,   142,    21,     2,     3,   143,    82,
+     124,    35,    63,    28,    76,     3,    77,   137,   138,    63,
+      56,   132,   139,   140,    64,    65,    66,    67,    68,    69,
+      70,    71,   113,    74,    75,    76,    17,    77,    72,    73,
+      74,    75,    76,    43,    77,    78,    45,    57,    63,    28,
+      48,   144,    91,    64,    65,    66,    67,    68,    69,    70,
+      71,     1,     2,     3,    78,    50,    79,    72,    73,    74,
+      75,    76,    78,    77,   110,    51,    76,    63,    77,   118,
+     119,   133,    64,    65,    66,    67,    68,    69,    70,    71,
+      -1,    61,    77,    62,    18,    19,    72,    73,    74,    75,
+      76,    63,    77,   126,   127,    81,    64,    65,    66,    67,
+      68,    69,    70,    83,    77,    43,   111,   112,   114,    85,
+      72,    73,    74,    75,    76,    63,    77,   115,   116,   130,
+      64,    65,    66,    67,    68,    69,   131,   135,   136,    42,
+      14,   128,   123,   109,    72,    73,    74,    75,    76,    63,
+      77,   129,     0,     0,    -1,    -1,    -1,    -1,    -1,    -1,
+       0,     0,     0,     0,     0,     0,     0,     0,    72,    73,
+      74,    75,    76,     0,    77
 };
 
 static const yytype_int16 yycheck[] =
 {
-      17,    12,     6,    23,    11,     8,   114,     6,     7,   117,
-      30,     6,     7,    39,    36,    11,    38,    12,    39,    36,
-      37,     0,    21,    22,    23,    28,    29,    30,    27,    32,
-       3,     4,     5,    41,     6,     7,    43,    44,    49,    56,
-      12,    58,    41,    42,     5,    40,    63,    43,    65,    66,
-      67,    68,    69,    70,    71,    72,    73,    74,    75,    76,
-      77,    78,    79,    80,    81,    11,    12,    87,    40,    36,
-       6,     7,    36,     6,     7,    42,    41,    23,    42,    37,
-       6,     7,     4,     5,    30,    21,    22,    23,    21,    22,
-      23,    27,     6,     7,    27,    21,    22,    23,    12,    45,
-      37,    27,   119,    49,    39,    41,    42,   124,    41,    42,
-      36,    35,   129,    59,    60,    41,   133,   134,     6,     7,
-      41,    36,   139,    38,   141,     8,    40,    35,   145,     6,
-       7,   148,    41,    21,    22,    23,    30,    41,    32,    27,
-      26,    87,     6,     7,    21,    22,    23,    30,    28,    32,
-      27,     5,     6,    41,    42,     6,     7,    21,    22,    23,
-      14,    12,     6,    27,    41,    42,     6,     7,    30,     6,
-      32,     7,    36,    32,    35,    36,    42,    41,    45,    46,
-      10,    21,    22,    23,     8,    41,    41,    27,    41,    13,
-      14,    15,    16,    17,    18,    19,    20,    42,    19,    42,
-      42,    41,    26,    27,    28,    29,    30,     5,    32,   116,
-      -1,    -1,    -1,   119,     8,    -1,    -1,    -1,    42,    13,
-      14,    15,    16,    17,    18,    19,    20,    -1,    -1,    -1,
-      -1,    -1,    26,    27,    28,    29,    30,    -1,    32,    -1,
-      -1,    -1,    -1,    -1,     8,    -1,    -1,    -1,    42,    13,
-      14,    15,    16,    17,    18,    19,    20,    -1,    -1,    -1,
-      -1,    -1,    26,    27,    28,    29,    30,    -1,    32,    -1,
-      -1,    -1,    -1,    -1,     8,    -1,    -1,    -1,    42,    13,
-      14,    15,    16,    17,    18,    19,    20,    -1,    -1,    -1,
-      -1,    -1,    26,    27,    28,    29,    30,    -1,    32,    -1,
-      -1,    -1,    -1,    -1,     8,    -1,    -1,    -1,    42,    13,
-      14,    15,    16,    17,    18,    19,    20,    -1,    -1,    -1,
-      -1,    -1,    26,    27,    28,    29,    30,    -1,    32,    -1,
-      -1,    -1,    -1,    -1,     8,    -1,    -1,    -1,    42,    13,
-      14,    15,    16,    17,    18,    19,    20,    -1,    -1,    -1,
-      -1,    -1,    26,    27,    28,    29,    30,    -1,    32,     8,
-      -1,    -1,    36,    -1,    13,    14,    15,    16,    17,    18,
-      19,    20,    -1,    -1,    -1,    -1,    -1,    26,    27,    28,
-      29,    30,    -1,    32,     8,    -1,    -1,    36,    -1,    13,
-      14,    15,    16,    17,    18,    19,    20,    -1,    -1,    -1,
-      -1,    -1,    26,    27,    28,    29,    30,     8,    32,    -1,
-      -1,    -1,    13,    14,    15,    16,    17,    18,    19,    -1,
-      -1,    -1,    -1,    -1,    -1,    26,    27,    28,    29,    30,
-       8,    32,    -1,    -1,    -1,    13,    14,    15,    16,    17,
-      18,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    26,    27,
-      28,    29,    30,     8,    32,    -1,    -1,    -1,    13,    14,
-      15,    16,    17,    18,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    26,    27,    28,    29,    30,    -1,    32
+      43,    33,    34,    35,    22,    22,    35,     5,     6,    37,
+      39,    29,     6,    34,    57,    12,    14,     6,    34,    40,
+       6,     0,    10,    55,    40,    11,    43,    44,    10,    61,
+      62,    63,    64,    65,    66,    67,    68,    69,    70,    71,
+      72,    73,    74,    75,    76,    77,    11,    12,     6,    43,
+      44,    48,    38,    41,    42,     6,    34,    22,     6,    41,
+      11,     7,    40,    11,    29,    23,    84,    25,    34,    27,
+       6,   114,    34,    37,    40,    11,     4,     5,    40,    44,
+     112,    39,     7,    48,    30,     5,    32,   130,   131,     7,
+      38,   123,   135,   136,    12,    13,    14,    15,    16,    17,
+      18,    19,    38,    28,    29,    30,    35,    32,    26,    27,
+      28,    29,    30,    35,    32,    34,    39,    39,     7,    84,
+      37,    40,    40,    12,    13,    14,    15,    16,    17,    18,
+      19,     3,     4,     5,    34,    33,    36,    26,    27,    28,
+      29,    30,    34,    32,    36,    33,    30,     7,    32,    43,
+      44,    40,    12,    13,    14,    15,    16,    17,    18,    19,
+      30,    28,    32,    26,    33,    34,    26,    27,    28,    29,
+      30,     7,    32,   115,   116,     6,    12,    13,    14,    15,
+      16,    17,    18,     6,    32,    35,    40,     9,    39,     6,
+      26,    27,    28,    29,    30,     7,    32,    39,    39,    39,
+      12,    13,    14,    15,    16,    17,    39,    34,    34,    19,
+       5,   117,   111,    78,    26,    27,    28,    29,    30,     7,
+      32,   117,    -1,    -1,    12,    13,    14,    15,    16,    17,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    26,    27,
+      28,    29,    30,    -1,    32
 };
 
-  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
-     symbol of state STATE-NUM.  */
+/* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
+   state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     4,     5,    48,    49,    53,    54,     6,    50,
-      51,    39,    39,     0,    53,    54,    54,    37,    35,    36,
-       6,     7,    12,    56,    57,    58,    59,    61,    62,    72,
-      56,    54,     7,    21,    22,    23,    27,    41,    52,    63,
-      64,    65,    72,    51,    37,    41,    41,    40,    57,    39,
-      55,    35,    35,    11,    43,    44,    60,    40,    41,    41,
-      41,    65,    65,    36,    38,    28,    26,     8,    13,    14,
-      15,    16,    17,    18,    19,    20,    26,    27,    28,    29,
-      30,    32,    65,    67,    68,    72,     6,    56,     7,    69,
-      65,    65,    66,    72,    72,    42,    65,    65,    65,    65,
-      65,    65,    65,    65,    65,    65,    65,    65,    65,    65,
-      65,    65,    65,    65,    36,    38,    42,    10,    40,    41,
-      45,    46,    70,    71,    36,    42,    42,    42,    68,    60,
-      68,    42,    66,    41,    41,    65,    65,    42,    42,    36,
-      65,    36,    65,    42,    65,    36,    42,    65,    36,    42,
-      42,    65,    42,    42,    65,    42,    42
+       0,     3,     4,     5,    46,    47,    50,    51,     6,    48,
+      49,    37,    37,     0,    50,    51,    51,    35,    33,    34,
+       6,    11,    53,    54,    55,    56,    58,    59,    68,    53,
+      51,     6,    23,    25,    27,    39,    60,    61,    62,    63,
+      64,    68,    49,    35,    39,    39,    38,    54,    37,    52,
+      33,    33,    10,    41,    42,    57,    38,    39,    62,    62,
+      62,    28,    26,     7,    12,    13,    14,    15,    16,    17,
+      18,    19,    26,    27,    28,    29,    30,    32,    34,    36,
+      63,     6,    68,     6,    53,     6,    43,    44,    65,    62,
+      63,    40,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    64,
+      36,    40,     9,    38,    39,    39,    39,    22,    43,    44,
+      66,    67,    40,    57,    62,    63,    65,    65,    66,    67,
+      39,    39,    62,    40,    40,    34,    34,    63,    63,    63,
+      63,    40,    40,    40,    40
 };
 
-  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    47,    48,    48,    48,    48,    48,    49,    49,    50,
-      50,    51,    51,    52,    52,    53,    54,    55,    56,    56,
-      57,    57,    57,    57,    57,    58,    59,    60,    60,    61,
-      61,    62,    62,    62,    63,    63,    64,    64,    65,    65,
-      65,    65,    65,    65,    65,    65,    65,    65,    65,    65,
-      65,    65,    65,    65,    65,    65,    65,    65,    65,    65,
-      66,    66,    67,    67,    68,    68,    69,    69,    70,    70,
-      70,    70,    71,    71,    71,    71,    72,    72
+       0,    45,    46,    46,    46,    46,    46,    47,    47,    48,
+      48,    49,    49,    50,    51,    52,    53,    53,    54,    54,
+      54,    54,    54,    55,    56,    57,    57,    58,    58,    59,
+      59,    59,    59,    59,    59,    59,    60,    60,    61,    61,
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    63,    63,    64,    64,    65,    66,    67,    68,    68
 };
 
-  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
+/* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     1,     2,     2,     3,     2,     3,     1,
-       3,     1,     4,     1,     3,     4,     4,     3,     1,     2,
-       1,     1,     1,     2,     2,     2,     6,     1,     1,     3,
-       6,     3,     4,     4,     3,     3,     3,     3,     1,     1,
-       4,     4,     4,     1,     3,     1,     3,     2,     3,     3,
+       3,     1,     4,     4,     4,     3,     1,     2,     1,     1,
+       1,     2,     2,     2,     6,     1,     1,     3,     6,     3,
+       4,     4,     8,     8,     5,     5,     3,     3,     3,     3,
+       1,     1,     4,     1,     3,     1,     3,     2,     2,     3,
        3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-       1,     3,     1,     3,     0,     1,     4,     3,     6,     5,
-       5,     4,     6,     5,     5,     4,     1,     4
+       3,     1,     3,     0,     1,     4,     4,     4,     1,     4
 };
 
 
@@ -995,6 +929,7 @@ enum { YYENOMEM = -2 };
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
+#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
@@ -1035,10 +970,7 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-/* This macro is provided for backward compatibility. */
-# ifndef YY_LOCATION_PRINT
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
+
 
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
@@ -1065,10 +997,6 @@ yy_symbol_value_print (FILE *yyo,
   YY_USE (yyoutput);
   if (!yyvaluep)
     return;
-# ifdef YYPRINT
-  if (yykind < YYNTOKENS)
-    YYPRINT (yyo, yytoknum[yykind], *yyvaluep);
-# endif
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
@@ -1253,6 +1181,7 @@ yyparse (void)
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yychar = YYEMPTY; /* Cause a token to be read.  */
+
   goto yysetstate;
 
 
@@ -1278,7 +1207,7 @@ yysetstate:
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    goto yyexhaustedlab;
+    YYNOMEM;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -1306,7 +1235,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        goto yyexhaustedlab;
+        YYNOMEM;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -1317,7 +1246,7 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          goto yyexhaustedlab;
+          YYNOMEM;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
@@ -1338,6 +1267,7 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
+
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -1451,128 +1381,116 @@ yyreduce:
   switch (yyn)
     {
   case 7: /* var_stmt: VAR dec_list  */
-#line 112 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 105 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                        { _pvariables = (yyvsp[0].pvec); }
-#line 1457 "parser.cc"
+#line 1387 "parser.cc"
     break;
 
   case 8: /* var_stmt: VAR dec_list ';'  */
-#line 113 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 106 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                    { _pvariables = (yyvsp[-1].pvec); }
-#line 1463 "parser.cc"
+#line 1393 "parser.cc"
     break;
 
   case 9: /* dec_list: node_dec  */
-#line 116 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 109 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                    { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
-#line 1469 "parser.cc"
+#line 1399 "parser.cc"
     break;
 
   case 10: /* dec_list: dec_list ',' node_dec  */
-#line 117 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 110 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                         { (yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
-#line 1475 "parser.cc"
+#line 1405 "parser.cc"
     break;
 
   case 11: /* node_dec: NAME  */
-#line 120 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 113 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                {
     (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[0].stringptr)); 
 }
-#line 1483 "parser.cc"
+#line 1413 "parser.cc"
     break;
 
-  case 12: /* node_dec: NAME '[' dim_list ']'  */
-#line 123 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 12: /* node_dec: NAME '[' arg_list ']'  */
+#line 116 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                         {
     (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
     setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 1492 "parser.cc"
+#line 1422 "parser.cc"
     break;
 
-  case 13: /* dim_list: expression  */
-#line 129 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                     { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
-#line 1498 "parser.cc"
-    break;
-
-  case 14: /* dim_list: dim_list ',' expression  */
-#line 130 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                          { (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
-#line 1504 "parser.cc"
-    break;
-
-  case 15: /* data_stmt: DATA '{' relation_list '}'  */
-#line 133 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 13: /* data_stmt: DATA '{' relation_list '}'  */
+#line 122 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                       {
     ParseTree *p = new ParseTree(jags::P_RELATIONS, yylineno);
     setParameters(p, (yyvsp[-1].pvec));
     _pdata = p;
 }
-#line 1514 "parser.cc"
+#line 1432 "parser.cc"
     break;
 
-  case 16: /* model_stmt: MODEL '{' relation_list '}'  */
-#line 140 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 14: /* model_stmt: MODEL '{' relation_list '}'  */
+#line 129 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                         { 
     ParseTree *p = new ParseTree(jags::P_RELATIONS, yylineno);
     setParameters(p, (yyvsp[-1].pvec));
     _prelations = p;
 }
-#line 1524 "parser.cc"
+#line 1442 "parser.cc"
     break;
 
-  case 17: /* relations: '{' relation_list '}'  */
-#line 147 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 15: /* relations: '{' relation_list '}'  */
+#line 136 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                  {
     (yyval.ptree) = new ParseTree(jags::P_RELATIONS, yylineno);
     setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 1533 "parser.cc"
+#line 1451 "parser.cc"
     break;
 
-  case 18: /* relation_list: relation  */
-#line 153 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 16: /* relation_list: relation  */
+#line 142 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                          { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
-#line 1539 "parser.cc"
+#line 1457 "parser.cc"
     break;
 
-  case 19: /* relation_list: relation_list relation  */
-#line 154 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 17: /* relation_list: relation_list relation  */
+#line 143 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                          { (yyval.pvec)=(yyvsp[-1].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
-#line 1545 "parser.cc"
+#line 1463 "parser.cc"
     break;
 
-  case 25: /* for_loop: counter relations  */
-#line 164 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 23: /* for_loop: counter relations  */
+#line 153 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                             {
     (yyval.ptree) = new ParseTree(jags::P_FOR, yylineno);
     setParameters((yyval.ptree), (yyvsp[-1].ptree), (yyvsp[0].ptree));
 }
-#line 1554 "parser.cc"
+#line 1472 "parser.cc"
     break;
 
-  case 26: /* counter: FOR '(' NAME IN range_element ')'  */
-#line 170 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                                           {
+  case 24: /* counter: FOR '(' NAME IN expression ')'  */
+#line 159 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                                        {
     (yyval.ptree) = new ParseTree(jags::P_COUNTER, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
     setParameters((yyval.ptree), (yyvsp[-1].ptree));
 }
-#line 1563 "parser.cc"
+#line 1481 "parser.cc"
     break;
 
-  case 29: /* determ_relation: var assignment expression  */
-#line 180 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 27: /* determ_relation: var assignment expression  */
+#line 169 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                            {
     (yyval.ptree) = new ParseTree(jags::P_DETRMREL, yylineno);
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
-#line 1572 "parser.cc"
+#line 1490 "parser.cc"
     break;
 
-  case 30: /* determ_relation: FUNC '(' var ')' assignment expression  */
-#line 184 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 28: /* determ_relation: NAME '(' var ')' assignment expression  */
+#line 173 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                          {
 
   /* 
@@ -1587,48 +1505,84 @@ yyreduce:
     (yyval.ptree) = new ParseTree(jags::P_DETRMREL, yylineno);
     setParameters((yyval.ptree), (yyvsp[-3].ptree), p);
 }
-#line 1591 "parser.cc"
+#line 1509 "parser.cc"
     break;
 
-  case 31: /* stoch_relation: var '~' distribution  */
-#line 200 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 29: /* stoch_relation: var '~' distribution  */
+#line 189 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                      {
-    (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno); 
+    (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno);
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1600 "parser.cc"
+#line 1518 "parser.cc"
     break;
 
-  case 32: /* stoch_relation: var '~' distribution truncated  */
-#line 204 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 30: /* stoch_relation: var '~' distribution truncated  */
+#line 193 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                  {
     (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno); 
     setParameters((yyval.ptree), (yyvsp[-3].ptree), (yyvsp[-1].ptree), (yyvsp[0].ptree));
 }
-#line 1609 "parser.cc"
+#line 1527 "parser.cc"
     break;
 
-  case 33: /* stoch_relation: var '~' distribution interval  */
-#line 208 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 31: /* stoch_relation: var '~' distribution interval  */
+#line 197 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                 {
     (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno);
     setParameters((yyval.ptree), (yyvsp[-3].ptree), (yyvsp[-1].ptree), (yyvsp[0].ptree));
 }
-#line 1618 "parser.cc"
+#line 1536 "parser.cc"
     break;
 
-  case 34: /* product: expression '*' expression  */
-#line 214 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 32: /* stoch_relation: var '~' 'T' '(' distribution ',' arg_list ')'  */
+#line 201 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                                                {
+    (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno);
+    setParameters((yyval.ptree), (yyvsp[-7].ptree), (yyvsp[-3].ptree), Truncated((yyvsp[-1].pvec)));
+}
+#line 1545 "parser.cc"
+    break;
+
+  case 33: /* stoch_relation: var '~' 'I' '(' distribution ',' arg_list ')'  */
+#line 205 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                                                {
+    (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno);
+    setParameters((yyval.ptree), (yyvsp[-7].ptree), (yyvsp[-3].ptree), Interval((yyvsp[-1].pvec)));
+}
+#line 1554 "parser.cc"
+    break;
+
+  case 34: /* stoch_relation: var '~' distribution PIPE truncated  */
+#line 209 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                                      {
+    (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno);
+    setParameters((yyval.ptree), (yyvsp[-4].ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
+}
+#line 1563 "parser.cc"
+    break;
+
+  case 35: /* stoch_relation: var '~' distribution PIPE interval  */
+#line 213 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                                     {
+    (yyval.ptree) = new ParseTree(jags::P_STOCHREL, yylineno);
+    setParameters((yyval.ptree), (yyvsp[-4].ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
+}
+#line 1572 "parser.cc"
+    break;
+
+  case 36: /* product: expression '*' expression  */
+#line 219 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                    {
   (yyval.pvec) = new std::vector<ParseTree*>;
   (yyval.pvec)->push_back((yyvsp[-2].ptree));
   (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 1628 "parser.cc"
+#line 1582 "parser.cc"
     break;
 
-  case 35: /* product: product '*' expression  */
-#line 219 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 37: /* product: product '*' expression  */
+#line 224 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                          {
   //  This creates a shift-reduce conflict because in the expression
   //  A*B*C, (A*B) is a valid expression. By default, bison shifts,
@@ -1637,21 +1591,21 @@ yyreduce:
   (yyval.pvec) = (yyvsp[-2].pvec);
   (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 1641 "parser.cc"
+#line 1595 "parser.cc"
     break;
 
-  case 36: /* sum: expression '+' expression  */
-#line 229 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 38: /* sum: expression '+' expression  */
+#line 234 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                {
   (yyval.pvec) = new std::vector<ParseTree*>;
   (yyval.pvec)->push_back((yyvsp[-2].ptree));
   (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 1651 "parser.cc"
+#line 1605 "parser.cc"
     break;
 
-  case 37: /* sum: sum '+' expression  */
-#line 234 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 39: /* sum: sum '+' expression  */
+#line 239 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                      {
   //  This creates a shift-reduce conflict. By default, bison shifts,
   //  which is what we want. The warning is suppressed with the %expect
@@ -1659,316 +1613,256 @@ yyreduce:
   (yyval.pvec) = (yyvsp[-2].pvec);
   (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 1663 "parser.cc"
+#line 1617 "parser.cc"
     break;
 
-  case 39: /* expression: DOUBLE  */
-#line 244 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 41: /* expression: DOUBLE  */
+#line 249 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
          {(yyval.ptree) = new ParseTree(jags::P_VALUE, yylineno); (yyval.ptree)->setValue((yyvsp[0].val));}
-#line 1669 "parser.cc"
+#line 1623 "parser.cc"
     break;
 
-  case 40: /* expression: LENGTH '(' var ')'  */
-#line 245 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                     {
-    (yyval.ptree) = new ParseTree(jags::P_LENGTH, yylineno);
-    setParameters((yyval.ptree),(yyvsp[-1].ptree));
+  case 42: /* expression: NAME '(' arg_list ')'  */
+#line 250 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                        {
+    (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
+    setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 1678 "parser.cc"
-    break;
-
-  case 41: /* expression: DIM '(' var ')'  */
-#line 249 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                  {
-    (yyval.ptree) = new ParseTree(jags::P_DIM, yylineno);
-    setParameters((yyval.ptree),(yyvsp[-1].ptree));
-}
-#line 1687 "parser.cc"
-    break;
-
-  case 42: /* expression: FUNC '(' expression_list ')'  */
-#line 253 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                               {
-  (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
-  setParameters((yyval.ptree), (yyvsp[-1].pvec));
-}
-#line 1696 "parser.cc"
+#line 1632 "parser.cc"
     break;
 
   case 43: /* expression: product  */
-#line 257 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 254 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
           {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("*");
     setParameters((yyval.ptree), (yyvsp[0].pvec));
 }
-#line 1705 "parser.cc"
+#line 1641 "parser.cc"
     break;
 
   case 44: /* expression: expression '/' expression  */
-#line 261 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 258 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                             {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("/");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
-#line 1714 "parser.cc"
+#line 1650 "parser.cc"
     break;
 
   case 45: /* expression: sum  */
-#line 265 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 262 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
       {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("+");
     setParameters((yyval.ptree), (yyvsp[0].pvec));
 }
-#line 1723 "parser.cc"
+#line 1659 "parser.cc"
     break;
 
   case 46: /* expression: expression '-' expression  */
-#line 269 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 266 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                             {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("-");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
-#line 1732 "parser.cc"
+#line 1668 "parser.cc"
     break;
 
   case 47: /* expression: '-' expression  */
-#line 273 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 270 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("NEG");
     setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
-#line 1741 "parser.cc"
+#line 1677 "parser.cc"
     break;
 
-  case 48: /* expression: expression ':' expression  */
-#line 277 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 48: /* expression: NOT expression  */
+#line 274 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                 {
+    (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("!");
+    setParameters((yyval.ptree), (yyvsp[0].ptree));
+}
+#line 1686 "parser.cc"
+    break;
+
+  case 49: /* expression: expression ':' expression  */
+#line 278 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                             {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName(":");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
-#line 1750 "parser.cc"
+#line 1695 "parser.cc"
     break;
 
-  case 49: /* expression: expression GT expression  */
-#line 281 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 50: /* expression: expression GT expression  */
+#line 282 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName(">");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1759 "parser.cc"
+#line 1704 "parser.cc"
     break;
 
-  case 50: /* expression: expression GE expression  */
-#line 285 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 51: /* expression: expression GE expression  */
+#line 286 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName(">=");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1768 "parser.cc"
+#line 1713 "parser.cc"
     break;
 
-  case 51: /* expression: expression LT expression  */
-#line 289 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 52: /* expression: expression LT expression  */
+#line 290 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("<");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1777 "parser.cc"
+#line 1722 "parser.cc"
     break;
 
-  case 52: /* expression: expression LE expression  */
-#line 293 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 53: /* expression: expression LE expression  */
+#line 294 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("<=");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1786 "parser.cc"
+#line 1731 "parser.cc"
     break;
 
-  case 53: /* expression: expression EQ expression  */
-#line 297 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 54: /* expression: expression EQ expression  */
+#line 298 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("==");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1795 "parser.cc"
+#line 1740 "parser.cc"
     break;
 
-  case 54: /* expression: expression NE expression  */
-#line 301 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 55: /* expression: expression NE expression  */
+#line 302 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("!=");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
-#line 1804 "parser.cc"
+#line 1749 "parser.cc"
     break;
 
-  case 55: /* expression: expression AND expression  */
-#line 305 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 56: /* expression: expression AND expression  */
+#line 306 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                             {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("&&");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1813 "parser.cc"
+#line 1758 "parser.cc"
     break;
 
-  case 56: /* expression: expression OR expression  */
-#line 309 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 57: /* expression: expression OR expression  */
+#line 310 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                            {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("||");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
 }
-#line 1822 "parser.cc"
+#line 1767 "parser.cc"
     break;
 
-  case 57: /* expression: expression '^' expression  */
-#line 313 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 58: /* expression: expression '^' expression  */
+#line 314 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                             {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); (yyval.ptree)->setName("^");
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
   }
-#line 1831 "parser.cc"
+#line 1776 "parser.cc"
     break;
 
-  case 58: /* expression: expression SPECIAL expression  */
-#line 317 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 59: /* expression: expression SPECIAL expression  */
+#line 318 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                                 {
     (yyval.ptree) = new ParseTree(jags::P_FUNCTION, yylineno); setName((yyval.ptree), (yyvsp[-1].stringptr));
     setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
  }
-#line 1840 "parser.cc"
+#line 1785 "parser.cc"
     break;
 
-  case 59: /* expression: '(' expression ')'  */
-#line 321 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 60: /* expression: '(' expression ')'  */
+#line 322 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
                      { (yyval.ptree) = (yyvsp[-1].ptree); }
-#line 1846 "parser.cc"
+#line 1791 "parser.cc"
     break;
 
-  case 60: /* expression_list: expression  */
-#line 324 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                            { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
-#line 1852 "parser.cc"
-    break;
-
-  case 61: /* expression_list: expression_list ',' expression  */
-#line 325 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                                 { (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
-#line 1858 "parser.cc"
-    break;
-
-  case 62: /* range_list: range_element  */
-#line 328 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                          { (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree)); }
-#line 1864 "parser.cc"
-    break;
-
-  case 63: /* range_list: range_list ',' range_element  */
-#line 329 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                               { (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree)); }
-#line 1870 "parser.cc"
-    break;
-
-  case 64: /* range_element: %empty  */
-#line 332 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-               {(yyval.ptree) = new ParseTree(jags::P_RANGE, yylineno);}
-#line 1876 "parser.cc"
-    break;
-
-  case 65: /* range_element: expression  */
-#line 333 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-             {
-    (yyval.ptree) = new ParseTree(jags::P_RANGE, yylineno); 
-    setParameters((yyval.ptree),(yyvsp[0].ptree));
+  case 61: /* arg_list: arg  */
+#line 326 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+              {
+    (yyval.pvec) = new std::vector<ParseTree*>(1, (yyvsp[0].ptree));
 }
-#line 1885 "parser.cc"
+#line 1799 "parser.cc"
     break;
 
-  case 66: /* distribution: FUNC '(' expression_list ')'  */
-#line 340 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 62: /* arg_list: arg_list ',' arg  */
+#line 329 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                   {
+    (yyval.pvec)=(yyvsp[-2].pvec);
+    (yyval.pvec)->push_back((yyvsp[0].ptree));
+}
+#line 1808 "parser.cc"
+    break;
+
+  case 63: /* arg: %empty  */
+#line 336 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+            {
+    (yyval.ptree) = new ParseTree(jags::P_NULL, yylineno);
+}
+#line 1816 "parser.cc"
+    break;
+
+  case 64: /* arg: expression  */
+#line 339 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+             {
+    (yyval.ptree) = (yyvsp[0].ptree);
+}
+#line 1824 "parser.cc"
+    break;
+
+  case 65: /* distribution: NAME '(' arg_list ')'  */
+#line 345 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
 {
   (yyval.ptree) = new ParseTree(jags::P_DENSITY, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 1894 "parser.cc"
+#line 1833 "parser.cc"
     break;
 
-  case 67: /* distribution: FUNC '(' ')'  */
-#line 345 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-{
-    //BUGS has a dflat() distribution with no parameters
-    (yyval.ptree) = new ParseTree(jags::P_DENSITY, yylineno); setName((yyval.ptree), (yyvsp[-2].stringptr));
-}
-#line 1903 "parser.cc"
+  case 66: /* truncated: 'T' '(' arg_list ')'  */
+#line 351 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                                { (yyval.ptree) = Truncated((yyvsp[-1].pvec)); }
+#line 1839 "parser.cc"
     break;
 
-  case 68: /* truncated: 'T' '(' expression ',' expression ')'  */
-#line 354 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                                                  {(yyval.ptree) = Truncated((yyvsp[-3].ptree),(yyvsp[-1].ptree));}
-#line 1909 "parser.cc"
+  case 67: /* interval: 'I' '(' arg_list ')'  */
+#line 353 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                                { (yyval.ptree) = Interval((yyvsp[-1].pvec)); }
+#line 1845 "parser.cc"
     break;
 
-  case 69: /* truncated: 'T' '(' ',' expression ')'  */
-#line 355 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                             {(yyval.ptree) = Truncated(0,(yyvsp[-1].ptree));}
-#line 1915 "parser.cc"
-    break;
-
-  case 70: /* truncated: 'T' '(' expression ',' ')'  */
-#line 356 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                             {(yyval.ptree) = Truncated((yyvsp[-2].ptree),0);}
-#line 1921 "parser.cc"
-    break;
-
-  case 71: /* truncated: 'T' '(' ',' ')'  */
-#line 357 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                  {(yyval.ptree) = Truncated(0,0);}
-#line 1927 "parser.cc"
-    break;
-
-  case 72: /* interval: 'I' '(' expression ',' expression ')'  */
-#line 360 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                                                 {(yyval.ptree) = Interval((yyvsp[-3].ptree),(yyvsp[-1].ptree));}
-#line 1933 "parser.cc"
-    break;
-
-  case 73: /* interval: 'I' '(' ',' expression ')'  */
-#line 361 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                             {(yyval.ptree) = Interval(0,(yyvsp[-1].ptree));}
-#line 1939 "parser.cc"
-    break;
-
-  case 74: /* interval: 'I' '(' expression ',' ')'  */
-#line 362 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                             {(yyval.ptree) = Interval((yyvsp[-2].ptree),0);}
-#line 1945 "parser.cc"
-    break;
-
-  case 75: /* interval: 'I' '(' ',' ')'  */
-#line 363 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                  {(yyval.ptree) = Interval(0,0);}
-#line 1951 "parser.cc"
-    break;
-
-  case 76: /* var: NAME  */
-#line 366 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+  case 68: /* var: NAME  */
+#line 355 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
           {
   (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[0].stringptr));
 }
-#line 1959 "parser.cc"
+#line 1853 "parser.cc"
     break;
 
-  case 77: /* var: NAME '[' range_list ']'  */
-#line 369 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
-                          {
+  case 69: /* var: NAME '[' arg_list ']'  */
+#line 358 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
+                        {
   (yyval.ptree) = new ParseTree(jags::P_VAR, yylineno); setName((yyval.ptree), (yyvsp[-3].stringptr));
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 1968 "parser.cc"
+#line 1862 "parser.cc"
     break;
 
 
-#line 1972 "parser.cc"
+#line 1866 "parser.cc"
 
       default: break;
     }
@@ -2050,6 +1944,7 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
+  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -2110,7 +2005,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
 /*-----------------------------------.
@@ -2118,24 +2013,22 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
-#if !defined yyoverflow
-/*-------------------------------------------------.
-| yyexhaustedlab -- memory exhaustion comes here.  |
-`-------------------------------------------------*/
+/*-----------------------------------------------------------.
+| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
+`-----------------------------------------------------------*/
 yyexhaustedlab:
   yyerror (YY_("memory exhausted"));
   yyresult = 2;
-  goto yyreturn;
-#endif
+  goto yyreturnlab;
 
 
-/*-------------------------------------------------------.
-| yyreturn -- parsing is finished, clean up and return.  |
-`-------------------------------------------------------*/
-yyreturn:
+/*----------------------------------------------------------.
+| yyreturnlab -- parsing is finished, clean up and return.  |
+`----------------------------------------------------------*/
+yyreturnlab:
   if (yychar != YYEMPTY)
     {
       /* Make sure we have latest lookahead translation.  See comments at
@@ -2162,7 +2055,7 @@ yyreturn:
   return yyresult;
 }
 
-#line 375 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 364 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
 
 
 static std::string error_buf;
@@ -2178,23 +2071,25 @@ void yyerror (const char *s)
     error_buf = msg.str();
 }
 
-static ParseTree *Truncated (ParseTree *left, ParseTree *right)
+static ParseTree *Truncated (std::vector<ParseTree *> *bounds)
 {
     //JAGS-Style truncation notation
-    ParseTree *p = new ParseTree(jags::P_BOUNDS, yylineno);
-    setParameters(p, left, right);
+    ParseTree *p = new ParseTree(jags::P_DISTMOD, yylineno);
+    p->setName("T");
+    setParameters(p, bounds);
     return p;
 }
 
-static ParseTree *Interval (ParseTree *left, ParseTree *right)
+static ParseTree *Interval (std::vector<ParseTree *> *bounds)
 {
     //BUGS-Style interval censoring notation
-    ParseTree *p = new ParseTree(jags::P_INTERVAL, yylineno);
-    setParameters(p, left, right);
+    ParseTree *p = new ParseTree(jags::P_DISTMOD, yylineno);
+    p->setName("I");
+    setParameters(p, bounds);
     return p;
 }
 
-void setName(ParseTree *p, std::string *name)
+static void setName(ParseTree *p, std::string *name)
 {
   /* 
      The scanner cannot return a string, because a string cannot be
@@ -2207,7 +2102,7 @@ void setName(ParseTree *p, std::string *name)
 }
 	
 
-void setParameters(ParseTree *p, std::vector<ParseTree*> *parameters)
+static void setParameters(ParseTree *p, std::vector<ParseTree*> *parameters)
 {
   /* 
      Same as setName (above).  The parser dynamically allocates
@@ -2218,7 +2113,7 @@ void setParameters(ParseTree *p, std::vector<ParseTree*> *parameters)
   delete parameters; 
 }
 
-void setParameters(ParseTree *p, ParseTree *param1)
+static void setParameters(ParseTree *p, ParseTree *param1)
 {
   /*
     Wrapper function that creates a vector containing param1
@@ -2228,7 +2123,7 @@ void setParameters(ParseTree *p, ParseTree *param1)
   p->setParameters(parameters);
 }
 
-void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2)
+static void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2)
 {
   /*
     Wrapper function that creates a vector containing param1
@@ -2240,8 +2135,8 @@ void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2)
   p->setParameters(parameters);
 }
 
-void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2,
-		   ParseTree *param3)
+static void setParameters(ParseTree *p, ParseTree *param1, ParseTree *param2,
+			  ParseTree *param3)
 {
   /*
     Wrapper function that creates a vector containing param1, param2
@@ -2276,9 +2171,9 @@ int parse_bugs (std::FILE *file, std::vector<ParseTree*> * &dec_list,
 	delete _pdata;
 	val = 1;
     }
-    _pvariables = 0;
-    _prelations = 0;
-    _pdata = 0;
+    _pvariables = nullptr;
+    _prelations = nullptr;
+    _pdata = nullptr;
 
     yylex_destroy();
 

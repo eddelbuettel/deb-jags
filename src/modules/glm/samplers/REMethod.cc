@@ -16,15 +16,13 @@ using std::vector;
 using std::sqrt;
 using std::fill;
 
-extern cholmod_common *glm_wk;
-
 namespace jags {
     namespace glm {
 
-	static unsigned int sumLengths(vector<Outcome*> const &outcomes)
+	static unsigned long sumLengths(vector<Outcome*> const &outcomes)
 	{
-	    unsigned int s = 0;
-	    for (unsigned int i = 0; i < outcomes.size(); ++i) {
+	    unsigned long s = 0;
+	    for (unsigned long i = 0; i < outcomes.size(); ++i) {
 		s += outcomes[i]->length();
 	    }
 	    return s;
@@ -34,21 +32,22 @@ namespace jags {
 			   GraphView const *eps,
 			   vector<SingletonGraphView const *> const &sub_eps,
 			   vector<Outcome *> const &outcomes,
-			   unsigned int chain)
-	    : GLMMethod(eps, sub_eps, outcomes, chain), _tau(tau), _eps(eps)
+			   unsigned int chain, cholmod_common *wk)
+	    : GLMMethod(eps, sub_eps, outcomes, chain, wk),
+	      _tau(tau), _eps(eps)
 	{
 	    calDesign();
 	    symbolic();
 
-	    unsigned int nrow = sumLengths(_outcomes);
-	    unsigned int ncol = eps->nodes()[0]->length();
+	    unsigned long nrow = sumLengths(_outcomes);
+	    unsigned long ncol = eps->nodes()[0]->length();
 	    _z = cholmod_allocate_dense(nrow, ncol, nrow, CHOLMOD_REAL,
-					glm_wk);
+					_wk);
 	}
 
 	REMethod::~REMethod()
 	{
-	    cholmod_free_dense(&_z, glm_wk);
+	    cholmod_free_dense(&_z, _wk);
 	}
 	
 	//FIXME: This is largely copy-pasted from GLMBlock. Surely no need
@@ -64,14 +63,14 @@ namespace jags {
 	    //   current value of the sampled nodes, as the origin
 
 	
-	    double *b = 0;
-	    cholmod_sparse *A = 0;
+	    double *b = nullptr;
+	    cholmod_sparse *A = nullptr;
 	    calCoef(b, A);
 	
 	    // Get LDL' decomposition of posterior precision
 	    A->stype = -1;
-	    int ok = cholmod_factorize(A, _factor, glm_wk);
-	    cholmod_free_sparse(&A, glm_wk);
+	    int ok = cholmod_factorize(A, _factor, _wk);
+	    cholmod_free_sparse(&A, _wk);
 	    if (!ok) {
 		throwRuntimeError("Cholesky decomposition failure in REMethod");
 	    }
@@ -81,7 +80,7 @@ namespace jags {
 	
 	    unsigned int nrow = _view->length();
 	    cholmod_dense *w =
-		cholmod_allocate_dense(nrow, 1, nrow, CHOLMOD_REAL, glm_wk);
+		cholmod_allocate_dense(nrow, 1, nrow, CHOLMOD_REAL, _wk);
 
 	    // Permute RHS
 	    double *wx = static_cast<double*>(w->x);
@@ -90,7 +89,7 @@ namespace jags {
 		wx[i] = b[perm[i]];
 	    }
 
-	    cholmod_dense *u1 = cholmod_solve(CHOLMOD_L, _factor, w, glm_wk);
+	    cholmod_dense *u1 = cholmod_solve(CHOLMOD_L, _factor, w, _wk);
 	    double *u1x = static_cast<double*>(u1->x);
 	    if (_factor->is_ll) {
 		// LL' decomposition
@@ -108,7 +107,7 @@ namespace jags {
 		}
 	    }
 
-	    cholmod_dense *u2 = cholmod_solve(CHOLMOD_DLt, _factor, u1, glm_wk);
+	    cholmod_dense *u2 = cholmod_solve(CHOLMOD_DLt, _factor, u1, _wk);
 
 	    // Permute solution
 	    double *u2x = static_cast<double*>(u2->x);
@@ -116,16 +115,16 @@ namespace jags {
 		b[perm[i]] = u2x[i];
 	    }
 
-	    cholmod_free_dense(&w, glm_wk);
-	    cholmod_free_dense(&u1, glm_wk);
-	    cholmod_free_dense(&u2, glm_wk);
+	    cholmod_free_dense(&w, _wk);
+	    cholmod_free_dense(&u1, _wk);
+	    cholmod_free_dense(&u2, _wk);
 
 	    //Shift origin back to original scale
 	    int r = 0;
 	    for (vector<StochasticNode*>::const_iterator p = 
 		     _view->nodes().begin();  p != _view->nodes().end(); ++p)
 	    {
-		unsigned int length = (*p)->length();
+		unsigned long length = (*p)->length();
 		double const *xold = (*p)->value(_chain);
 		for (unsigned int i = 0; i < length; ++i, ++r) {
 		    b[r] += xold[i];
@@ -139,7 +138,7 @@ namespace jags {
 	void REMethod::calDesignSigma()
 	{
 	    //Sanity checks
-	    unsigned int Neps = _eps->nodes().size();
+	    unsigned long Neps = _eps->nodes().size();
 	    if (_z->nrow != _x->nrow) {
 		throwLogicError("Row mismatch in REMethod");
 	    }
@@ -166,11 +165,11 @@ namespace jags {
 	    for (unsigned int i = 0; i < Neps; ++i) {
 		double const *eval = eps[i]->value(_chain);
 		double const *emean = eps[i]->parents()[0]->value(_chain);
-		for (unsigned int zcol = 0; zcol < _z->ncol; ++zcol) {
-		    int xcol = i * _z->ncol + zcol;
+		for (unsigned long zcol = 0; zcol < _z->ncol; ++zcol) {
+		    unsigned long xcol = i * _z->ncol + zcol;
 		    for (int xi = Xp[xcol]; xi < Xp[xcol+1]; ++xi) {
-			int row = Xi[xi];
-			int zi = _z->nrow * zcol + row;
+			unsigned long row = static_cast<unsigned long>(Xi[xi]);
+			unsigned long zi = _z->nrow * zcol + row;
 			Zx[zi] += Xx[xi] * (eval[zcol] - emean[zcol]);
 		    }
 		}
@@ -192,25 +191,25 @@ namespace jags {
 	}
 
 	void REMethod::calCoefSigma(double *A, double *b, double const *sigma0,
-				    unsigned int m) const
+				    unsigned long m) const
 	{
 	    double const *Zx = static_cast<double const *>(_z->x);
-	    unsigned int N = _outcomes.size();
+	    unsigned long N = _outcomes.size();
 
-	    int xrow = 0;
-	    for (unsigned int i = 0; i < N; ++i) {
-		unsigned int n = _outcomes[i]->length();
+	    unsigned long xrow = 0;
+	    for (unsigned long i = 0; i < N; ++i) {
+		unsigned long n = _outcomes[i]->length();
 		if (n == 1) {
 		    //Scalar outcome
 		    double Y = _outcomes[i]->value();
 		    double mu = _outcomes[i]->mean();
 		    double lambda = _outcomes[i]->precision();
 		    vector<double> X(m);
-		    for (unsigned int j = 0; j < m; ++j) {
+		    for (unsigned long j = 0; j < m; ++j) {
 			X[j] =  Zx[j * _z->nrow + xrow]/sigma0[j];
 		    }
-		    for (unsigned int j = 0; j < m; ++j) {
-			for (unsigned int k = 0; k < m; ++k) {
+		    for (unsigned long j = 0; j < m; ++j) {
+			for (unsigned long k = 0; k < m; ++k) {
 			    A[j*m + k] += X[j] * X[k] * lambda;
 			}
 			b[j] += (Y - mu) * X[j] * lambda;
@@ -263,7 +262,7 @@ namespace jags {
 	
 	double REMethod::logLikelihoodSigma(double const *sigma,
 					    double const *sigma0,
-					    unsigned int m) const
+					    unsigned long m) const
 	{
 	    vector<double> A(m*m, 0);
 	    vector<double> b(m, 0);

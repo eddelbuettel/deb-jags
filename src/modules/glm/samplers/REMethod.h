@@ -51,8 +51,8 @@ namespace glm {
 		 GraphView const *eps, 
 		 std::vector<SingletonGraphView const *> const &sub_eps,
 		 std::vector<Outcome *> const &outcomes,
-		 unsigned int chain);
-	~REMethod();
+		 unsigned int chain, cholmod_common *wk);
+	~REMethod() override;
 	/**
 	 * Updates the random effects
 	 *
@@ -61,7 +61,7 @@ namespace glm {
 	void updateEps(RNG *rng);
 	virtual void updateSigma(RNG *rng) = 0;
 	virtual void updateTau(RNG *rng) = 0;
-	void update(RNG *rng);
+	void update(RNG *rng) override;
 	void calDesignSigma();
 	/** 
 	 * The likelihood for the standard deviation parameters sigma
@@ -92,7 +92,7 @@ namespace glm {
 	 *
 	 */
 	void calCoefSigma(double *A, double *b, double const *sigma0,
-			  unsigned int m) const;
+			  unsigned long m) const;
 	/**
 	 * Calculates the likelihood for sigma, the vector of standard
 	 * deviation parameters for the random effects
@@ -106,7 +106,7 @@ namespace glm {
 	 * @see calCoefSigma
 	 */
 	double logLikelihoodSigma(double const *sigma, double const *sigma0,
-				  unsigned int m) const;
+				  unsigned long m) const;
     };
 
 }}

@@ -16,7 +16,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  *
  *  SYNOPSIS
  *
@@ -46,23 +46,23 @@ double rbinom(double nin, double pp, JRNG *rng)
 {
     /* FIXME: These should become THREAD_specific globals : */
 
-    static double c, fm, npq, p1, p2, p3, p4, qn;
-    static double xl, xll, xlr, xm, xr;
-
-    static double psave = -1.0;
-    static int nsave = -1;
-    static int m;
-
+    _Thread_local static double c, fm, npq, p1, p2, p3, p4, qn;
+    _Thread_local static double xl, xll, xlr, xm, xr;
+    
+    _Thread_local static double psave = -1.0;
+    _Thread_local static int nsave = -1;
+    _Thread_local static int m;
+    
     double f, f1, f2, u, v, w, w2, x, x1, x2, z, z2;
     double p, q, np, g, r, al, alv, amaxp, ffm, ynorm;
     int i, ix, k, n;
 
-    if (!R_FINITE(nin)) ML_ERR_return_NAN;
+    if (!R_FINITE(nin)) ML_WARN_return_NAN;
     r = R_forceint(nin);
-    if (r != nin) ML_ERR_return_NAN;
+    if (r != nin) ML_WARN_return_NAN;
     if (!R_FINITE(pp) ||
 	/* n=0, p=0, p=1 are not errors <TSL>*/
-	r < 0 || pp < 0. || pp > 1.)	ML_ERR_return_NAN;
+	r < 0 || pp < 0. || pp > 1.)	ML_WARN_return_NAN;
 
     if (r == 0 || pp == 0.) return 0;
     if (pp == 1.) return r;

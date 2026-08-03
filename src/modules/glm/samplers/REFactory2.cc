@@ -34,6 +34,7 @@ namespace jags {
 	    vector<StochasticNode *> const &eps = tau->stochasticChildren();
 	    for (unsigned int i = 0; i < eps.size(); ++i) {
 		if (isObserved(eps[i])) {
+		    //Need to marginalize over eps, so must be unobserved
 		    return false;
 		}
 		if (isBounded(eps[i])) {
@@ -78,7 +79,7 @@ namespace jags {
 	    set<StochasticNode*> &used_nodes,
 	    GLMSampler const *glmsampler, Graph const &graph) const
 	{
-	    SingletonGraphView *tau = 0;
+	    SingletonGraphView *tau = nullptr;
 	    for (list<StochasticNode*>::const_iterator p = free_nodes.begin();
 		 p != free_nodes.end(); ++p)
 	    {
@@ -90,7 +91,7 @@ namespace jags {
 			break;
 		    }
 		    else {
-			delete tau; tau = 0;
+			delete tau; tau = nullptr;
 		    }
 		}
 	    }
@@ -105,15 +106,15 @@ namespace jags {
 	    */
 
 	    if (tau) {
-		unsigned int nchain = glmsampler->_methods.size();
+		unsigned long nchain = glmsampler->_methods.size();
 		vector<MutableSampleMethod*> methods(nchain);
-		for (unsigned int i = 0; i < nchain; ++i) {
+		for (unsigned long i = 0; i < nchain; ++i) {
 		    methods[i] = newMethod(tau, glmsampler->_methods[i]);
 		}
 		used_nodes.insert(tau->node());
 		return new MutableSampler(tau, methods, _name);
 	    }
-	    return 0;
+	    return nullptr;
 	}
 	
     } // namespace glm

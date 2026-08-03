@@ -8,6 +8,10 @@
 
 namespace jags {
 
+    enum DimTag {DIM_VALUE, DIM_CHAIN, DIM_ITER};
+
+    char const * asChar(DimTag tag);
+
 /**
  * @short multi-dimensional real-valued array
  *
@@ -18,8 +22,9 @@ class SArray
     const SimpleRange _range;
     std::vector<double> _value;
     bool _discrete;
-    std::vector<std::vector<std::string> > _s_dimnames;
-    std::vector<std::string> _dimnames;
+    std::vector<std::vector<std::string>> _dimnames;
+    std::vector<DimTag> _dimtags;
+    std::vector<std::string> _value_names;
     SArray &operator=(SArray const &rhs);
 public:
     /**
@@ -30,7 +35,7 @@ public:
      * 
      * @param dim Dimension of SArray to be constructed
      */
-    SArray(std::vector<unsigned int> const &dim);
+    SArray(std::vector<unsigned long> const &dim);
     /**
      * Copy constructor.
      *
@@ -51,17 +56,13 @@ public:
      */
     void setValue(std::vector<double> const &value);
     /**
-     * Sets the value of an SArray to an integer vector
-     */
-    void setValue(std::vector<int> const &value);
-    /**
      * Sets the value of a single element of SArray
      *
      * @param value Scalar value to be assigned
      *
      * @param offset Distance along the value array
      */
-    void setValue(double value, unsigned int offset);
+    void setValue(double value, unsigned long offset);
     /**
      * The value of the SArray . 
      *
@@ -81,17 +82,17 @@ public:
      */
     SimpleRange const &range() const;
     /**
-     * Returns the names of the dimensions. A newly created SArray has
-     * no dimension names and this function returns an empty vector.
+     * Returns the dimension tags. A newly created SArray has no
+     * dimension tags and this function returns an empty vector.
      */
-    std::vector<std::string> const &dimNames() const;
+    std::vector<DimTag> const &dimTags() const;
     /**
-     * Sets the names of the dimensions.
+     * Sets the dimension tags.
      *
-     * @param names A vector of names that is either empty, or of size
+     * @param names A vector of DimTags that is either empty, or of size
      * equal to the number of dimensions.
      */
-    void setDimNames(std::vector<std::string> const &names);
+    void setDimTags(std::vector<DimTag> const &tags);
     /**
      * Returns the names of one of dimensions, corresponding to 
      * dimnames()[i+1] in the S language. A newly created SArray has
@@ -99,25 +100,39 @@ public:
      *
      * @param i Requested dimension.
      */
-    std::vector<std::string> const &getSDimNames(unsigned int i) const;
+    std::vector<std::string> const &dimNames(unsigned long i) const;
     /**
      * Sets the names of the ith dimension, corresponding to dimnames()[i+1]
      * in the S language.
      *
      * @param names A vector of names of size equal to the ith dimension
-     * value vector, or zero.
+     * value vector, or an empty vector.
      * @param i Requested dimension
      */
-    void setSDimNames(std::vector<std::string> const &names, unsigned int i);
+    void setDimNames(std::vector<std::string> const &names, unsigned long i);
+    /**
+     * Returns a vector of unique names for each combination of the value
+     * dimensions, i.e. the dimensions with tag DIM_VALUE. A newly created
+     * SArray has an empty vector of value names.
+     */
+    std::vector<std::string> const &valueNames() const;
+    /**
+     * Sets the value names.
+     *
+     * @param names Vector of names which may be empty (which unsets
+     * the value names) or of length equal to the product of the value
+     * dimensions.
+     */
+    void setValueNames(std::vector<std::string> const &names);
     /**
      * It is convenient to inline these functions so that an SArray
      * can be thought of as having some of the dimension attributes of
      * its associated range.
      */
-    unsigned int length() const { return range().length(); }
-    unsigned int ndim(bool drop) const { return range().ndim(drop); }
-    std::vector<unsigned int> const &
-	dim(bool drop) const { return range().dim(drop); }
+    unsigned long length() const { return range().length(); }
+    unsigned long ndim(bool drop) const { return range().ndim(drop); }
+    std::vector<unsigned long> const &
+    dim(bool drop) const { return range().dim(drop); }
 };
 
 } /* namespace jags */

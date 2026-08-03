@@ -1,9 +1,12 @@
 #include <config.h>
 
 #include "LogDet.h"
-#include "matrix.h"
 
 #include <util/dim.h>
+#include <util/integer.h>
+#include <matrix/matrix.h>
+#include <module/ModuleError.h>
+
 #include <cmath>
 
 using std::vector;
@@ -17,30 +20,42 @@ namespace bugs {
     }
 
     void LogDet::evaluate (double *x, vector<double const *> const &args,
-			   vector<vector<unsigned int> > const &dims) const
+			   vector<vector<unsigned long> > const &dims) const
     {
 	*x = logdet(args[0], dims[0][0]);
     }
 
     bool 
-    LogDet::checkParameterDim (vector<vector<unsigned int> > const &dims) const
+    LogDet::checkParameterDim (vector<vector<unsigned long> > const &dims) const
     {
 	return isSquareMatrix(dims[0]) || isScalar(dims[0]);
     }
 
-    vector<unsigned int>
-    LogDet::dim(vector<vector<unsigned int> > const &dims,
-		vector<double const *> const &values) const
+    vector<unsigned long> LogDet::dim(vector<vector<unsigned long> > const &,
+				      vector<double const *> const &) const
     {
-	return vector<unsigned int>(1,1);
+	return vector<unsigned long>(1,1);
     }
 
-
-    bool 
-    LogDet::checkParameterValue(vector<double const *> const &args,
-				vector<vector<unsigned int> > const &dims) const
+    
+    void LogDet::gradient(double *grad, vector<double const *> const &args,
+			  vector<vector<unsigned long>> const &dims,
+			  unsigned long i) const
     {
-	return check_symmetry(args[0], dims[0][0]);
+	//FIXME Needs testing
+	unsigned long nrow = dims[0][0];
+	vector<double> work(nrow * nrow);
+	bool can_invert = inverse_chol (work.data(), args[0], nrow);
+	if (!can_invert) {
+	    throwFuncError(this, "Cannot calculate gradient. Matrix may not be positive definite.");
+	}
+	for (unsigned long j = 0; j < nrow; ++j) {
+	    grad[j*nrow + j] += work[j*nrow + j];
+	    for (unsigned long k = 0; k < j; ++k) {
+		grad[k*nrow + j] += 2 * work[k*nrow + j];
+	    }
+	}
     }
-
+    
 }}
+

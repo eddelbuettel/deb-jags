@@ -14,18 +14,22 @@ namespace bugs {
 	DSumFunc();
 	void evaluate(double *x,
 		      std::vector <double const *> const &args,
-		      std::vector<std::vector<unsigned int> > const &dims) 
-	    const;
-	bool checkParameterDim(std::vector<std::vector<unsigned int> > const 
-			       &dims) const;
-	std::vector<unsigned int> 
-	    dim(std::vector <std::vector<unsigned int> > const &dims,
-		std::vector<double const *> const &values) const;
-	bool isDiscreteValued(std::vector<bool> const &mask) const;
+		      std::vector<std::vector<unsigned long> > const &dims) 
+	    const override;
+	bool hasGradient(unsigned long i) const override;
+	void gradient(double *x, std::vector <double const *> const &args,
+		      std::vector<std::vector<unsigned long> > const &dims,
+		      unsigned long i) const override;
+	bool checkParameterDim(std::vector<std::vector<unsigned long> > const 
+			       &dims) const override;
+	std::vector<unsigned long> 
+	    dim(std::vector <std::vector<unsigned long> > const &dims,
+		std::vector<double const *> const &values) const override;
+	bool isDiscreteValued(std::vector<bool> const &mask) const override;
 	bool isLinear(std::vector<bool> const &mask, 
-		      std::vector<bool> const &fixed) const;
+		      std::vector<bool> const &fixed) const override;
 	bool isScale(std::vector<bool> const &mask, 
-		     std::vector<bool> const &fixed) const;
+		     std::vector<bool> const &fixed) const override;
     };
     
 }}

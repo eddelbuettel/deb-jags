@@ -5,20 +5,23 @@
 #include <distribution/VectorDist.h>
 #include <util/nainf.h>
 #include <util/dim.h>
+#include <util/logical.h>
 
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 using std::vector;
 using std::string;
 using std::max;
 using std::min;
 using std::copy;
+using std::isnan;
 
 namespace jags {
 
-static unsigned int mkLength(VectorDist const *dist, 
+static unsigned long mkLength(VectorDist const *dist, 
 			     vector<Node const *> const &parents)
 {
     /* 
@@ -29,7 +32,7 @@ static unsigned int mkLength(VectorDist const *dist,
     if (!checkNPar(dist, parents.size())) {
 	throw DistError(dist, "Incorrect number of parameters");
     }
-    vector<unsigned int> parameter_lengths(parents.size());
+    vector<unsigned long> parameter_lengths(parents.size());
     for (unsigned long j = 0; j < parents.size(); ++j) {
 	parameter_lengths[j] = parents[j]->length();
     }
@@ -39,10 +42,10 @@ static unsigned int mkLength(VectorDist const *dist,
     return dist->length(parameter_lengths);
 }
 
-static vector<unsigned int> const &
+static vector<unsigned long> const &
 mkParameterLengths(vector<Node const *> const &parameters) {
-    vector<unsigned int>  lengths(parameters.size());
-    for (unsigned int j = 0; j < parameters.size(); ++j) {
+    vector<unsigned long>  lengths(parameters.size());
+    for (unsigned long j = 0; j < parameters.size(); ++j) {
         lengths[j] = parameters[j]->length();
     }
     return getUnique(lengths);
@@ -50,10 +53,9 @@ mkParameterLengths(vector<Node const *> const &parameters) {
 
 VectorStochasticNode::VectorStochasticNode(VectorDist const *dist,
 					   unsigned int nchain,
-					   vector<Node const *> const &params,
-					   Node const *lower, Node const *upper)
-    : StochasticNode(vector<unsigned int>(1,mkLength(dist, params)), 
-		     nchain, dist, params, lower, upper),
+					   vector<Node const *> const &params)
+    : StochasticNode(vector<unsigned long>(1,mkLength(dist, params)), 
+		     nchain, dist, params, nullptr, nullptr),
       _dist(dist), _lengths(mkParameterLengths(params))
 {
     if (!dist->checkParameterLength(_lengths)) {
@@ -66,69 +68,43 @@ double VectorStochasticNode::logDensity(unsigned int chain, PDFType type) const
     if(!_dist->checkParameterValue(_parameters[chain], _lengths))
 	return JAGS_NEGINF;
     
-    return _dist->logDensity(_data + _length * chain, _length, type,
-			     _parameters[chain], _lengths,
-			     lowerLimit(chain), upperLimit(chain));
+    return _dist->logDensity(_data + _length * chain, type,
+			     _parameters[chain], _lengths);
 }
 
-void VectorStochasticNode::deterministicSample(unsigned int chain)
-{
-    _dist->typicalValue(_data + _length * chain, _length,
-			_parameters[chain], _lengths,
-			lowerLimit(chain), upperLimit(chain));
-}
-
+    double VectorStochasticNode::logLikelihood(unsigned int chain) const
+    {
+	if (allTrue(*_observed)) {
+	    // Observed
+	    return logDensity(chain, PDF_FULL);
+	}
+	else if (allFalse(*_observed)) {
+	    // Unobserved
+	    return 0.0;
+	}
+	else {
+	    // Partly observed
+	    if (!_dist->checkParameterValue(_parameters[chain], _lengths))
+		return JAGS_NEGINF;
+	    
+	    return _dist->logLikelihood(_data + _length * chain, *_observed,
+					_parameters[chain], _lengths);
+	}
+    }
+    
 void VectorStochasticNode::randomSample(RNG *rng, unsigned int chain)
 {
-    _dist->randomSample(_data + _length * chain, _length, 
-			_parameters[chain], _lengths, 
-			lowerLimit(chain), upperLimit(chain), rng);
-}  
-
-void VectorStochasticNode::truncatedSample(RNG *rng, unsigned int chain,
-					   double const *lower,
-					   double const *upper)
-    
-{
-    double const *l = lowerLimit(chain);
-    double *lv = 0;
-    if (l || lower) {
-	lv = new double[_length];
-	if (l && lower) {
-	    for (unsigned int i = 0; i < _length; ++i) {
-		lv[i] = min(l[i], lower[i]);
-	    }
-	}
-	else if (l) {
-	    copy(l, l + _length, lv);
-	}
-	else if (lower) {
-	    copy(lower, lower + _length, lv);
-	}
+    if (allFalse(*_observed)) {
+	//Fully unobserved node
+	_dist->randomSample(_data + _length * chain, 
+			    _parameters[chain], _lengths, rng);
     }
-
-    double const *u = upperLimit(chain);
-    double *uv = 0;
-    if (u || upper) {
-	uv = new double[_length];
-	if (u && upper) {
-	    for (unsigned int i = 0; i < _length; ++i) {
-		uv[i] = max(u[i], upper[i]);
-	    }
-	}
-	else if (u) {
-	    copy(u, u + _length, uv);
-	}
-	else if (upper) {
-	    copy(upper, upper + _length, uv);
-	}
+    else if (anyFalse(*_observed)) {
+	//Partly observed node
+	_dist->randomSample(_data + _length * chain, *_observed,
+			    _parameters[chain], _lengths, rng);
     }
-    _dist->randomSample(_data + _length * chain, _length, 
-			_parameters[chain], _lengths, lv, uv, rng);
-
-    delete [] lv;
-    delete [] uv;
-}  
+}
 
 bool VectorStochasticNode::checkParentValues(unsigned int chain) const
 {
@@ -144,43 +120,24 @@ VectorStochasticNode::clone(vector<Node const *> const &parameters,
 }
     */
     
-unsigned int VectorStochasticNode::df() const
-{
-    return _dist->df(_lengths);
-}
-
-void VectorStochasticNode::sp(double *lower, double *upper, unsigned int length,
+void VectorStochasticNode::sp(double *lower, double *upper,
 			      unsigned int chain) const
 {
-    _dist->support(lower, upper, length, _parameters[chain], _lengths);
+    _dist->support(lower, upper, _parameters[chain], _lengths);
 }
 
     
     double VectorStochasticNode::KL(unsigned int ch1, unsigned int ch2,
 				    RNG *rng, unsigned int nrep) const
     {
-	if (lowerBound() || upperBound()) {
-	    Node const *ll = lowerBound();
-	    Node const *uu = upperBound();
-	    if (ll && !ll->isFixed()) {
-		return JAGS_POSINF;
-	    }
-	    if (uu &&  !uu->isFixed()) {
-		return JAGS_POSINF;
-	    }
+	double kl =  _dist->KL(_parameters[ch1], _parameters[ch2],
+			       _lengths);
+	if (isnan(kl)) {
 	    return _dist->KL(_parameters[ch1], _parameters[ch2], _lengths,
-			     lowerLimit(0), upperLimit(0), rng, nrep);
+			     rng, nrep);
 	}
 	else {
-	    double kl =  _dist->KL(_parameters[ch1], _parameters[ch2],
-				   _lengths);
-	    if (kl == JAGS_NA) {
-		return _dist->KL(_parameters[ch1], _parameters[ch2], _lengths,
-				 0, 0, rng, nrep);
-	    }
-	    else {
-		return kl;
-	    }
+	    return kl;
 	}
     }
     

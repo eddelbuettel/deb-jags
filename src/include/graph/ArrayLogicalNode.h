@@ -13,7 +13,7 @@ class ArrayFunction;
  */
 class ArrayLogicalNode : public LogicalNode {
     ArrayFunction const * const _func;
-    std::vector<std::vector<unsigned int> >  _dims;
+    std::vector<std::vector<unsigned long> >  _dims;
 public:
     /**
      * A logical node is defined by a function (which may be an inline
@@ -24,12 +24,14 @@ public:
     /**
      * Calculates the value of the node based on the parameters. 
      */
-    void deterministicSample(unsigned int chain);
+    void deterministicSample(unsigned int chain) override;
     /**
      * @see ArrayFunction#checkParameterValue.
      */
-    bool checkParentValues(unsigned int chain) const;
+    bool checkParentValues(unsigned int chain) const override;
     //DeterministicNode *clone(std::vector<Node const *> const &parents) const;
+    void gradient(double *grad, Node const *arg, unsigned int chain)
+	const override;
 };
 
 } /* namespace jags */

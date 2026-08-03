@@ -20,7 +20,7 @@ class GraphMarks;
 
 LinkNode::LinkNode(LinkFunction const *function, unsigned int nchain,
 		   vector<Node const *> const &parents)
-    : LogicalNode(vector<unsigned int>(1,1), nchain, parents, function), 
+    : LogicalNode(vector<unsigned long>(1,1), nchain, parents, function), 
       _func(function)
 {
     if (!isScalar(parents[0]->dim())) {
@@ -40,7 +40,7 @@ void LinkNode::deterministicSample(unsigned int chain)
     _data[chain] = _func->inverseLink(*_parameters[chain][0]);
 }
 
-bool LinkNode::checkParentValues(unsigned int chain) const
+bool LinkNode::checkParentValues(unsigned int) const
 {
     return true;
 }
@@ -63,6 +63,19 @@ double LinkNode::grad(unsigned int chain) const
     return _func->grad(*_parameters[chain][0]);
 }
 
+    bool LinkNode::hasGradient(Node const *) const
+    {
+	return true;
+    }
+    
+    void
+    LinkNode::gradient(double *grad, Node const *arg, unsigned int chain) const
+    {
+	if (parents()[0] == arg) {
+	    grad[0] += _func->grad(chain);
+	}
+    }
+       
 string const &LinkNode::linkName() const
 {
     return _func->linkName();

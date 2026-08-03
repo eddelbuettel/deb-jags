@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -58,28 +58,26 @@ extern int yydebug;
     DATA = 259,                    /* DATA  */
     MODEL = 260,                   /* MODEL  */
     NAME = 261,                    /* NAME  */
-    FUNC = 262,                    /* FUNC  */
-    SPECIAL = 263,                 /* SPECIAL  */
-    BADCHAR = 264,                 /* BADCHAR  */
-    IN = 265,                      /* IN  */
-    ARROW = 266,                   /* ARROW  */
-    FOR = 267,                     /* FOR  */
-    GT = 268,                      /* GT  */
-    GE = 269,                      /* GE  */
-    LT = 270,                      /* LT  */
-    LE = 271,                      /* LE  */
-    EQ = 272,                      /* EQ  */
-    NE = 273,                      /* NE  */
-    AND = 274,                     /* AND  */
-    OR = 275,                      /* OR  */
-    LENGTH = 276,                  /* LENGTH  */
-    DIM = 277,                     /* DIM  */
+    SPECIAL = 262,                 /* SPECIAL  */
+    BADCHAR = 263,                 /* BADCHAR  */
+    IN = 264,                      /* IN  */
+    ARROW = 265,                   /* ARROW  */
+    FOR = 266,                     /* FOR  */
+    GT = 267,                      /* GT  */
+    GE = 268,                      /* GE  */
+    LT = 269,                      /* LT  */
+    LE = 270,                      /* LE  */
+    EQ = 271,                      /* EQ  */
+    NE = 272,                      /* NE  */
+    AND = 273,                     /* AND  */
+    OR = 274,                      /* OR  */
+    LENGTH = 275,                  /* LENGTH  */
+    DIM = 276,                     /* DIM  */
+    PIPE = 277,                    /* PIPE  */
     DOUBLE = 278,                  /* DOUBLE  */
     INT = 279,                     /* INT  */
     NOT = 280,                     /* NOT  */
-    NEG = 281,                     /* NEG  */
-    ENDL = 282,                    /* ENDL  */
-    UREPCHAR = 283                 /* UREPCHAR  */
+    NEG = 281                      /* NEG  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -92,34 +90,32 @@ extern int yydebug;
 #define DATA 259
 #define MODEL 260
 #define NAME 261
-#define FUNC 262
-#define SPECIAL 263
-#define BADCHAR 264
-#define IN 265
-#define ARROW 266
-#define FOR 267
-#define GT 268
-#define GE 269
-#define LT 270
-#define LE 271
-#define EQ 272
-#define NE 273
-#define AND 274
-#define OR 275
-#define LENGTH 276
-#define DIM 277
+#define SPECIAL 262
+#define BADCHAR 263
+#define IN 264
+#define ARROW 265
+#define FOR 266
+#define GT 267
+#define GE 268
+#define LT 269
+#define LE 270
+#define EQ 271
+#define NE 272
+#define AND 273
+#define OR 274
+#define LENGTH 275
+#define DIM 276
+#define PIPE 277
 #define DOUBLE 278
 #define INT 279
 #define NOT 280
 #define NEG 281
-#define ENDL 282
-#define UREPCHAR 283
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 42 "../../../../../jags-4-3_patched/src/lib/compiler/parser.yy"
+#line 42 "../../../../../mcmc-jags/src/lib/compiler/parser.yy"
 
   /*
     We can't put any C++ class that requires a constructor in
@@ -135,7 +131,7 @@ union YYSTYPE
   jags::ParseTree *ptree;
   std::vector<jags::ParseTree*> *pvec;
 
-#line 139 "parser.hh"
+#line 135 "parser.hh"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -146,6 +142,8 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE yylval;
 
+
 int yyparse (void);
+
 
 #endif /* !YY_YY_PARSER_HH_INCLUDED  */

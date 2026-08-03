@@ -14,7 +14,7 @@ namespace jags {
 class ScalarFunction : public Function
 {
 public:
-    ScalarFunction(std::string const &name, unsigned int npar);
+    ScalarFunction(std::string const &name, unsigned long npar);
     /**
      * Evaluates the function and returns the result
      *
@@ -41,7 +41,19 @@ public:
      * @see Function#isPower
      */
     bool isPower(std::vector<bool> const &mask,
-		 std::vector<bool> const &isfixed) const;
+		 std::vector<bool> const &isfixed) const override;
+    /**
+     * Calculates the first derivative of the function. The default
+     * implementation returns JAGS_NAN indicating that the gradient
+     * cannot be calculated.
+     *
+     * @param args Vector of arguments
+     *
+     * @param i The derivative is calculated with respect to the ith
+     * argument (starting from zero).
+     */
+    virtual double gradient(std::vector <double const *> const &args,
+			    unsigned long i) const;
 };
 
 } /* namespace jags */

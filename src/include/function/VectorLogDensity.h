@@ -15,14 +15,23 @@ namespace jags {
 	VectorDist const *_dist;
     public:
 	VectorLogDensity(VectorDist const *dist);
-	unsigned int length(std::vector<unsigned int> const &lengths,
-			    std::vector<double const *> const &values) const;
-	bool checkParameterLength(std::vector<unsigned int> const &lens) const;
+	unsigned long length(std::vector<unsigned long> const &lengths,
+			    std::vector<double const *> const &values)
+	    const override;
+	bool checkParameterLength(std::vector<unsigned long> const &lens)
+	    const override;
+	bool checkParameterDiscrete(std::vector<bool> const &args)
+	    const override;
 	bool checkParameterValue(std::vector<double const *> const &args,
-				 std::vector<unsigned int> const &lens) const;
+				 std::vector<unsigned long> const &lens)
+	    const override;
 	void evaluate(double *value,
 		      std::vector <double const *> const &args,
-		      std::vector<unsigned int> const &lens) const;
+		      std::vector<unsigned long> const &lens) const override;
+	bool hasGradient(unsigned long i) const override;
+	void gradient(double *grad, std::vector<double const *> const &args,
+		      std::vector<unsigned long> const &lengths,
+		      unsigned long i) const override;
     };
 
 }

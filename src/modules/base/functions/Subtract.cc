@@ -16,6 +16,17 @@ namespace base {
     {
 	return *args[0] - *args[1];
     }
+
+    bool Subtract::hasGradient(unsigned long i) const
+    {
+	return i < 2;
+    }
+    
+    double Subtract::gradient(vector<double const *> const &,
+			      unsigned long i) const
+    {
+	return (i == 1) ? -1 : 1;
+    }
     
     bool Subtract::isDiscreteValued(vector<bool> const &mask) const
     {
@@ -35,13 +46,13 @@ namespace base {
     }
     
     bool 
-    Subtract::isScale(vector<bool> const &mask, vector<bool> const &fix) const
+    Subtract::isScale(vector<bool> const &mask, vector<bool> const &) const
     {
 	return allTrue(mask);
     }
     
     bool 
-    Subtract::isLinear(vector<bool> const &mask, vector<bool> const &fix) const
+    Subtract::isLinear(vector<bool> const &, vector<bool> const &) const
     {
 	return true;
     }

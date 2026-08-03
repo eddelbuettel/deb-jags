@@ -12,17 +12,33 @@ namespace bugs {
     }
 
     double Mean::scalarEval (vector<double const*> const &args,
-			     vector<unsigned int> const &lengths) const
+			     vector<unsigned long> const &lengths) const
     {
 	double svalue = 0;
-	for (unsigned int i = 0; i < lengths[0]; i++) {
+	for (unsigned long i = 0; i < lengths[0]; i++) {
 	    svalue += args[0][i];
 	}
 	svalue /= lengths[0];
 	return svalue;
     }
 
-    bool Mean::isScale(vector<bool> const &mask, vector<bool> const &fix) const
+    bool Mean::hasGradient(unsigned long i) const
+    {
+	return i == 0;
+    }
+    
+    void Mean::gradient(double *grad, vector<double const *> const &args,
+			vector<unsigned long> const &lengths,
+			unsigned long i) const
+    {
+	unsigned long N = lengths[0];
+	double y = 1.0/N;
+	for (unsigned long j = 0; j < N; ++j) {
+	    grad[j] += y;
+	}
+    }
+
+    bool Mean::isScale(vector<bool> const &, vector<bool> const &) const
     {
 	return true;
     }

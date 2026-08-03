@@ -13,6 +13,7 @@
 using std::vector;
 using std::fabs;
 using std::runtime_error;
+using std::isfinite;
 
 namespace jags {
 
@@ -26,7 +27,7 @@ bool Slicer::updateStep(RNG *rng)
 {
     // Test current value
     double g0 = logDensity();
-    if (!jags_finite(g0)) {
+    if (!isfinite(g0)) {
 	if (g0 > 0) {
 	    _state = SLICER_POSINF;
 	    return false;
@@ -41,7 +42,7 @@ bool Slicer::updateStep(RNG *rng)
     }
 
     // Generate auxiliary variable
-    double z = g0 - rng->exponential();;
+    double z = g0 - rng->exponential();
 
     // Generate random interval of width "_width" about current value
     double xold = value();
@@ -55,9 +56,8 @@ bool Slicer::updateStep(RNG *rng)
 
     // Randomly set number of steps in left and right directions,
     // subject to the limit in the maximal size of the interval
-    int j = static_cast<int>(rng->uniform() * _max);
-    int k = _max - 1 - j;
-
+    int j = static_cast<int>(rng->uniform() * (_max + 1));
+    int k = static_cast<int>(_max) - j;
 
     if (L < lower) {
 	L = lower;
@@ -128,7 +128,7 @@ bool Slicer::updateDouble(RNG *rng)
 
   // Test current value
   double g0 = logDensity();
-  if (!jags_finite(g0)) {
+  if (!isfinite(g0)) {
     if (g0 < 0) {
 	_state = SLICER_NEGINF;
 	return false;

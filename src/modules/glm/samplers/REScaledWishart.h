@@ -16,9 +16,9 @@ namespace jags {
 			    GraphView const *eps, 
 			    std::vector<SingletonGraphView const *> const &veps,
 			    std::vector<Outcome *> const &outcomes,
-			    unsigned int chain);
-	    void updateTau(RNG *rng);
-	    void updateSigma(RNG *rng);
+			    unsigned int chain, cholmod_common *wk);
+	    void updateTau(RNG *rng) override;
+	    void updateSigma(RNG *rng) override;
 	};
 
     }

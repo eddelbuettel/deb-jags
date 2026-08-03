@@ -31,7 +31,7 @@ namespace bugs {
     }
 
     bool 
-    DRound::checkParameterValue(vector<double const *> const &parameters) const
+    DRound::checkParameterValue(vector<double const *> const &) const
     {
 	return true;
     }
@@ -42,16 +42,15 @@ namespace bugs {
     }
     
     double 
-    DRound::logDensity(double y, PDFType type,
+    DRound::logDensity(double y, PDFType,
 		       vector<double const *> const &par,
-		       double const *lower, double const *upper) const
+		       double const *, double const *) const
     {
 	return fabs(y - value(par)) < tol ? 0 : JAGS_NEGINF;
     }
 
     double DRound::randomSample(vector<double const *> const &par,
-				double const *lower, double const *upper,
-				RNG *rng) const
+				double const *, double const *,	RNG *) const
     {
 	/* 
 	   The random sample from DRound is not random at all,
@@ -61,15 +60,9 @@ namespace bugs {
 	return value(par);
     }
     
-    double DRound::typicalValue(vector<double const *> const &par,
-				double const *lower, double const *upper) const
+    bool DRound::fullRank() const
     {
-	return value(par);
-    }
-    
-    unsigned int DRound::df() const
-    {
-	return 0;
+	return false;
     }
 
     double DRound::l(vector<double const *> const &par) const

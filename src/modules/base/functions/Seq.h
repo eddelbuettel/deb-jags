@@ -1,5 +1,5 @@
-#ifndef SEQ_H_
-#define SEQ_H_
+#ifndef FUNC_SEQ_H_
+#define FUNC_SEQ_H_
 
 #include <function/VectorFunction.h>
 
@@ -22,17 +22,21 @@ namespace jags {
 	Seq();
 	void evaluate(double *value, 
 		      std::vector <double const *> const &values,
-		      std::vector <unsigned int> const &lengths) const;
-	unsigned int length(std::vector <unsigned int> const &lengths,
-			    std::vector <double const *> const &values) const;
-	bool checkParameterLength(std::vector<unsigned int> const &args) const;
-	bool isDiscreteValued(std::vector<bool> const &mask) const;
-	bool checkParameterDiscrete(std::vector<bool> const &mask) const;
-	bool checkParameterFixed(std::vector<bool> const &mask) const;
-	std::string deparse(std::vector<std::string> const &par) const;
+		      std::vector <unsigned long> const &lengths)
+	    const override;
+	unsigned long length(std::vector <unsigned long> const &lengths,
+			     std::vector <double const *> const &values)
+	    const override;
+	bool checkParameterLength(std::vector<unsigned long> const &args)
+	    const override;
+	bool isDiscreteValued(std::vector<bool> const &mask) const override;
+	bool checkParameterDiscrete(std::vector<bool> const &mask)
+	    const override;
+	bool checkParameterFixed(std::vector<bool> const &mask) const override;
+	std::string deparse(std::vector<std::string> const &par) const override;
     };
 
     }
 } /* namespace jags */
 
-#endif /* SEQ_H_ */
+#endif /* FUNC_SEQ_H_ */

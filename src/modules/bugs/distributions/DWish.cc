@@ -1,13 +1,15 @@
 #include <config.h>
 
+#include "DWish.h"
+
 #include <rng/RNG.h>
 #include <util/dim.h>
 #include <util/nainf.h>
 #include <module/ModuleError.h>
-
-#include "lapack.h"
-#include "matrix.h"
-#include "DWish.h"
+#include <util/integer.h>
+#include <matrix/blas.h>
+#include <matrix/lapack.h>
+#include <matrix/matrix.h>
 
 #include <cfloat>
 #include <cmath>
@@ -24,10 +26,10 @@ using std::reverse;
 #define DF(par)    (*par[1])
 #define NROW(dims)  (dims[0][0])
 
-static double log_multigamma(double n, unsigned int p)
+static double log_multigamma(double n, unsigned long p)
 {
     double y =  (p * (p-1) * log(M_PI))/4;
-    for (unsigned int j = 0; j < p; ++j) {
+    for (unsigned long j = 0; j < p; ++j) {
         y += lgammafn((n-j)/2);
     }
     return y;
@@ -40,16 +42,16 @@ DWish::DWish()
   : ArrayDist("dwish", 2) 
 {}
 
-double DWish::logDensity(double const *x, unsigned int length, PDFType type,
+double DWish::logDensity(double const *x, PDFType type,
 			 vector<double const *> const &par,
-			 vector<vector<unsigned int> > const &dims,
-			 double const *lower, double const *upper) const
+			 vector<vector<unsigned long> > const &dims) const
 {
     double const *scale = SCALE(par);
-    unsigned int p = NROW(dims);
-
+    unsigned long p = NROW(dims);
+    unsigned long length = p * p;
+    
     double loglik = (DF(par) - p - 1) * logdet(x, p);
-    for (unsigned int i = 0; i < length; ++i) {
+    for (unsigned long i = 0; i < length; ++i) {
 	loglik -= scale[i] * x[i];
     }
 
@@ -62,18 +64,15 @@ double DWish::logDensity(double const *x, unsigned int length, PDFType type,
     return loglik/2;
 }
 
-void DWish::randomSample(double *X, int length,
-			 double const *R, double k, int nrow,
-			 RNG *rng)
+void DWish::rwishart(double *X,
+		     double const *R, double k, unsigned long nrow,
+		     RNG *rng)
 {
     /* 
        Generate random Wishart variable, using an algorithm proposed
        by Bill Venables and originally implemented in S.
     */
-
-    if (length != nrow*nrow) {
-	jags::throwLogicError("invalid length in DWish::randomSample");
-    }
+    unsigned long length = nrow * nrow;
 
     /* 
        Get Cholesky decomposition of the inverse of R. First we
@@ -85,11 +84,12 @@ void DWish::randomSample(double *X, int length,
     vector<double> C(length);
     copy(R, R + length, C.rbegin());
     int info = 0;
-    F77_DPOTRF("L", &nrow, &C[0], &nrow, &info);
+    int ni = asInteger(nrow);
+    jags_dpotrf("L", &ni, &C[0], &ni, &info);
     if (info != 0) {
 	jags::throwRuntimeError("Failed to get Cholesky decomposition of R");
     }
-    F77_DTRTRI("L", "N", &nrow, &C[0], &nrow, &info);
+    jags_dtrtri("L", "N", &ni, &C[0], &ni, &info);
     if (info != 0) {
 	jags::throwRuntimeError("Failed to invert Cholesky decomposition of R");
     }
@@ -101,73 +101,67 @@ void DWish::randomSample(double *X, int length,
        - lower off-diagonal elements are zero
     */
     vector<double> Z(length);
-    for (int j = 0; j < nrow; j++) {
+    for (unsigned long j = 0; j < nrow; j++) {
 	double *Z_j = &Z[j*nrow]; //jth column of Z
-	for (int i = 0; i < j; i++) {
+	for (unsigned long i = 0; i < j; i++) {
 	    Z_j[i] = rnorm(0, 1, rng);
 	}
 	Z_j[j] = sqrt(rchisq(k - j, rng));    
-	for (int i = j + 1; i < nrow; i++) {
+	for (unsigned long i = j + 1; i < nrow; i++) {
 	    Z_j[i] = 0;
 	}
     }
 
     // Z = Z %*% C 
     double one = 1;
-    F77_DTRMM("R", "U", "N", "N", &nrow, &nrow, &one, &C[0], &nrow, &Z[0],
-	      &nrow);
+    jags_dtrmm("R", "U", "N", "N", &ni, &ni, &one, &C[0], &ni, &Z[0], &ni);
 
     // X = t(Z) %*% Z
     double zero = 0;
-    F77_DSYRK("U", "T", &nrow, &nrow, &one, &Z[0], &nrow, &zero, X, &nrow);
+    jags_dsyrk("U", "T", &ni, &ni, &one, &Z[0], &ni, &zero, X, &ni);
 
     // Copy lower triangle of X from upper triangle
-    for (int i = 0; i < nrow; ++i) {
-	for (int j = 0; j < i; ++j) {
+    for (unsigned long i = 0; i < nrow; ++i) {
+	for (unsigned long j = 0; j < i; ++j) {
 	    X[j * nrow + i] = X[i * nrow + j];
 	}
     }
 }
 
-void DWish::randomSample(double *x, unsigned int length,
+void DWish::randomSample(double *x,
 			 vector<double const *> const &par,
-			 vector<vector<unsigned int> > const &dims,
-			 double const *lower, double const *upper,
+			 vector<vector<unsigned long> > const &dims,
 			 RNG *rng) const
 {
-    randomSample(x, length, SCALE(par), DF(par), NROW(dims), rng);
+    rwishart(x, SCALE(par), DF(par), NROW(dims), rng);
 }
 
-bool DWish::checkParameterDim (vector<vector<unsigned int> > const &dims) const
+bool DWish::checkParameterDim (vector<vector<unsigned long> > const &dims) const
 {
   return isSquareMatrix(dims[0]) && isScalar(dims[1]);
 }
 
-vector<unsigned int> 
-DWish::dim(vector<vector<unsigned int> > const &dims) const
+vector<unsigned long> 
+DWish::dim(vector<vector<unsigned long> > const &dims) const
 {
   return dims[0];
 }
 
 bool 
 DWish::checkParameterValue(vector<double const *> const &par,
-			   vector<vector<unsigned int> > const &dims) const
+			   vector<vector<unsigned long> > const &dims) const
 {
     // Check that we have sufficient degrees of freedom
-    if (DF(par) < NROW(dims)) return false;
-    // Check scale matrix
-
-    double const *scale = SCALE(par);
-    unsigned int n = NROW(dims);
-    return check_symmetry(scale, n) && check_symmetric_ispd(scale, n);
+    return DF(par) >= NROW(dims);
 }
 
 
-void DWish::support(double *lower, double *upper, unsigned int length,
-		    vector<double const *> const &par,
-		    vector<vector<unsigned int> > const &dims) const
+void DWish::support(double *lower, double *upper,
+		    vector<double const *> const &,
+		    vector<vector<unsigned long> > const &dims) const
 {
-    for (unsigned int i = 0; i < length; ++i) {
+    unsigned long length = dims[0][0] * dims[0][1];
+    for (unsigned long i = 0; i < length; ++i) {
 	if (i % NROW(dims) == i / NROW(dims)) {
 	    //Diagonal elements
 	    lower[i] =  0;
@@ -179,30 +173,14 @@ void DWish::support(double *lower, double *upper, unsigned int length,
     }
 }
 
-void DWish::typicalValue(double *x, unsigned int length,
-			 vector<double const *> const &par,
-			 vector<vector<unsigned int> > const &dims,
-			 double const *lower, double const *upper) const
-{
-    /* Returns the mean as a typical value. We need to invert the
-       scale matrix */
-
-    if (!inverse_spd(x, SCALE(par), NROW(dims))) {
-	throwDistError(this, "Inverse failed in typicalValue");
-    }
-    for (unsigned int i = 0; i < length; ++i) {
-	x[i] *= DF(par);
-    }
-}
-
-bool DWish::isSupportFixed(vector<bool> const &fixmask) const
+bool DWish::isSupportFixed(vector<bool> const &) const
 {
     return true;
 }
 
-unsigned int DWish::df(vector<vector<unsigned int> > const &dims) const
-{   
-  return dims[0][0] * (dims[0][0] + 1) / 2;
-}
+    bool DWish::fullRank() const
+    {   
+	return false;
+    }
 
 }}

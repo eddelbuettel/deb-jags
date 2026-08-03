@@ -35,7 +35,7 @@ DNegBin::checkParameterValue (vector<double const *> const &par) const
 }
 
 double
-DNegBin::d(double x, PDFType type,
+DNegBin::d(double x, PDFType,
 	   vector<double const *> const &par, bool give_log) 
     const
 {
@@ -95,13 +95,35 @@ double DNegBin::KL(vector<double const *> const &par0,
     double r1 = SIZE(par1);
 
     if (fabs(r0 - r1) > 1e-16) {
-	//We can't calculat Kullback-Leibler divergence in closed form when
+	//We can't calculate Kullback-Leibler divergence in closed form when
 	//r0 and r1 are different
-	return JAGS_NA;
+	return JAGS_NAN;
     }
     
     return r0 * (log(p0) - log(p1))  + 
 	(1 - p0) * r0 * (log(1 - p0) - log(1 - p1)) / p0;
 }
+
+    bool DNegBin::hasScore(unsigned long i) const
+    {
+	return true;
+    }
+    
+    double DNegBin::score(double x, vector<double const *> const &par,
+			  unsigned long i) const
+    {
+	double p = PROB(par);
+	double r = SIZE(par);
+
+	if (i == 0) {
+	    return r/p - x/(1-p);
+	}
+	else if (i == 1) {
+	    return digamma(x + r) - digamma(r) + log(p);
+	}
+	else {
+	    return 0;
+	}
+    }
 
 }}

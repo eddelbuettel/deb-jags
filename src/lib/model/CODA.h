@@ -20,9 +20,13 @@ namespace jags {
  * @param nchain Number of chains.
  * @param warn String that will contain warning messages on exit. It is
  *        cleared on entry.
+ * @param stat Selects the monitors with this stat, or "*" for all stats.
+ * @param summary Selects the monitors with this summary, or "*" for all summaries.
+ * @return The number of monitors written
  */
-void CODA(std::list<MonitorControl> const &mvec, std::string const &prefix,
-	  unsigned int nchain, std::string &warn);
+unsigned int CODA(std::list<MonitorControl> const &mvec, std::string const &prefix,
+		  unsigned int nchain, std::string &warn,
+		  std::string const &stat, std::string const &summary);
 
 /**
  * CODA output for monitors that pool values over chains.
@@ -31,12 +35,16 @@ void CODA(std::list<MonitorControl> const &mvec, std::string const &prefix,
  *
  * @param mvec List of MonitorControl objects containing monitors to be 
  * written out.
- * @param Prefix to be prepended to index and output file names
+ * @param prefix to be prepended to index and output file names
  * @param warn String that will contain warning messages on exit. It is
  *        cleared on entry.
+ * @param stat Selects the monitors with this stat, or "*" for all stats.
+ * @param summary Selects the monitors with this summary, or "*" for all summaries.
+ *
+ * @return The number of monitors written
  */
-void CODA0(std::list<MonitorControl> const &mvec, std::string const &prefix,
-	   std::string &warn);
+unsigned int CODA0(std::list<MonitorControl> const &mvec, std::string const &prefix,
+		   std::string &warn, std::string const &stat, std::string const &summary);
 
 /**
  * CODA output for monitors that have a separate value for each chain
@@ -45,13 +53,18 @@ void CODA0(std::list<MonitorControl> const &mvec, std::string const &prefix,
  *
  * @param mvec List of MonitorControl objects containing monitors to be 
  * written out.
- * @param prefix Prefix to be added to index and output file names.
+ * @param prefix String to be prepended to index and output file names.
  * @param nchain Number of chains.
  * @param warn String that will contain warning messages on exit. It is
  *        cleared on entry.
+ * @param stat Selects the monitors with this stat, or "*" for all stats.
+ * @param summary Selects the monitors with this summary, or "*" for all summaries.
+ *
+ * @return The number of monitors written
  */
-void TABLE(std::list<MonitorControl> const &mvec, std::string const &prefix,
-	   unsigned int nchain, std::string &warn);
+unsigned int TABLE(std::list<MonitorControl> const &mvec, std::string const &prefix,
+		   unsigned int nchain, std::string &warn, 
+		   std::string const &stat, std::string const &summary);
 
 /**
  * CODA output for monitors that pool values over chains and iterations.
@@ -59,12 +72,17 @@ void TABLE(std::list<MonitorControl> const &mvec, std::string const &prefix,
  *
  * @param mvec List of MonitorControl objects containing monitors to be 
  * written out.
- * @param Prefix to be prepended to index and output file names
+ * @param prefix String to be prepended to index and output file names
  * @param warn String that will contain warning messages on exit. It is
  *        cleared on entry.
+ * @param stat Selects the monitors with this stat, or "*" for all stats.
+ * @param summary Selects the monitors with this summary, or "*" for all summaries.
+ *
+ * @return The number of monitors written
  */
-void TABLE0(std::list<MonitorControl> const &mvec, std::string const &prefix,
-	    std::string &warn);
+unsigned int TABLE0(std::list<MonitorControl> const &mvec, std::string const &prefix,
+		    std::string &warn, 
+		    std::string const &stat, std::string const &summary);
 
 } //namespace jags
 

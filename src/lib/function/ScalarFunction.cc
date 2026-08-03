@@ -1,6 +1,7 @@
 #include <config.h>
 #include <function/ScalarFunction.h>
 #include <util/dim.h>
+#include <util/nainf.h>
 
 #include <algorithm>
 
@@ -10,22 +11,22 @@ using std::find_if;
 
 namespace jags {
 
-ScalarFunction::ScalarFunction (string const &name, unsigned int npar)
+ScalarFunction::ScalarFunction (string const &name, unsigned long npar)
   : Function (name, npar)
 {
 }
 
 bool 
-ScalarFunction::checkParameterValue(vector<double const *> const &args) const
+ScalarFunction::checkParameterValue(vector<double const *> const &) const
 {
     return true;
 }
 
 bool ScalarFunction::isPower(vector<bool> const &mask,
-			     vector<bool> const &isfixed) const
+			     vector<bool> const &) const
 {
-    unsigned int nmask = 0;
-    for (unsigned int i = 0; i < mask.size(); ++i) {
+    unsigned long nmask = 0;
+    for (unsigned long i = 0; i < mask.size(); ++i) {
 	nmask += mask[i];
     }
     
@@ -36,4 +37,11 @@ bool ScalarFunction::isPower(vector<bool> const &mask,
     
 }
 
+    double ScalarFunction::gradient(vector<double const*> const &,
+				    unsigned long) const
+    {
+	return 0;
+    }
+
+    
 } //namespace jags

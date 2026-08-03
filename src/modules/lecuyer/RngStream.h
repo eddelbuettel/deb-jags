@@ -1,5 +1,5 @@
-#ifndef _RNG_STREAM_H_
-#define _RNG_STREAM_H_
+#ifndef RNG_STREAM_H_
+#define RNG_STREAM_H_
 
 #include <rng/RmathRNG.h>
 
@@ -24,10 +24,10 @@ namespace lecuyer {
 	 * and the second elements may not be all zero.
 	 */
 	RngStream(unsigned int state[6]);
-	void init(unsigned int seed);
-	bool setState(std::vector<int> const &state);
-	void getState(std::vector<int> &state) const;
-	double uniform();
+	void init(unsigned int seed) override;
+	bool setState(std::vector<int> const &state) override;
+	void getState(std::vector<int> &state) const override;
+	double uniform() override;
 	/**
 	 * Generates a state vector from a random seed
 	 */
@@ -36,6 +36,6 @@ namespace lecuyer {
  
 }}
 
-#endif /* _RNGSTREAM_H_ */
+#endif /* RNGSTREAM_H_ */
  
 

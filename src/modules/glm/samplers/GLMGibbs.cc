@@ -14,17 +14,15 @@
 using std::vector;
 using std::sqrt;
 
-extern cholmod_common *glm_wk;
-
 namespace jags {
 
 namespace glm {
 
     GLMGibbs::GLMGibbs(GraphView const *view, 
-			 vector<SingletonGraphView const *> const &sub_views,
-			 vector<Outcome *> const &outcomes,
-			 unsigned int chain)
-	: GLMMethod(view, sub_views, outcomes, chain)
+		       vector<SingletonGraphView const *> const &sub_views,
+		       vector<Outcome *> const &outcomes,
+		       unsigned int chain, cholmod_common *wk)
+	: GLMMethod(view, sub_views, outcomes, chain, wk)
     {
 	if (_view->length() != _sub_views.size()) {
 	    throwLogicError("updateLMGibbs can only act on scalar nodes");
@@ -45,15 +43,15 @@ namespace glm {
 	    (*p)->update(rng);
 	}
 	
-	double *b = 0;
-	cholmod_sparse *A = 0;
+	double *b = nullptr;
+	cholmod_sparse *A = nullptr;
 	calCoef(b, A);
 
 	if (A->stype != 0) {
 	    throwLogicError("Wrong stype in GLMGibbs::update");
 	}
 	
-	int nrow = _view->length();
+	unsigned long nrow = _view->length();
 	vector<double> theta(nrow);
 	_view->getValue(theta, _chain);
 
@@ -63,9 +61,9 @@ namespace glm {
 
 	//Extract diagonal from A
 	vector<double> diagA(nrow);
-	for (int c = 0; c < nrow; ++c) {
+	for (unsigned long c = 0; c < nrow; ++c) {
 	    for (int j = Ap[c]; j < Ap[c+1]; ++j) {
-		if (Ai[j] == c) {
+		if (static_cast<unsigned long>(Ai[j]) == c) {
 		    diagA[c] = Ax[j];
 		    break;
 		}
@@ -73,7 +71,7 @@ namespace glm {
 	}
 
 	//Update element-wise
-	for (int i = 0; i < nrow; ++i) {
+	for (unsigned long i = 0; i < nrow; ++i) {
 	    
 	    double theta_old = theta[i];
 		
@@ -102,7 +100,7 @@ namespace glm {
 	    }
 	}
 
-	cholmod_free_sparse(&A, glm_wk);
+	cholmod_free_sparse(&A, _wk);
 	delete [] b;
 	
 	_view->setValue(theta,  _chain);

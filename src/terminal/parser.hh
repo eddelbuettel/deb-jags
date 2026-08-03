@@ -82,41 +82,46 @@ extern int zzdebug;
     UPDATE = 275,                  /* UPDATE  */
     BY = 276,                      /* BY  */
     MONITORS = 277,                /* MONITORS  */
-    MONITOR = 278,                 /* MONITOR  */
-    TYPE = 279,                    /* TYPE  */
-    SET = 280,                     /* SET  */
-    CLEAR = 281,                   /* CLEAR  */
-    THIN = 282,                    /* THIN  */
-    CODA = 283,                    /* CODA  */
-    STEM = 284,                    /* STEM  */
-    EXIT = 285,                    /* EXIT  */
-    NCHAINS = 286,                 /* NCHAINS  */
-    CHAIN = 287,                   /* CHAIN  */
-    LOAD = 288,                    /* LOAD  */
-    UNLOAD = 289,                  /* UNLOAD  */
-    SAMPLER = 290,                 /* SAMPLER  */
-    SAMPLERS = 291,                /* SAMPLERS  */
-    RNGTOK = 292,                  /* RNGTOK  */
-    FACTORY = 293,                 /* FACTORY  */
-    FACTORIES = 294,               /* FACTORIES  */
-    MODULES = 295,                 /* MODULES  */
-    SEED = 296,                    /* SEED  */
-    LIST = 297,                    /* LIST  */
-    STRUCTURE = 298,               /* STRUCTURE  */
-    DIM = 299,                     /* DIM  */
-    NA = 300,                      /* NA  */
-    R_NULL = 301,                  /* R_NULL  */
-    DIMNAMES = 302,                /* DIMNAMES  */
-    ITER = 303,                    /* ITER  */
-    ARROW = 304,                   /* ARROW  */
-    ENDDATA = 305,                 /* ENDDATA  */
-    ASINTEGER = 306,               /* ASINTEGER  */
-    DOTDATA = 307,                 /* DOTDATA  */
-    DIRECTORY = 308,               /* DIRECTORY  */
-    CD = 309,                      /* CD  */
-    PWD = 310,                     /* PWD  */
-    RUN = 311,                     /* RUN  */
-    ENDSCRIPT = 312                /* ENDSCRIPT  */
+    NODENAMES = 278,               /* NODENAMES  */
+    MONITOR = 279,                 /* MONITOR  */
+    TYPE = 280,                    /* TYPE  */
+    SET = 281,                     /* SET  */
+    CLEAR = 282,                   /* CLEAR  */
+    THIN = 283,                    /* THIN  */
+    CODA = 284,                    /* CODA  */
+    STEM = 285,                    /* STEM  */
+    STAT = 286,                    /* STAT  */
+    SUMMARY = 287,                 /* SUMMARY  */
+    EXIT = 288,                    /* EXIT  */
+    NCHAINS = 289,                 /* NCHAINS  */
+    NTHREADS = 290,                /* NTHREADS  */
+    CHAIN = 291,                   /* CHAIN  */
+    LOAD = 292,                    /* LOAD  */
+    UNLOAD = 293,                  /* UNLOAD  */
+    SAMPLER = 294,                 /* SAMPLER  */
+    SAMPLERS = 295,                /* SAMPLERS  */
+    RNGTOK = 296,                  /* RNGTOK  */
+    FACTORY = 297,                 /* FACTORY  */
+    FACTORIES = 298,               /* FACTORIES  */
+    MODULES = 299,                 /* MODULES  */
+    SEED = 300,                    /* SEED  */
+    LIST = 301,                    /* LIST  */
+    STRUCTURE = 302,               /* STRUCTURE  */
+    DIM = 303,                     /* DIM  */
+    NA = 304,                      /* NA  */
+    R_NULL = 305,                  /* R_NULL  */
+    DIMNAMES = 306,                /* DIMNAMES  */
+    ITER = 307,                    /* ITER  */
+    ARROW = 308,                   /* ARROW  */
+    ENDDATA = 309,                 /* ENDDATA  */
+    ASINTEGER = 310,               /* ASINTEGER  */
+    DOTDATA = 311,                 /* DOTDATA  */
+    NREP = 312,                    /* NREP  */
+    DIRECTORY = 313,               /* DIRECTORY  */
+    CD = 314,                      /* CD  */
+    PWD = 315,                     /* PWD  */
+    RUN = 316,                     /* RUN  */
+    ENDSCRIPT = 317                /* ENDSCRIPT  */
   };
   typedef enum zztokentype zztoken_kind_t;
 #endif
@@ -145,47 +150,52 @@ extern int zzdebug;
 #define UPDATE 275
 #define BY 276
 #define MONITORS 277
-#define MONITOR 278
-#define TYPE 279
-#define SET 280
-#define CLEAR 281
-#define THIN 282
-#define CODA 283
-#define STEM 284
-#define EXIT 285
-#define NCHAINS 286
-#define CHAIN 287
-#define LOAD 288
-#define UNLOAD 289
-#define SAMPLER 290
-#define SAMPLERS 291
-#define RNGTOK 292
-#define FACTORY 293
-#define FACTORIES 294
-#define MODULES 295
-#define SEED 296
-#define LIST 297
-#define STRUCTURE 298
-#define DIM 299
-#define NA 300
-#define R_NULL 301
-#define DIMNAMES 302
-#define ITER 303
-#define ARROW 304
-#define ENDDATA 305
-#define ASINTEGER 306
-#define DOTDATA 307
-#define DIRECTORY 308
-#define CD 309
-#define PWD 310
-#define RUN 311
-#define ENDSCRIPT 312
+#define NODENAMES 278
+#define MONITOR 279
+#define TYPE 280
+#define SET 281
+#define CLEAR 282
+#define THIN 283
+#define CODA 284
+#define STEM 285
+#define STAT 286
+#define SUMMARY 287
+#define EXIT 288
+#define NCHAINS 289
+#define NTHREADS 290
+#define CHAIN 291
+#define LOAD 292
+#define UNLOAD 293
+#define SAMPLER 294
+#define SAMPLERS 295
+#define RNGTOK 296
+#define FACTORY 297
+#define FACTORIES 298
+#define MODULES 299
+#define SEED 300
+#define LIST 301
+#define STRUCTURE 302
+#define DIM 303
+#define NA 304
+#define R_NULL 305
+#define DIMNAMES 306
+#define ITER 307
+#define ARROW 308
+#define ENDDATA 309
+#define ASINTEGER 310
+#define DOTDATA 311
+#define NREP 312
+#define DIRECTORY 313
+#define CD 314
+#define PWD 315
+#define RUN 316
+#define ENDSCRIPT 317
 
 /* Value type.  */
 #if ! defined ZZSTYPE && ! defined ZZSTYPE_IS_DECLARED
 union ZZSTYPE
 {
-#line 99 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 101 "../../../../mcmc-jags/src/terminal/parser.yy"
 
   int intval;
   double val;
@@ -195,7 +205,7 @@ union ZZSTYPE
   std::vector<double> *vec;
   std::vector<long> *ivec;
 
-#line 199 "parser.hh"
+#line 209 "parser.hh"
 
 };
 typedef union ZZSTYPE ZZSTYPE;

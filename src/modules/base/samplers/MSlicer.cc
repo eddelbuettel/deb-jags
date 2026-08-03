@@ -4,7 +4,6 @@
 #include <distribution/Distribution.h>
 #include <module/ModuleError.h>
 #include <rng/RNG.h>
-#include <util/nainf.h>
 
 #include "MSlicer.h"
 
@@ -14,6 +13,7 @@
 using std::vector;
 using std::string;
 using std::fabs;
+using std::isfinite;
 
 #define MIN_ADAPT 50
 
@@ -38,7 +38,7 @@ namespace jags {
 	    if (node->isDiscreteValued() || node->length() <= 1)
 		return false;
 
-	    if (node->df() < node->length())
+	    if (!node->fullRank())
 		return false; 
 
 	    return true;
@@ -50,7 +50,7 @@ namespace jags {
 	{
 	    // Generate auxiliary variable
 	    double g0 = logDensity();
-	    double z = g0 - rng->exponential();;
+	    double z = g0 - rng->exponential();
 
 	    // Generate random interval of width "_width[i]" about current value
 	    double xold = _value[i];
@@ -125,7 +125,7 @@ namespace jags {
 	{
 	    // Generate auxiliary variable
 	    double g0 = logDensity();
-	    double z = g0 - rng->exponential();;
+	    double z = g0 - rng->exponential();
 
 	    // Generate random interval of width "_width" about current value
 	    vector<double> L(_length), R(_length);
@@ -166,7 +166,7 @@ namespace jags {
 	{
 	    // Test current value
 	    double g0 = logDensity();
-	    if (!jags_finite(g0)) {
+	    if (!isfinite(g0)) {
 		if (g0 > 0) {
 		    throwNodeError(_gv->node(),
 				   "Slicer stuck at value with infinite density");

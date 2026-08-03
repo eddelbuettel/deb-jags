@@ -24,7 +24,7 @@ bool Neg::isDiscreteValued(vector<bool> const &mask) const
   return mask[0];
 }
 
-bool Neg::isScale(vector<bool> const &mask, vector<bool> const &fix) const
+bool Neg::isScale(vector<bool> const &, vector<bool> const &) const
 {
     return true;
 }
@@ -34,4 +34,14 @@ string Neg::deparse(vector<string> const &par) const
     return string("-") + par[0];
 }
 
+    bool Neg::hasGradient(unsigned long i) const
+    {
+	return i == 0;
+    }
+    
+    double Neg::gradient(vector<double const*> const &args,
+			 unsigned long) const
+    {
+	return -1;
+    }
 }}

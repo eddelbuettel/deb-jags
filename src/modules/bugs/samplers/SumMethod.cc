@@ -26,6 +26,7 @@ using std::floor;
 using std::fabs;
 using std::list;
 using std::find;
+using std::isfinite;
 
 namespace jags {
     
@@ -39,7 +40,7 @@ namespace jags {
 		 p != x.end(); ++p)
 	    {
 		double const *v = (*p)->value(ch);
-		unsigned int n = (*p)->length();
+		unsigned long n = (*p)->length();
 		y = accumulate(v, v+n, y);
 	    }
 	    return y;
@@ -72,7 +73,7 @@ namespace jags {
 	SumMethod::isCandidate(StochasticNode *snode, Graph const &graph)
 	{
 	    //We can only sample scalar nodes
-	    if (snode->length() != 1) return 0;
+	    if (snode->length() != 1) return nullptr;
 	    
 	    SingletonGraphView gv(snode, graph);
 
@@ -81,23 +82,23 @@ namespace jags {
 	       
 	    */
 	    vector<StochasticNode*> const &schildren = gv.stochasticChildren();
-	    StochasticNode *sumchild = 0;
+	    StochasticNode *sumchild = nullptr;
 	    for (unsigned int i = 0; i < schildren.size(); ++i) {
 		if (schildren[i]->distribution()->name() == "sum") {
 		    /* There should be only one sum node and it must be
-		       observed */
-		    if (sumchild) return 0;
-		    if(!isObserved(schildren[i])) return 0;
+		       fully observed */
+		    if (sumchild) return nullptr;
+		    if(isParameter(schildren[i])) return nullptr;
 		    sumchild = schildren[i];
 		}
 	    }
-	    if (!sumchild) return 0;
+	    if (!sumchild) return nullptr;
 	    
 	    /* Deterministic descendants must be an additive function
 	     * of snode
 	     */
 	    if (schildren.size() == 1) {
-		if (!checkAdditive(&gv, false)) return 0;
+		if (!checkAdditive(&gv, false)) return nullptr;
 	    }
 	    else {
 		/* 
@@ -114,7 +115,7 @@ namespace jags {
 		    lgraph.insert(dchildren[j]);
 		}
 		SingletonGraphView lgv(snode, lgraph);
-		if (!checkAdditive(&lgv, false)) return 0;
+		if (!checkAdditive(&lgv, false)) return nullptr;
 	    }
 
 	    return sumchild;
@@ -123,9 +124,12 @@ namespace jags {
 	bool SumMethod::canSample(vector<StochasticNode*> const &snodes,
 				  Graph const &graph)
 	{
+	    //We must have at least 2 nodes
+	    if (snodes.size() < 2) return false;
+	    
 	    //Are individual nodes candidates?
 	    StochasticNode *sumchild = isCandidate(snodes[0], graph);
-	    if (sumchild == 0) return false;
+	    if (sumchild == nullptr) return false;
 	    for (unsigned int i = 1; i < snodes.size(); ++i) {
 		if (isCandidate(snodes[i], graph) != sumchild) return false;
 	    }
@@ -141,7 +145,7 @@ namespace jags {
 	    GraphView gv(snodes, graph, true);
 	    
 	    /* Only deterministic nodes with a path to sumnode need to
-	       be additive. Constract a local graph that strips out
+	       be additive. Construct a local graph that strips out
 	       the rest.
 	    */
 	    Graph lgraph; //local graph
@@ -177,8 +181,8 @@ namespace jags {
 	SumMethod::SumMethod(GraphView const *gv, unsigned int chain)
 	    : MutableSampleMethod(), _gv(gv), _chain(chain),
 	      _sum(gv->stochasticChildren()[0]->value(chain)[0]),
-	      _discrete(gv->stochasticChildren()[0]->isDiscreteValued()),
-	      _x(gv->length()), _i(0), _j(0), _sumchild(0), _fast(false),
+	      _discrete(gv->nodes()[0]->isDiscreteValued()),
+	      _x(gv->length()), _i(0), _j(0), _sumchild(nullptr), _fast(false),
 	      _sumdiff(0), _iter(0), _width(2), _max(10), _adapt(true)
 	{
 	    if (gv->stochasticChildren().size() == 1) {
@@ -211,7 +215,7 @@ namespace jags {
 		double sumx_new = _sumchild->value(chain)[0] - alpha;
 
 		// Rescale
-		unsigned int N = _x.size();
+		unsigned long N = _x.size();
 		vector<double> xnew;
 		if (_discrete) {
 		    xnew = vector<double>(N, floor(sumx_new/N));
@@ -227,7 +231,7 @@ namespace jags {
 		if (_sumchild->logDensity(chain, PDF_LIKELIHOOD) != 0) {
 		    throw logic_error("SumMethod failed to fix initial values");
 		}
-		if (jags_finite(gv->logFullConditional(_chain))) {
+		if (isfinite(gv->logFullConditional(_chain))) {
 		    _x = xnew; //Preserve changes
 		}
 		else {
@@ -247,7 +251,7 @@ namespace jags {
 	{
 	    // Test current value
 	    double g0 = logDensity();
-	    if (!jags_finite(g0)) {
+	    if (!isfinite(g0)) {
 		return;
 	    }
 
@@ -266,7 +270,11 @@ namespace jags {
 
 	    double lower = JAGS_NEGINF, upper = JAGS_POSINF;
 	    getLimits(&lower, &upper);
-
+	    if (lower == upper) {
+		// We can't move this pair, so skip them
+		return;
+	    }
+		    
 	    // Stepping out 
 
 	    // Randomly set number of steps in left and right directions,

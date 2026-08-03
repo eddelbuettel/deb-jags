@@ -2,17 +2,22 @@
 #define NODE_ARRAY_H_
 
 #include <graph/Graph.h>
+#include <graph/MixTab.h>
 #include <sarray/SimpleRange.h>
+#include <model/StochasticIndex.h>
 
 #include <string>
 #include <map>
 
 namespace jags {
 
+        enum ValueType {DATA_VALUES, PARAMETER_VALUES, ALL_VALUES};
+
 class SArray;
 class Model;
 class AggNode;
-
+class MixtureNode;
+    
 /**
  * @short Multi-dimensional array that can be tiled with Node objects
  * 
@@ -25,14 +30,19 @@ class AggNode;
 class NodeArray {
   friend class NodeArraySubset;
   std::string _name;
-  SimpleRange _range;
+  SimpleRange _range, _true_range;
   Graph _member_graph;
   unsigned int _nchain;
   std::vector<Node *> _node_pointers;
-  std::vector<unsigned int> _offsets;
+  std::vector<unsigned long> _offsets;
   std::map<Range, Node *> _mv_nodes;
   std::map<Range, AggNode *> _generated_nodes;
-
+  std::map<std::vector<StochasticIndex>, MixtureNode *, less_stoch_indices> _mixture_nodes;
+  std::map<std::vector<std::vector<unsigned long>>, MixTab> _mix_tabs;  
+  bool _locked;
+  
+  /* Grow dynamically */
+  void grow(Range const &target_range);
   /* Forbid copying */
   NodeArray(NodeArray const &orig);
   NodeArray &operator=(NodeArray const &rhs);
@@ -41,30 +51,44 @@ public:
   /**
    * Constructor. Creates a NodeArray with the given name and dimension
    */
-  NodeArray(std::string const &name, std::vector<unsigned int> const &dim, 
+  NodeArray(std::string const &name, std::vector<unsigned long> const &dim, 
 	    unsigned int nchain);
   /**
    * Inserts a node into the subset of the NodeArray defined by range.
-   * The dimension of the node must conform with the given range.
-   * The given range must not overlap any previously inserted node.
-   * Repeated indices in the given range are not allowed.
-   *
-   * The node is added to an internal graph. 
+   * 
+   * @param node Node to insert. This may be a NULL pointer, in which
+   * case the checks on the validity of the range are carried out (See
+   * below) but no action is taken. If the pointer is not NULL then
+   * its dimension must match the given range.
+   * 
+   * @param range Range to insert.  The given range must not overlap any
+   * previously inserted node.  Repeated indices in the given range
+   * are not allowed.  The NodeArray may grow to accommodate a range
+   * beyond its current dimension, unless it is locked (See
+   * NodeArray#lock). If a NodeArray is locked, it is an error to
+   * attempt to insert a node beyond the current dimension of the
+   * NodeArray.
    *
    * @exception runtime_error
    */
   void insert(Node *node, Range const &range);
-
   /**
-   * Returns a subset of the NodeArray. If the range corresponds to a
-   * previously inserted node, this will be returned. Otherwise, an
-   * aggregate node will be generated, and it will be added to the
-   * given model.  Generated nodes are cached so a future call to
-   * getSubset will return the same node. If the range is not
-   * completely covered by inserted nodes, a NULL pointer will be
-   * returned.
+   * Returns a subset of the NodeArray. 
+   * 
+   * @param range Subset of the NodeArray to return. If the range
+   * corresponds to a previously inserted node, this will be
+   * returned. Otherwise, an AggNode will be generated, if possible.
+   * Generated nodes are cached so a future call to getSubset will
+   * return the same node. If the requested range is not completely
+   * covered by inserted nodes, a NULL pointer will be returned. 
+   *
+   * @param model If the call to getSubset generates a new AggNode,
+   * this will be added to the given model, which then takes ownership
+   * of it.
    */
   Node* getSubset(Range const &range, Model &model);
+  Node* getMixture(std::vector<StochasticIndex> const &indices,
+		   Model &model);
   /**
    * Sets the values of the nodes in the array. 
    *
@@ -74,25 +98,22 @@ public:
    * either completely missing (in which no action is taken) or
    * contain no missing values.
    *
-   * @param value array with dimensions matching the NodeArray containing
-   * values.
-   *
    * @param chain Index number of chain to which to apply values.
    */
   void setValue(SArray const &value, unsigned int chain);
   /**
-   * Gets the values of selected nodes that have been inserted into
-   * the array.
+   * Gets the values of nodes that have been inserted into the array.
    *
    * @param value SArray to which values should be written.
    *
    * @param chain Index number of chain to read.
    *
-   * @param condition.  Boolean function that returns true for nodes
-   * whose values are to be read.
+   * @param type which values are to be read. DATA_VALUES gets
+   * observed random variables; PARAMETER_VALUES gets unobserved
+   * random variables; ALL_VALUES reads all values from all nodes
+   * inserted into the array.
    */
-  void getValue(SArray &value, unsigned int chain,
-		bool (*condition)(Node const *)) const;
+  void getValue(SArray &value, unsigned int chain, ValueType type) const;
   /**
    * Set data, creating a constant node for any non-missing value.  An
    * exception is thrown if any of the non-missing values corresponds
@@ -104,7 +125,7 @@ public:
    */
   std::string const &name() const;
   /**
-   * Returns the range of indices covered by the NodeArray
+   * Returns the range of indices covered by the NodeArray.
    */
   SimpleRange const &range() const;
   /**
@@ -114,9 +135,24 @@ public:
    */
   Range getRange(Node const *node) const;
   /**
+   * Returns the vector of stochastic indices corresponding to the
+   * given node if it is a MixtureNode belonging to the
+   * NodeArray. Otherwise an empty vector is returned.
+   */
+  std::vector<StochasticIndex> getStochasticRange(Node const *node) const;
+  /**
    * Returns the number of chains of the nodes stored in the array
    */
   unsigned int nchain() const;
+  /**
+   * Locks the NodeArray so it cannot grow any more when a node is
+   * inserted beyond the current range.
+   */
+  void lock();
+  /**
+   * Returns true if the NodeArray is locked
+   */
+  bool isLocked() const;
 };
 
 } /* namespace jags */

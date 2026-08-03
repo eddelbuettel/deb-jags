@@ -23,9 +23,7 @@
 //RNGs
 #include <rngs/BaseRNGFactory.h>
 //Monitors
-#include <monitors/TraceMonitorFactory.h>
-#include <monitors/MeanMonitorFactory.h>
-#include <monitors/VarianceMonitorFactory.h>
+#include <monitors/ValueMonitorFactory.h>
 
 using std::vector;
 
@@ -36,7 +34,7 @@ namespace base {
 
     public:
 	BaseModule();
-	~BaseModule();
+	~BaseModule() override;
     };
 
     BaseModule::BaseModule() 
@@ -65,10 +63,8 @@ namespace base {
 	
 	insert(new BaseRNGFactory);
 	
-	insert(new TraceMonitorFactory);
-	insert(new MeanMonitorFactory);
-	insert(new VarianceMonitorFactory);
-    }
+	insert(new ValueMonitorFactory);
+}
 
     BaseModule::~BaseModule() {
 
@@ -95,4 +91,4 @@ namespace base {
 
 }}
 
-jags::base::BaseModule _base_module;
+static jags::base::BaseModule _base_module;

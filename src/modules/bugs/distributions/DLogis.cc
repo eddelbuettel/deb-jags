@@ -7,7 +7,7 @@ using std::vector;
 
 #define MU(par) (*par[0])
 #define SCALE(par) (1 / *par[1])
-#define TAU(par) (*par[1])
+#define LAMBDA(par) (*par[1])
 
 namespace jags {
 namespace bugs {
@@ -18,11 +18,11 @@ DLogis::DLogis()
 
 bool DLogis::checkParameterValue (vector<double const *> const &par) const
 {
-    return (TAU(par) > 0);
+    return (LAMBDA(par) > 0);
 }
 
 double 
-DLogis::d(double x, PDFType type,
+DLogis::d(double x, PDFType,
 vector<double const *> const &par, bool give_log) const
 {
     return dlogis(x, MU(par), SCALE(par), give_log);
@@ -48,5 +48,29 @@ DLogis::r(vector<double const *> const &par, RNG *rng) const
     double ans = rlogis(MU(par), SCALE(par), rng);
     return ans;
 }
+
+    bool DLogis::hasScore(unsigned long i) const
+    {
+	return true;
+    }
+    
+    double DLogis::score(double x, vector<double const *> const &par,
+			 unsigned long i) const
+    {
+	double mu = MU(par);
+	double lambda = LAMBDA(par);
+	
+	double u = 2 * plogis(x, mu, 1/lambda, true, false) - 1;
+
+	if (i == 0) {
+	    return lambda * u;
+	}
+	else if (i == 1) {
+	    return 1/lambda - (x - mu) * u;
+	}
+	else {
+	    return 0;
+	}
+    }
 
 }}

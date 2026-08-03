@@ -53,25 +53,40 @@ enum ClosedFuncClass {DNODE_ADDITIVE, DNODE_LINEAR, DNODE_SCALE,
  */
 class DeterministicNode : public Node {
     bool _fixed;
+    const std::array<int, 2> _depth;
 public:
-    DeterministicNode(std::vector<unsigned int> const &dim,
+    DeterministicNode(std::vector<unsigned long> const &dim,
 		      unsigned int nchain,
 		      std::vector<Node const *> const &parents);
-    ~DeterministicNode();
+    ~DeterministicNode() override;
+    /**
+     * A DeterministicNode has the same stochastic depth as its
+     * deepest parent. Its deterministic depth is one greater than its
+     * deepest parent with the same stochastic depth.
+     */
+    std::array<int, 2> const &depth() const override;
     /**
      * Random samples from a Deterministic node are not random.
      * This function simply calculates the value of the node from its
      * parent values and leaves the RNG object untouched.
      */
-    void randomSample(RNG*, unsigned int nchain);
+    void randomSample(RNG*, unsigned int nchain) override;
+    /**
+     * Initializes a node by calculating its value from the parent values;
+     */
+    void initialize(RNG *, unsigned int, unsigned int chain) override;
     /**
      * Deterministic nodes are not random variables. 
      */
-    RVStatus randomVariableStatus() const;
+    bool isRandomVariable() const override;
+    /**
+     * A deterministic node is never observed.
+     */
+    bool isObserved(unsigned long offset) const override;
     /**
      * A deterministic node is fixed if all its parents are fixed.
      */
-    bool isFixed() const;
+    bool isFixed() const override;
     /**
      * Tests whether the node belongs to a closed class when
      * considered as a function of a given ancestor node X, or nodes
@@ -107,7 +122,43 @@ public:
     virtual DeterministicNode * clone(std::vector<Node const *> const &parents)
 	const = 0;
      */
-    void unlinkParents();
+    void unlinkParents() override;
+    /**
+     * Calculates a value for the node based on its parents' values.
+     *
+     * @param chain Number of chain from which to draw sample
+     */
+    virtual void deterministicSample(unsigned int chain) = 0;
+
+    double logDensity(unsigned int chain, PDFType type) const override;
+    double logLikelihood(unsigned int chain) const override;
+    double KL(unsigned int chain1, unsigned int chain2, RNG *rng,
+	      unsigned int nrep) const override;
+    /**
+     * Used by dumpNodeNames to gather a specific subset of node types:
+     */
+    inline bool isConstant() const override { return false; }
+    inline bool isDeterministic() const override { return true; }
+    inline bool isStochastic() const override { return false; }
+    /**
+     * Checks whether the gradient can be calculated for the given
+     * parent node.
+     *
+     * @param arg Parent node with respect to which the gradient
+     * is calculated.
+     */
+    virtual bool hasGradient(Node const *arg) const = 0;
+    /**
+     * Calculates the gradient function.
+     *
+     * @param grad Array to hold the result (assumed to be of correct
+     * length). The gradient is added to this array.
+     * 
+     * @param parent Parent node with respect to which the gradient is
+     * calculated.
+     */
+    virtual void gradient(double *grad, Node const *parent, unsigned int chain)
+	const = 0;
 };
 
 } /* namespace jags */

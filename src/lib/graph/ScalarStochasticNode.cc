@@ -6,9 +6,11 @@
 
 #include <vector>
 #include <string>
+#include <cmath>
 
 using std::vector;
 using std::string;
+using std::isnan;
 
 namespace jags {
 
@@ -16,7 +18,7 @@ ScalarStochasticNode::ScalarStochasticNode(ScalarDist const *dist,
 					   unsigned int nchain,
 					   vector<Node const *> const &params,
 					   Node const *lower, Node const *upper)
-    : StochasticNode(vector<unsigned int>(1,1), nchain, dist, params, lower, upper),
+    : StochasticNode(vector<unsigned long>(1,1), nchain, dist, params, lower, upper),
       _dist(dist)
 {
     for(vector<Node const *>::const_iterator p = params.begin();
@@ -47,17 +49,15 @@ double ScalarStochasticNode::logDensity(unsigned int chain, PDFType type) const
     return _dist->logDensity(_data[chain], type, _parameters[chain], l, u);
 }
 
-void ScalarStochasticNode::deterministicSample(unsigned int chain)
-{
-    double const *l = lowerLimit(chain);
-    double const *u = upperLimit(chain);
-    if (l && u && *l > *u) throw NodeError(this, "Inconsistent bounds");
-
-    _data[chain] = _dist->typicalValue(_parameters[chain], l, u);
-}
-
+    double ScalarStochasticNode::logLikelihood(unsigned int chain) const
+    {
+	return (*_observed)[0] ? logDensity(chain, PDF_FULL) : 0.0;
+    }
+    
 void ScalarStochasticNode::randomSample(RNG *rng, unsigned int chain)
 {
+    if ((*_observed)[0]) return;
+    
     double const *l = lowerLimit(chain);
     double const *u = upperLimit(chain);
     if (l && u && *l > *u) throw NodeError(this, "Inconsistent bounds");
@@ -70,12 +70,12 @@ void ScalarStochasticNode::truncatedSample(RNG *rng, unsigned int chain,
 {
     double const *l = lowerLimit(chain);
     if (lb) {
-	if (l == 0 || (l && (*lb < *l)))
+	if (l == nullptr || *lb < *l)
 	    l = lb;
     }
     double const *u = upperLimit(chain);
     if (ub) {
-	if (u == 0 || (u && (*ub > *u)))
+	if (u == nullptr || *ub > *u)
 	    u = ub;
     }
     if (l && u && *l > *u) throw NodeError(this, "Inconsistent bounds");
@@ -95,12 +95,7 @@ bool ScalarStochasticNode::checkParentValues(unsigned int chain) const
     }
 }
 
-bool isBounded(ScalarStochasticNode const *node)
-{
-    return node->lowerBound() || node->upperBound();
-}
-
-void ScalarStochasticNode::sp(double *lower, double *upper, unsigned int length,
+void ScalarStochasticNode::sp(double *lower, double *upper,
 			      unsigned int chain) const
 {
     *lower = _dist->l(_parameters[chain]);
@@ -116,11 +111,6 @@ ScalarStochasticNode::clone(vector<Node const *> const &parameters,
 }
     */
     
-unsigned int ScalarStochasticNode::df() const
-{
-    return _dist->df();
-}
-
     double ScalarStochasticNode::KL(unsigned int ch1, unsigned int ch2,
 				    RNG *rng, unsigned int nrep) const
     {
@@ -139,15 +129,14 @@ unsigned int ScalarStochasticNode::df() const
 	}
 	else {
 	    double kl =  _dist->KL(_parameters[ch1], _parameters[ch2]);
-	    if (kl == JAGS_NA) {
+	    if (isnan(kl)) {
 		return _dist->KL(_parameters[ch1], _parameters[ch2],
-				 0, 0, rng, nrep);
+				 nullptr, nullptr, rng, nrep);
 	    }
 	    else {
 		return kl;
 	    }
 	}
     }
-    
 
 } //namespace jags

@@ -41,20 +41,24 @@ static Node const * getParent(StochasticNode const *snode)
 {
     //Choose appropriate parent for stochastic child
 
+    Node const *par = nullptr;
     switch(getDist(snode)) {
     case GAMMA: case NORM: case DEXP: case WEIB: case LNORM:
-	return snode->parents()[1];
+	par = snode->parents()[1];
 	break;
     case EXP: case POIS:
-	return snode->parents()[0];
+	par = snode->parents()[0];
 	break;
-    default:
+    case BERN: case BETA: case BIN: case CAT: case CHISQ: case DIRCH:
+    case LOGIS: case MNORM: case MULTI: case NEGBIN: case PAR: case T:
+    case UNIF: case WISH: case OTHERDIST:
         throwLogicError("Invalid distribution in TruncatedGamma sampler");
-	return 0; //-Wall
-    } 
+    }
+    return par; //-Wall
+	
 }
 
-static double calExponent(SingletonGraphView const *gv, int i, 
+static double calExponent(SingletonGraphView const *gv, unsigned long i, 
 			  unsigned int chain)
 {   
     /*        
@@ -104,6 +108,8 @@ bool TruncatedGamma::canSample(StochasticNode *snode, Graph const &graph)
     // non-negative lower bound.
     if (getDist(snode) != UNIF)
 	return false;
+    if (!snode->fullRank())
+	return false;
     if (!snode->parents()[0]->isFixed())
 	return false;
     if (snode->parents()[0]->value(0)[0] < 0)
@@ -127,7 +133,9 @@ bool TruncatedGamma::canSample(StochasticNode *snode, Graph const &graph)
 		return false; //non-scale parameter depends on snode
 	    }
 	    break;
-	default:
+	case BERN: case BETA: case BIN: case CAT: case CHISQ: case DIRCH:
+	case LOGIS: case MNORM:	case MULTI: case NEGBIN: case PAR: case T:
+	case UNIF: case WISH: case OTHERDIST:
 	    return false;
 	}
     }
@@ -137,7 +145,7 @@ bool TruncatedGamma::canSample(StochasticNode *snode, Graph const &graph)
 
     // Calculate the coefficient of the power function
     double exp0 = calExponent(&gv, 0, 0);
-    for (unsigned int i = 0; i < stoch_nodes.size(); ++i) {
+    for (unsigned long i = 0; i < stoch_nodes.size(); ++i) {
 	double expi = calExponent(&gv, i, 0);
 	//Exclude exponents near 0 for numerical stability
 	if (fabs(expi) < TG_EPS) return false;
@@ -167,7 +175,9 @@ bool TruncatedGamma::canSample(StochasticNode *snode, Graph const &graph)
 	case NORM: case LNORM:
 	    shape += 0.5;
 	    break;
-	default:
+	case BERN: case BETA: case BIN: case CAT: case CHISQ: case DIRCH:
+	case LOGIS: case MNORM:	case MULTI: case NEGBIN: case PAR:
+	case T: case UNIF: case WISH: case OTHERDIST:
 	    return false;
 	}
     }
@@ -230,13 +240,14 @@ void TruncatedGamma::update(unsigned int chain, RNG *rng) const
 		r += 0.5;
 		mu += c * (log(Y) - m) * (log(Y) - m) / 2;
 		break;
-	    default:
+	    case BERN: case BETA: case BIN: case CAT: case CHISQ: case DIRCH:
+	    case LOGIS: case MNORM: case MULTI: case NEGBIN: case PAR: case T:
+	    case UNIF: case WISH: case OTHERDIST:
 		throwLogicError("Invalid distribution in TruncatedGamma");
 	    }
 	}
     }
     if (mu == 0) {
-	
 	throwNodeError(snode, "Degenerate posterior in TruncatedGamma sampler");
     }
 

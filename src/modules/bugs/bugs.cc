@@ -15,11 +15,13 @@
 #include <distributions/DInterval.h>
 #include <distributions/DLnorm.h>
 #include <distributions/DLogis.h>
+#include <distributions/DLogLik.h>
 #include <distributions/DMNorm.h>
 #include <distributions/DMNormVC.h>
 #include <distributions/DMT.h>
 #include <distributions/DMulti.h>
 #include <distributions/DNegBin.h>
+#include <distributions/DGamPois.h>
 #include <distributions/DNChisqr.h>
 #include <distributions/DNorm.h>
 #include <distributions/DNT.h>
@@ -36,6 +38,7 @@
 #include <distributions/DSum.h>
 #include <distributions/SumDist.h>
 
+
 #include <functions/Abs.h>
 #include <functions/ArcCos.h>
 #include <functions/ArcCosh.h>
@@ -43,6 +46,10 @@
 #include <functions/ArcSinh.h>
 #include <functions/ArcTan.h>
 #include <functions/ArcTanh.h>
+#include <functions/BesselI.h>
+#include <functions/BesselJ.h>
+#include <functions/BesselK.h>
+#include <functions/BesselY.h>
 #include <functions/CLogLog.h>
 #include <functions/Combine.h>
 #include <functions/Cos.h>
@@ -58,6 +65,7 @@
 #include <functions/InProd.h>
 #include <functions/InterpLin.h>
 #include <functions/Inverse.h>
+#include <functions/InverseLU.h>
 #include <functions/LogDet.h>
 #include <functions/LogFact.h>
 #include <functions/LogGam.h>
@@ -72,6 +80,7 @@
 #include <functions/Probit.h>
 #include <functions/Prod.h>
 #include <functions/Rank.h>
+#include <functions/RankAverage.h>
 #include <functions/Rep.h>
 #include <functions/Round.h>
 #include <functions/SD.h>
@@ -98,6 +107,7 @@
 #include <samplers/SumFactory.h>
 #include <samplers/RW1Factory.h>
 #include <samplers/BinomSliceFactory.h>
+#include <samplers/EllipticalSliceFactory.h>
 
 using std::vector;
 
@@ -107,7 +117,7 @@ namespace bugs {
     class BUGSModule : public Module {
     public:
 	BUGSModule();
-	~BUGSModule();
+	~BUGSModule() override;
     };
 
     BUGSModule::BUGSModule() 
@@ -134,6 +144,7 @@ namespace bugs {
 	insert(new DMulti);
 	insert(new DNChisqr);
 	insert(new DNegBin);
+	insert(new DGamPois);
 	insert(new DNorm);
 	insert(new DNT);
 	insert(new DPar);
@@ -154,6 +165,10 @@ namespace bugs {
 	insert(new ArcSinh);
 	insert(new ArcTan);
 	insert(new ArcTanh);
+	insert(new BesselI);
+	insert(new BesselJ);
+	insert(new BesselK);
+	insert(new BesselY);
 	insert(new Combine);
 	insert(new Cos);
 	insert(new Cosh);
@@ -166,6 +181,7 @@ namespace bugs {
 	insert(new InProd);
 	insert(new InterpLin);
 	insert(new Inverse);
+	insert(new InverseLU);
 	insert(new Log);
 	insert(new LogDet);
 	insert(new LogFact);
@@ -180,6 +196,7 @@ namespace bugs {
 	insert(new Probit);
 	insert(new Prod);
 	insert(new Rank);
+	insert(new RankAverage);
 	insert(new Rep);
 	insert(new Round);
 	insert(new SD);
@@ -199,17 +216,19 @@ namespace bugs {
 	insert(new DInterval, new DIntervalFunc);
 	insert(new DRound, new DRoundFunc);
 	insert(new SumDist, new Sum);
+	insert(new DLogLik);
 	
 	//Load sampler factories
 	insert(new MNormalFactory);
+	insert(new EllipticalSliceFactory);
 	insert(new DirichletFactory);
+	insert(new BinomSliceFactory);
 	insert(new ConjugateFactory);
 	//insert(new REFactory);
 	insert(new DSumFactory);
 	insert(new SumFactory);
 	insert(new CensoredFactory);
 	insert(new RW1Factory);
-	insert(new BinomSliceFactory);
     }
 
     BUGSModule::~BUGSModule() {
@@ -234,4 +253,4 @@ namespace bugs {
 
 }}
 
-jags::bugs::BUGSModule _bugs_module;
+static jags::bugs::BUGSModule _bugs_module;

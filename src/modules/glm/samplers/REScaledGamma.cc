@@ -16,8 +16,6 @@
 using std::vector;
 using std::sqrt;
 
-extern cholmod_common *glm_wk;
-
 namespace jags {
     namespace glm {
 
@@ -25,8 +23,8 @@ namespace jags {
 	    GraphView const *eps,
 	    vector<SingletonGraphView const *> const &sub_eps,
 	    vector<Outcome *> const &outcomes,
-	    unsigned int chain)
-	    : REMethod(tau, eps, sub_eps, outcomes, chain)
+	    unsigned int chain, cholmod_common *wk)
+	    : REMethod(tau, eps, sub_eps, outcomes, chain, wk)
 	{
 	    //Initialize hyper-parameter _sigma 
 	    vector<Node const*> const &par = tau->node()->parents();

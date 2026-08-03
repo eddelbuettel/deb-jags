@@ -14,9 +14,12 @@
 #include "OrderedLogit.h"
 #include "OrderedProbit.h"
 #include "MNormalLinear.h"
+#include "LogNormalLinear.h"
 
 #include "GLMBlock.h"
 #include "GLMGibbs.h"
+
+#include <glm.h>
 
 #include <graph/StochasticNode.h>
 #include <graph/LinkNode.h>
@@ -44,7 +47,8 @@ namespace glm {
 	    AuxMixBinomial::canRepresent(snode) ||
 	    OrderedLogit::canRepresent(snode) ||
 	    OrderedProbit::canRepresent(snode) ||
-	    MNormalLinear::canRepresent(snode);
+	    MNormalLinear::canRepresent(snode) ||
+	    LogNormalLinear::canRepresent(snode);
     }
     
     GLMMethod *
@@ -58,7 +62,7 @@ namespace glm {
 		 p = view->stochasticChildren().begin();
 	     p != view->stochasticChildren().end(); ++p)
 	{
-	    Outcome *outcome = 0;
+	    Outcome *outcome = nullptr;
 	    if (NormalLinear::canRepresent(*p)) {
 		outcome = new NormalLinear(*p, chain);
 	    }
@@ -86,6 +90,9 @@ namespace glm {
 	    else if (MNormalLinear::canRepresent(*p)) {
 		outcome = new MNormalLinear(*p, chain);
 	    }
+	    else if (LogNormalLinear::canRepresent(*p)) {
+		outcome = new LogNormalLinear(*p, chain);
+	    }
 	    else {
 		throwLogicError("Invalid outcome in GLMGenericFactory");
 	    }
@@ -93,10 +100,10 @@ namespace glm {
 	}
 
 	if (gibbs) {
-	    return new GLMGibbs(view, sub_views, outcomes, chain);
+	    return new GLMGibbs(view, sub_views, outcomes, chain, workspace(chain));
 	}
 	else {
-	    return new GLMBlock(view, sub_views, outcomes, chain);
+	    return new GLMBlock(view, sub_views, outcomes, chain, workspace(chain));
 	}
     }
 

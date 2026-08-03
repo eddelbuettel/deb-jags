@@ -1,10 +1,15 @@
 #include <config.h>
-#include <util/logical.h>
+
 #include "InProd.h"
 
-#include "lapack.h"
+#include <util/logical.h>
+#include <util/integer.h>
+#include <matrix/blas.h>
+
+#include <algorithm>
 
 using std::vector;
+using std::copy;
 
 namespace jags {
 namespace bugs {
@@ -14,14 +19,31 @@ namespace bugs {
     }
 
     double InProd::scalarEval(vector<double const *> const &args,
-			      vector<unsigned int> const &lengths) const
+			      vector<unsigned long> const &lengths) const
     {
-        int one = 1, N = lengths[0];
-        return F77_DDOT(&N, args[0], &one, args[1], &one);
+        int one = 1, N = asInteger(lengths[0]);
+        return jags_ddot(&N, args[0], &one, args[1], &one);
+    }
+
+    bool InProd::hasGradient(unsigned long i) const
+    {
+	return i < 2;
+    }
+    
+    void InProd::gradient(double *grad,
+			  vector <double const *> const &args,
+			  vector<unsigned long> const &lengths,
+			  unsigned long i) const
+    {
+	unsigned long k = (i == 0) ? 1 : 0;
+
+	for (unsigned long j = 0; j < lengths[k]; ++j) {
+	    grad[j] += args[k][j];
+	}
     }
 
     bool 
-    InProd::checkParameterLength (vector<unsigned int> const &lengths) const
+    InProd::checkParameterLength (vector<unsigned long> const &lengths) const
     {
 	return (lengths[0] > 0) && (lengths[0] == lengths[1]);
     }

@@ -40,9 +40,9 @@ LogicalNode* LogicalFactory::newNode(FunctionPtr const &func,
 				     vector<Node const *> const &parents,
 				     unsigned int nchain)
 {
-    LogicalNode *node = 0;
+    LogicalNode *node = nullptr;
     if (SCALAR(func)) {
-	unsigned int arglength = 1;
+	unsigned long arglength = 1;
 	for (unsigned int i = 0; i < parents.size(); ++i) {
 	    if (parents[i]->length() > 1) {
 		if (arglength == 1) {

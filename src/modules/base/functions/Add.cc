@@ -19,6 +19,17 @@ namespace base {
 	}
 	return out;
     }
+
+    bool Add::hasGradient(unsigned long) const
+    {
+	return true;
+    }
+    
+    double Add::gradient(vector<double const *> const &args,
+			 unsigned long i) const
+    {
+	return i < args.size() ? 1 : 0;
+    }
     
     bool Add::isDiscreteValued(vector<bool> const &mask) const
     {
@@ -42,12 +53,12 @@ namespace base {
 	return found;
     }
     
-    bool Add::isLinear(vector<bool> const &mask, vector<bool> const &fix) const
+    bool Add::isLinear(vector<bool> const &, vector<bool> const &) const
     {
 	return true;
     }
 
-    bool Add::isScale(vector<bool> const &mask, vector<bool> const &fix) const
+    bool Add::isScale(vector<bool> const &mask, vector<bool> const &) const
     {
 	return allTrue(mask);
     }

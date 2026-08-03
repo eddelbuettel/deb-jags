@@ -2,10 +2,12 @@
 #include <graph/GraphMarks.h>
 #include <graph/Graph.h>
 #include <graph/StochasticNode.h>
+#include <graph/NodeError.h>
 #include <distribution/DistError.h>
 #include <distribution/Distribution.h>
 #include <util/nainf.h>
 #include <util/dim.h>
+#include <util/logical.h>
 
 #include <vector>
 #include <stdexcept>
@@ -19,6 +21,7 @@ using std::string;
 using std::runtime_error;
 using std::logic_error;
 using std::set;
+using std::array;
 
 namespace jags {
 
@@ -41,7 +44,7 @@ static vector<Node const *> mkParents(vector<Node const *> const &parameters,
     {
 	//Determine whether node is discrete-valued
 	vector<bool> mask(parameters.size());
-	for (unsigned int i = 0; i < parameters.size(); ++i) {
+	for (unsigned long i = 0; i < parameters.size(); ++i) {
 	    mask[i] = parameters[i]->isDiscreteValued();
 	}
 	if (!dist->checkParameterDiscrete(mask)) {
@@ -51,15 +54,31 @@ static vector<Node const *> mkParents(vector<Node const *> const &parameters,
 	return(dist->isDiscreteValued(mask));
     }
 
-StochasticNode::StochasticNode(vector<unsigned int> const &dim,
+    static array<int, 2> mkDepth(vector<Node const *> const &parameters)
+    {
+	// Find maximum stochastic depth of parents
+	int sdmax = 0;
+	for (unsigned long i = 0; i < parameters.size(); ++i) {
+	    int pdepth = parameters[i]->depth()[0];
+	    if (pdepth > sdmax) sdmax = pdepth;
+	}
+	// Stochastic node has stochastic depth one greater than its deepest
+	// parent and deterministic depth zero.
+	array<int, 2> depth = {sdmax + 1, 0};
+	return depth;
+    }
+
+StochasticNode::StochasticNode(vector<unsigned long> const &dim,
 			       unsigned int nchain,
 			       Distribution const *dist,
 			       vector<Node const *> const &parameters,
 			       Node const *lower, Node const *upper)
     : Node(dim, nchain, mkParents(parameters, lower, upper)), 
       _dist(dist), _lower(lower), _upper(upper), 
-      _observed(false), 
-      _discrete(mkDiscrete(dist, parameters)), _parameters(nchain)
+      _discrete(mkDiscrete(dist, parameters)),
+      _depth(mkDepth(parameters)),
+      _parameters(nchain),
+      _observed(getUnique(vector<bool>(_length, false)))
 {
     if (!checkNPar(dist, parameters.size())) {
 	throw DistError(_dist, "Incorrect number of parameters");
@@ -78,7 +97,7 @@ StochasticNode::StochasticNode(vector<unsigned int> const &dim,
     //Set up parameter vectors 
     for (unsigned int n = 0; n < nchain; ++n) {
 	_parameters[n].reserve(parameters.size());
-	for (unsigned int i = 0; i < parameters.size(); ++i) {
+	for (unsigned long i = 0; i < parameters.size(); ++i) {
 	    _parameters[n].push_back(parameters[i]->value(n));
 	}
     }
@@ -86,7 +105,7 @@ StochasticNode::StochasticNode(vector<unsigned int> const &dim,
     //Insert the current node as a child in all its parents
     //taking care to avoid repeats
     set<Node const*> pset;
-    for (unsigned int i = 0; i < parents().size(); ++i) {
+    for (unsigned long i = 0; i < parents().size(); ++i) {
 	Node const *p = parents()[i];
 	if (pset.insert(p).second) {
 	    p->addChild(this);
@@ -99,6 +118,11 @@ StochasticNode::~StochasticNode()
 {
 }
 
+array<int, 2> const & StochasticNode::depth() const
+{
+    return _depth;
+}
+    
 Distribution const *StochasticNode::distribution() const
 {
     return _dist;
@@ -111,17 +135,27 @@ bool StochasticNode::isDiscreteValued() const
 
 bool StochasticNode::isFixed() const
 {
-    return _observed;
+    return allTrue(*_observed);
 }
 
-RVStatus StochasticNode::randomVariableStatus() const
-{
-    return _observed ? RV_TRUE_OBSERVED : RV_TRUE_UNOBSERVED;    
-}	
+    bool StochasticNode::isRandomVariable() const
+    {
+	return true;
+    }
 
+    bool StochasticNode::isObserved(unsigned long i) const
+    {
+	return i < _length && _observed->at(i);
+    }
+
+    vector<bool> const * StochasticNode::observedMask() const
+    {
+	return _observed;
+    }
+    
 string StochasticNode::deparse(vector<string> const &parnames) const
 {
-    unsigned int npar = parnames.size();
+    unsigned long npar = parnames.size();
     if (_upper) --npar;
     if (_lower) --npar;
     if (!checkNPar(_dist, npar)) {
@@ -132,7 +166,7 @@ string StochasticNode::deparse(vector<string> const &parnames) const
 
     string name = _dist->name();
     name.append("(");
-    unsigned int i = 0; 
+    unsigned long i = 0; 
     for ( ; i < npar; ++i) {
 	if (i != 0) {
 	    name.append(",");
@@ -187,14 +221,13 @@ StochasticNode::clone(vector<Node const *> const &parents) const
     
 double const *StochasticNode::lowerLimit(unsigned int chain) const
 {
-    return _lower ? _lower->value(chain) : 0;
+    return _lower ? _lower->value(chain) : nullptr;
 }
 
 double const *StochasticNode::upperLimit(unsigned int chain) const
 {
-    return _upper ? _upper->value(chain) : 0;
+    return _upper ? _upper->value(chain) : nullptr;
 }
-
 
 bool isSupportFixed(StochasticNode const *node)
 {
@@ -209,13 +242,13 @@ bool isSupportFixed(StochasticNode const *node)
     if (node->lowerBound())
 	parents.pop_back();
     vector<bool> fixmask(parents.size());
-    for (unsigned int i = 0; i < parents.size(); ++i) {
+    for (unsigned long i = 0; i < parents.size(); ++i) {
 	fixmask[i] = parents[i]->isFixed();
     }
     return node->distribution()->isSupportFixed(fixmask);
 }
 
-void StochasticNode::support(double *lower, double *upper, unsigned int length,
+void StochasticNode::support(double *lower, double *upper, unsigned long length,
 			     unsigned int chain) const
 {
     if (length != _length) {
@@ -223,7 +256,7 @@ void StochasticNode::support(double *lower, double *upper, unsigned int length,
     }
 
     // Get support without bounds
-    sp(lower, upper, length, chain);
+    sp(lower, upper, chain);
 
     if (_lower || _upper) {
         if (!distribution()->canBound()) {
@@ -231,14 +264,14 @@ void StochasticNode::support(double *lower, double *upper, unsigned int length,
         }
         if (_lower) {
             double const *lb = _lower->value(chain);
-            for (unsigned int i = 0; i < length; ++i) {
+            for (unsigned long i = 0; i < length; ++i) {
                 if (lower[i] < lb[i])
                     lower[i] = lb[i];
             }
         }
         if (_upper) {
             double const *ub = _upper->value(chain);
-            for (unsigned int i = 0; i < length; ++i) {
+            for (unsigned long i = 0; i < length; ++i) {
                 if (upper[i] > ub[i])
                     upper[i] = ub[i];
             }
@@ -251,19 +284,84 @@ bool isBounded(StochasticNode const *node)
     return node->lowerBound() || node->upperBound();
 }
 
-    void StochasticNode::setData(double const *value, unsigned int length)
+bool isObserved(StochasticNode const *node)
+{
+    return anyTrue(*node->observedMask());
+}
+
+bool isParameter(StochasticNode const *node)
+{
+    return anyFalse(*node->observedMask());
+}
+
+    void StochasticNode::setData(double const *value, unsigned long length)
     {
 	for (unsigned int n = 0; n < _nchain; ++n) {
 	    setValue(value, length, n);
 	}
-	_observed = true;
+	
+	vector<bool> mask(length);
+	for (unsigned long i = 0; i < length; ++i) {
+	    mask[i] = !jags_isna(value[i]);
+	}
+	if (anyFalse(mask) && anyTrue(mask) && !_dist->isPartObservable()) {
+	    string msg = string("Distribution ") + _dist->name() + " cannot be partly observed";
+	    throw NodeError(this, msg);
+	}
+	_observed = getUnique(mask);
     }
 
     void StochasticNode::unlinkParents()
     {
-	for (unsigned int i = 0; i < parents().size(); ++i) {
+	for (unsigned long i = 0; i < parents().size(); ++i) {
 	    parents()[i]->removeChild(this);
 	}
     }
+
+bool StochasticNode::fullRank() const
+{
+    return _dist->fullRank() && allFalse(*_observed);
+}
+
+    void StochasticNode::initialize(RNG *rng, unsigned int nrep, unsigned int chain)
+    {
+	this->randomSample(rng, chain);
+	
+	if (nrep == 1) {
+	    return;
+	}
+
+	vector<double> buf(_length);
+	double const *val = this->value(chain);
+	copy(val, val + _length, buf.begin());
+	
+	if (_discrete || _lower || _upper) {
+	    // For discrete or bounded stochastic nodes, take the empirical mode
+	    double ld0 = this->logDensity(chain, PDF_PRIOR);
+	    for (unsigned int i = 1; i < nrep; ++i) {
+		this->randomSample(rng, chain);
+		double ld1 = this->logDensity(chain, PDF_PRIOR);
+		if (ld1 > ld0) {
+		    copy(val, val + _length, buf.begin());
+		    ld0 = ld1;
+		}
+	    }
+	}
+	else {
+	    // For continuous, unbounded notes, take the empirical mean
+	    for (unsigned int i = 1; i < nrep; ++i) {
+		this->randomSample(rng, chain);
+		for (unsigned long j = 0; j < _length; ++j) {
+		    buf[j] += val[j];
+		}
+	    }
+	    for (unsigned long j = 0; j < _length; ++j) {
+		buf[j] /= nrep;
+	    }
+	}
+
+	this->setValue(buf.data(), _length, chain);
+    }
+    
     
 } //namespace jags

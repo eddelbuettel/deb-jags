@@ -2,7 +2,6 @@
 #define COMPILER_H_
 
 #include <compiler/LogicalFactory.h>
-#include <compiler/MixtureFactory.h>
 #include <compiler/CounterTab.h>
 #include <compiler/ObsFuncTab.h>
 #include <distribution/DistTab.h>
@@ -29,6 +28,8 @@ class Compiler;
 
 typedef void (Compiler::*CompilerMemFn) (ParseTree const *);
 
+enum CompilerMode {PERMISSIVE, ENFORCING, COLLECT_UNRESOLVED, CLEAN_UNRESOLVED};
+
 /**
  * @short Creates a BUGSModel from a ParseTree
  */
@@ -37,53 +38,49 @@ class Compiler {
   CounterTab _countertab;
   std::map<std::string, SArray> const &_data_table;
   std::map<std::string, std::vector<bool> > _constant_mask;
-  unsigned int _n_resolved, _n_relations;
-  std::vector<bool> _is_resolved;
-  int _resolution_level;
+  unsigned int _n_resolved, _n_unresolved;
+  std::set<std::pair<ParseTree const *, std::vector<unsigned long> > > _is_resolved;
+  CompilerMode _compiler_mode;
   int _index_expression;
   std::vector<Node*> _index_nodes;
   LogicalFactory _logicalfactory;
-  MixtureFactory _mixfactory1;
-  MixtureFactory _mixfactory2;
-  std::map<std::string, std::vector<int> > _node_array_bounds;
-  std::map<std::pair<std::string, Range>, std::set<int> > _umap;
+  std::map<std::string, std::vector<unsigned long> > _node_array_bounds;
+  std::map<std::pair<std::string, Range>, std::set<unsigned long> > _umap;
   std::set<std::string> _lhs_vars;
-  std::map<std::pair<std::vector<unsigned int>, std::vector<double> >,
+  std::map<std::pair<std::vector<unsigned long>, std::vector<double> >,
       ConstantNode *> _cnode_map;
   
   Node *getArraySubset(ParseTree const *t);
   SimpleRange VariableSubsetRange(ParseTree const *var);
-  Range CounterRange(ParseTree const *var);
+  std::vector<unsigned long>  CounterRange(ParseTree const *var);
   Node* VarGetNode(ParseTree const *var);
   Range getRange(ParseTree const *var,  SimpleRange const &default_range);
-
-  void traverseTree(ParseTree const *relations, CompilerMemFn fun,
-		    bool resetcounter=true, bool reverse=false);
+    void traverseForwards(ParseTree const *relations, CompilerMemFn fun);
+    void traverseBackwards(ParseTree const *relations, CompilerMemFn fun);
   void allocate(ParseTree const *rel);
   Node * allocateStochastic(ParseTree const *stoch_rel);
   Node * allocateLogical(ParseTree const *dtrm_rel);
   void setConstantMask(ParseTree const *rel);
   void writeConstantData(ParseTree const *rel);
-  Node *getLength(ParseTree const *p, SymTab const &symtab);
-  Node *getDim(ParseTree const *p, SymTab const &symtab);
+  Node *evalBuiltinFunction(ParseTree const *p, SymTab const &symtab);
   void getArrayDim(ParseTree const *p);
   bool getParameterVector(ParseTree const *t,
 			  std::vector<Node const *> &parents);
   Node * constFromTable(ParseTree const *p);
   void addDevianceNode();
   Node *getConstant(double value, unsigned int nchain, bool observed);
-  Node *getConstant(std::vector<unsigned int> const &dim, 
+  Node *getConstant(std::vector<unsigned long> const &dim, 
 		    std::vector<double> const &value,
 		    unsigned int nchain, bool observed);
   void getLHSVars(ParseTree const *rel);
 public:
-  bool indexExpression(ParseTree const *t, std::vector<int> &value);
+  bool indexExpression(ParseTree const *t, std::vector<unsigned long> &value);
   BUGSModel &model() const;
   Node * getParameter(ParseTree const *t);
   /**
    * @param model Model to be created by the compiler.
    *
-   * @param datatab Data table, mapping a variable name onto a
+   * @param data_table Data table, mapping a variable name onto a
    * multi-dimensional array of values. This is required since some
    * constant expressions in the BUGS language may depend on data
    * values.
@@ -129,8 +126,6 @@ public:
    * a logical node for a stochastic node when required
    */
   static ObsFuncTab &obsFuncTab();
-  MixtureFactory &mixtureFactory1();
-  MixtureFactory &mixtureFactory2();
 };
 
 } /* namespace jags */

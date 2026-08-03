@@ -14,6 +14,7 @@
 #include <graph/NodeError.h>
 #include <graph/Node.h>
 #include <util/nainf.h>
+#include <util/parallel.h>
 
 #include <fstream>
 #include <sstream>
@@ -23,9 +24,12 @@
 #include <algorithm>
 #include <functional>
 #include <map>
+#include <cmath>
+#include <atomic>
 
 using std::map;
 using std::pair;
+using std::binary_function;
 using std::sort;
 using std::vector;
 using std::list;
@@ -38,9 +42,10 @@ using std::ostringstream;
 using std::stable_sort;
 using std::copy;
 using std::min;
-using std::max;
 using std::reverse;
 using std::find;
+using std::isfinite;
+using std::max;
 
 namespace jags {
 
@@ -84,8 +89,8 @@ static bool checkClosure(vector<Node*> const &nodes)
 }
 
 Model::Model(unsigned int nchain)
-    : _samplers(0), _nchain(nchain), _rng(nchain, 0), _iteration(0),
-      _is_initialized(false), _adapt(false), _data_gen(false)
+    : _samplers(0), _nchain(max(1U, nchain)), _nthread(_nchain), _rng(nchain, nullptr),
+      _iteration(0), _is_initialized(false), _adapt(false), _data_gen(false)
 {
 }
 
@@ -119,15 +124,14 @@ void Model::chooseRNGs()
     //Count number of unassigned RNGs
     unsigned int n  = 0;
     for (unsigned int i = 0; i < _nchain; ++i) {
-	if (_rng[i] == 0)
+	if (_rng[i] == nullptr)
 	    ++n;
     }
 
     vector<RNG*> new_rngs;
-    list<pair<RNGFactory*, bool> >::const_iterator p;
-    for (p = rngFactories().begin(); p != rngFactories().end(); ++p) {
-	if (p->second) {
-	    vector<RNG*> rngs = p->first->makeRNGs(n);
+    for (auto p = rngFactories().begin(); p != rngFactories().end(); ++p) {
+	if ((*p)->isActive()) {
+	    vector<RNG*> rngs = (*p)->makeRNGs(n);
 	    if (rngs.size() > n) {
 		throw logic_error("Too many rngs produced by RNG factory");
 	    }
@@ -148,14 +152,14 @@ void Model::chooseRNGs()
     else {
 	unsigned int j = 0;
 	for (unsigned int i = 0; i < _nchain; ++i) {
-	    if (_rng[i] == 0) {
+	    if (_rng[i] == nullptr) {
 		_rng[i] = new_rngs[j++];
 	    }
 	}
     }
 }
 
-void Model::initialize(bool datagen)
+void Model::initialize(bool datagen, unsigned int nrep_root, unsigned int nrep_internal)
 {
     if (_is_initialized)
 	throw logic_error("Model already initialized");
@@ -167,7 +171,7 @@ void Model::initialize(bool datagen)
     chooseRNGs();
 
     //Initialize nodes
-    initializeNodes();
+    initializeNodes(nrep_root, nrep_internal);
     
     // Choose Samplers
     chooseSamplers();
@@ -175,7 +179,6 @@ void Model::initialize(bool datagen)
     if (datagen) {
 	//All extra nodes are sampled
 	_sampled_extra = _extra_nodes;
-	_data_gen = true;
     }
 
     // Switch to adaptive mode if we find an adaptive sampler
@@ -189,35 +192,80 @@ void Model::initialize(bool datagen)
     _is_initialized = true;
 }
 
-void Model::initializeNodes()
-{
-    vector<Node*>::const_iterator i;
-    for (i = _nodes.begin(); i != _nodes.end(); ++i) {
-	Node *node = *i;
-	for (unsigned int n = 0; n < _nchain; ++n) {
-	    if (!node->checkParentValues(n)) {
-		throw NodeError(node, "Invalid parent values");
-	    }
-	    if (!node->initialize(n)) {
-		throw NodeError(node, "Initialization failure");
-	    } 
-	}
-    }
-}
+
+  void Model::initializeNodes(unsigned int nrep_root, unsigned int nrep_internal) {
+
+      /* Skip initialization of non-informative nodes (i.e. those
+       * without an observed descendant. This preserves compatibility
+       * with JAGS 4 for models with no informative nodes so that such
+       * models simulate the same data in JAGS 4 and JAGS 5 See CRAN
+       * package sims, which relies on this. */
+
+      Graph graph;
+      for (auto p = _nodes.begin(); p != _nodes.end(); ++p) {
+	  graph.insert(*p);
+      }
+
+      vector<Node const*> observations;
+      for (auto p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
+	  if (isObserved(*p)) {
+	      observations.push_back(*p);
+	  }
+      }
+      GraphMarks informative(graph);
+      informative.markAncestors(observations, 1);
+         
+      for (auto i = _nodes.begin(); i != _nodes.end(); ++i) {
+
+	  Node * const node = *i;
+	  if (informative.mark(*i) == 0) continue; // Not informative
+	  
+	  for (unsigned int n = 0; n < _nchain; ++n) {
+
+	      double const *value = node->value(n);
+	      bool initialized = true;
+	      for (unsigned long i = 0; i < node->length(); ++i) {		
+		  if (jags_isna(value[i])) {
+		      initialized = false;
+		  }
+		  else if (node->isDiscreteValued()) {
+		      if (isfinite(value[i]) && value[i] != floor(value[i])) {
+			  throw NodeError(node, "Discrete-valued node has non-integer value at model initialization");
+		      }
+		  }
+	      }
+
+	      if (!initialized) {
+
+		  if (!node->checkParentValues(n)) {
+		      throw NodeError(node, "Invalid parent values at model initialization");
+		  }
+
+		  if (node->isStochastic()) {
+		      unsigned int nrep = (node->depth()[0] <= 1) ? nrep_root : nrep_internal;
+		      node->initialize(_rng[n], nrep, n);
+		  }
+		  else {
+		      node->initialize(_rng[n], 1U, n);
+		  }
+	      }
+	  }
+      }
+  }
 
 struct less_sampler {  
     /* 
        Comparison operator for Samplers which sorts them in 
        order according to the supplied sampler map
     */
-    map<Sampler const*, unsigned int>  const & _sampler_map;
+    map<Sampler const*, unsigned long>  const & _sampler_map;
 
-    less_sampler(map<Sampler const*, unsigned int> const &sampler_map) 
-	: _sampler_map(sampler_map) {};
+    less_sampler(map<Sampler const*, unsigned long> const &sampler_map) 
+	: _sampler_map(sampler_map) {}
 
     bool operator()(Sampler const *x, Sampler const *y) const {
 	return _sampler_map.find(x)->second < _sampler_map.find(y)->second;
-    };
+    }
 
 };
 
@@ -253,44 +301,37 @@ void Model::chooseSamplers()
     }
     marks.markAncestors(informative, 1);
 
-    for (p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
-	if (isObserved(*p)) {
-	    marks.mark(*p, 2);
-	}
-    }
-
     //Triage on marked nodes. We do this twice: once for stochastic
     //nodes and once for all nodes.
 
     list<StochasticNode*> slist; //List of nodes to be sampled
     for(p = _stochastic_nodes.begin(); p != _stochastic_nodes.end(); ++p) {
-	if (marks.mark(*p) == 1) {
-	    //Unobserved stochastic nodes: to be sampled
+	if (marks.mark(*p) == 1 && isParameter(*p)) {
+	    //Unobserved or partially observed stochastic nodes: to be sampled
 	    slist.push_back(*p); 
 	}
     }
-
+    
     for (vector<Node*>::const_iterator j = _nodes.begin();
 	 j != _nodes.end(); ++j) 
     {
-	switch(marks.mark(*j)) {
-	case 0:
-	    _extra_nodes.push_back(*j);
-	    break;
-	case 1: case 2:
+	if (marks.mark(*j)) {
+	    //Informative nodes
 	    sample_graph.insert(*j);
-	    break;
+	}
+	else {
+	    _extra_nodes.push_back(*j);
 	}
     }
 
     // Traverse the list of samplers, selecting nodes that can be sampled
-    list<pair<SamplerFactory *, bool> > const &sf = samplerFactories();
-    for(list<pair<SamplerFactory *, bool> >::const_iterator q = sf.begin();
+    list<SamplerFactory *> const &sf = samplerFactories();
+    for(list<SamplerFactory *>::const_iterator q = sf.begin();
 	q != sf.end(); ++q) 
     {
-	if (!q->second) continue;
+	if (!(*q)->isActive()) continue;
 
-	vector<Sampler*> svec = q->first->makeSamplers(slist, sample_graph);
+	vector<Sampler*> svec = (*q)->makeSamplers(slist, sample_graph);
 	while (!svec.empty()) {
 	    for (unsigned int i = 0; i < svec.size(); ++i) {
 
@@ -298,16 +339,16 @@ void Model::chooseSamplers()
 		for (unsigned int j = 0; j < nodes.size(); ++j) {
 		    /* FIXME: This is a potential bottleneck if slist
 		       is large */
-		    list<StochasticNode*>::iterator p = 
+		    list<StochasticNode*>::iterator r = 
 			find(slist.begin(), slist.end(), nodes[j]);
-		    if (p == slist.end()) {
+		    if (r == slist.end()) {
 			throw logic_error("Unable to find sampled node");
 		    }
-		    slist.erase(p);
+		    slist.erase(r);
 		}
 		_samplers.push_back(svec[i]);
 	    }
-	    svec = q->first->makeSamplers(slist, sample_graph);
+	    svec = (*q)->makeSamplers(slist, sample_graph);
 	}
     }
   
@@ -331,18 +372,18 @@ void Model::chooseSamplers()
 
     // Create a map associating each sampler with the minimal index
     // of its sampled nodes.
-    map<Sampler const *, unsigned int> sampler_map;
+    map<Sampler const *, unsigned long> sampler_map;
     for (unsigned int i = 0; i < _samplers.size(); ++i) {
-	unsigned int min_index = _stochastic_nodes.size();
+	unsigned long min_index = _stochastic_nodes.size();
 	vector<StochasticNode*> const &snodes = _samplers[i]->nodes();
 	for (unsigned int j = 0; j < snodes.size(); ++j) {
-	    map<StochasticNode const*, unsigned int>::const_iterator p 
+	    map<StochasticNode const*, unsigned int>::const_iterator q 
 		= snode_map.find(snodes[j]);
-	    if (p == snode_map.end()) {
+	    if (q == snode_map.end()) {
 		throw logic_error("Invalid stochastic node map");
 	    }
-	    if (p->second < min_index) {
-		min_index = p->second;
+	    if (q->second < min_index) {
+		min_index = q->second;
 	    }
 	}
 	sampler_map[_samplers[i]] = min_index;
@@ -357,25 +398,32 @@ void Model::update(unsigned int niter)
     if (!_is_initialized) {
 	throw logic_error("Attempt to update uninitialized model");
     }
+      
+    for (unsigned int iter = 0; iter < niter; ++iter) {
 
-    for (unsigned int iter = 0; iter < niter; ++iter) {    
+	/*
+	  parallel_for is defined in <util/parallel.h>. Here it is used to run
+	  chains in parallel using either an OpenMP backend (Linux, Windows) or
+	  GCD (macOS). The parallel_for function is exception safe and will
+	  rethrow exceptions caught by individual threads.
+	*/
+	parallel_for(
+	    0,
+	    _nchain,
+	    [&](size_t n) {
+		for (auto i = _samplers.begin(); i != _samplers.end(); ++i) {
+		    (*i)->update(n, _rng[n]);
+		}
+		
+		for (auto k = _sampled_extra.begin(); k != _sampled_extra.end(); ++k) {
+		    if (!(*k)->checkParentValues(n)) {
+			throw NodeError(*k, "Invalid parent values");
+		    }
+		    (*k)->randomSample(_rng[n], n);
+		}
+	    },
+	    _nthread);
 	
-	for (vector<Sampler*>::iterator i = _samplers.begin(); 
-	     i != _samplers.end(); ++i) 
-	{
-	    (*i)->update(_rng);
-	}
-
-	for (unsigned int n = 0; n < _nchain; ++n) {
-	    for (vector<Node*>::const_iterator k = _sampled_extra.begin();
-		 k != _sampled_extra.end(); ++k)
-	    {
-                if (!(*k)->checkParentValues(n)) {
-                     throw NodeError(*k, "Invalid parent values");
-                }
-		(*k)->randomSample(_rng[n], n);
-	    }
-	}
 	_iteration++;
 
 	for (list<MonitorControl>::iterator k = _monitors.begin(); 
@@ -383,8 +431,8 @@ void Model::update(unsigned int niter)
 	{
 	    k->update(_iteration);
 	}
-    }
 
+    }
 }
 
 unsigned int Model::iteration() const
@@ -470,20 +518,21 @@ void Model::setSampledExtra()
     }
 }
 
-void Model::addMonitor(Monitor *monitor, unsigned int thin)
+void Model::addMonitor(Monitor *monitor, unsigned int thin,
+		       string const &name, Range const &range,
+		       string const &stat, string const &summary)
 {
     if (_adapt) {
 	throw runtime_error("Turn off adaptive mode before setting monitors");
     }
-    
-    _monitors.push_back(MonitorControl(monitor, _iteration+1, thin));
+
+    _monitors.push_back(MonitorControl(monitor, _iteration+1, thin, name, range, stat, summary));
     setSampledExtra();
 }
 
 void Model::removeMonitor(Monitor *monitor)
 {
-    for(list<MonitorControl>::iterator p = _monitors.begin();
-	p != _monitors.end(); ++p)
+    for(auto p = _monitors.begin(); p != _monitors.end(); ++p)
     {
 	if (p->monitor() == monitor) {
 	    _monitors.erase(p);
@@ -508,30 +557,43 @@ void Model::removeMonitor(Monitor *monitor)
    lookup tables used by the compiler.
 */
 
-list<pair<SamplerFactory *, bool> > &Model::samplerFactories()
+list<SamplerFactory *> &Model::samplerFactories()
 {
-    static list<pair<SamplerFactory *, bool> > *_samplerfac =
-	new list<pair<SamplerFactory *, bool> >();
+    static auto * _samplerfac =	new list<SamplerFactory *>;
     return *_samplerfac;
 }
 
-list<pair<RNGFactory *, bool> > &Model::rngFactories()
+list<RNGFactory *> &Model::rngFactories()
 {
-    static list<pair<RNGFactory *, bool> > *_rngfac =
-	new list<pair<RNGFactory *, bool> >();
+    static auto * _rngfac = new list<RNGFactory *>;
     return *_rngfac;
 }
 
-list<pair<MonitorFactory *, bool> > &Model::monitorFactories()
+list<MonitorFactory *> &Model::monitorFactories()
 {
-    static list<pair<MonitorFactory *, bool> > *_monitorfac =
-	new list<pair<MonitorFactory*,bool> >();
+    static auto * _monitorfac =	new list<MonitorFactory*>;
     return *_monitorfac;
 }
 
 unsigned int Model::nchain() const
 {
   return _nchain;
+}
+
+unsigned int Model::nthread() const
+{
+#ifdef _OPENMP
+    return _nthread;
+#else
+    return 1U;
+#endif
+}
+
+void Model::setNThread(unsigned int nthread)
+{
+#ifdef _OPENMP
+    _nthread = nthread;
+#endif
 }
 
 RNG *Model::rng(unsigned int chain) const
@@ -544,10 +606,9 @@ bool Model::setRNG(string const &name, unsigned int chain)
   if (chain >= _nchain)
      throw logic_error("Invalid chain number in Model::setRNG");
 
-  list<pair<RNGFactory*, bool> >::const_iterator p;
-  for (p = rngFactories().begin(); p != rngFactories().end(); ++p) {
-      if (p->second) {
-	  RNG *rng = p->first->makeRNG(name);
+  for (auto p = rngFactories().begin(); p != rngFactories().end(); ++p) {
+      if ((*p)->isActive()) {
+	  RNG *rng = (*p)->makeRNG(name);
 	  if (rng) {
 	      /* NO! RNGs are owned by the factory, not the model
 	      if (_rng[chain])

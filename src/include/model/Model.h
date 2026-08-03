@@ -30,6 +30,7 @@ protected:
   std::vector<Sampler*> _samplers;
 private:
   unsigned int _nchain;
+  unsigned int _nthread; 
   std::vector<RNG *> _rng;
   unsigned int _iteration;
   std::vector<Node*> _nodes;
@@ -40,7 +41,7 @@ private:
   bool _is_initialized;
   bool _adapt;
   bool _data_gen;
-  void initializeNodes();
+  void initializeNodes(unsigned int nrep_root, unsigned int nrep_internal);
   void chooseRNGs();
   void chooseSamplers();
   void setSampledExtra();
@@ -68,9 +69,21 @@ public:
    * redundant updates.  If true, then all nodes in the graph will be
    * updated in each iteration.
    *
+   * @param nrep_root Number of replicates to use at initialization
+   * for root parameters (i.e. unobserved stochastic nodes with
+   * stochastic depth of 1). If an initial value is not provided, it
+   * will be generated from nrep_root samples from the prior
+   * distribution.
+   *
+   * @param nrep_internal Number of replicates to use at
+   * initialization for internal parameters (i.e. unobserved
+   * stochastic nodes with stochastic depth greater than 1). If an
+   * initial value is not provided, it will be generated from the mean
+   * of nrep_internal samples from the prior distribution.
+   *
    * @see Node#initialize, Model#rngFactories
    */
-  void initialize(bool datagen);
+  void initialize(bool datagen, unsigned int nrep_root, unsigned int nrep_internal);
   /** Returns true if the model has been initialized */
   bool isInitialized();
   /**
@@ -89,7 +102,9 @@ public:
    * iteration.  This can only be done if Model#adaptOff has been
    * successfully called. Otherwise, a logic_error is thrown.
    */
-  void addMonitor(Monitor *monitor, unsigned int thin);
+  void addMonitor(Monitor *monitor, unsigned int thin,
+		  std::string const &name, Range const &range,
+		  std::string const &stat, std::string const &summary);
   /**
    * Clears the monitor from the model, so that it will no longer
    * be updated. If the monitor has not previously been added to the
@@ -123,22 +138,17 @@ public:
   /**
    * Access the list of sampler factories, which is common to all
    * models. This is used during initialization to choose samplers.
-   * Each sampler factory is paired with a boolean flag which is used
-   * to determine whether the factory is active or not
    */
-  static std::list<std::pair<SamplerFactory *, bool> > &samplerFactories();
+  static std::list<SamplerFactory *> &samplerFactories();
   /**
    * Access the list of RNG factories, which is common to all models.
-   * Each factory is paired with a boolean flag which is used to determine
-   * whether the factory is active or not.
    */
-  static std::list<std::pair<RNGFactory *, bool> > &rngFactories();
+  static std::list<RNGFactory *> &rngFactories();
   /**
-   * Access the list of monitor factories, which is commmon to all models
-   * Each factory is paired with a boolean flag which is used to determine
-   * whether the factory is active or not.
+   * Access the list of monitor factories, which is commmon to all
+   * models.
    */
-  static std::list<std::pair<MonitorFactory *, bool> > &monitorFactories();
+  static std::list<MonitorFactory *> &monitorFactories();
   /**
    * Returns the number of chains in the model
    */
@@ -188,6 +198,14 @@ public:
    * Returns a vector of all nodes in the model
    */ 
   std::vector<Node*> const &nodes() const;
+  /**
+   * Returns the number of threads for parallel computing
+   */
+  unsigned int nthread() const;
+  /**
+   * Sets the number of threads for parallel updating
+   */
+  void setNThread(unsigned int nthread);
 };
 
 } /* namespace jags */

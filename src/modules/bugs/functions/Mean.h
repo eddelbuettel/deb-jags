@@ -19,9 +19,15 @@ namespace bugs {
     public:
 	Mean ();
 	double scalarEval(std::vector<double const *> const &args,
-			  std::vector<unsigned int> const &dims) const;
+			  std::vector<unsigned long> const &lengths)
+	    const override;
+	bool hasGradient(unsigned long i) const override;
+	void gradient(double *grad,
+		      std::vector<double const *> const &args,
+		      std::vector<unsigned long> const &lengths,
+		      unsigned long i) const override;
 	bool isScale(std::vector<bool> const &mask,
-		     std::vector<bool> const &fix) const;
+		     std::vector<bool> const &fix) const override;
     };
 
 }}

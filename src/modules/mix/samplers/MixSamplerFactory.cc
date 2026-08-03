@@ -13,8 +13,8 @@ using std::list;
 using std::vector;
 using std::string;
 
-#define NLEVEL 200
-#define MAX_TEMP 100
+#define NLEVEL 100
+#define MAX_TEMP 25
 #define NREP 5
 
 namespace jags {
@@ -35,7 +35,7 @@ static SingletonGraphView * isCandidate(StochasticNode *snode,
 	}
     }
     delete gv;
-    return 0;
+    return nullptr;
 }
 
 /*
@@ -78,7 +78,7 @@ namespace mix {
 	    }
 	}
 	if (gvec.empty())
-	    return 0;
+	    return nullptr;
 
 	vector<StochasticNode *> sample_nodes;
 	set<StochasticNode const *> common_children;
@@ -90,14 +90,14 @@ namespace mix {
 	if (NormMix::canSample(sample_nodes)) {
 	    GraphView *gv = new GraphView(sample_nodes, graph, true);
 	    unsigned int nchain = sample_nodes[0]->nchain();
-	    vector<MutableSampleMethod*> methods(nchain,0);	    
+	    vector<MutableSampleMethod*> methods(nchain, nullptr);	    
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
 		methods[ch] = new NormMix(gv, ch, NLEVEL, MAX_TEMP, NREP);
 	    }
 	    return new MutableSampler(gv, methods, "mix::NormMix");		
 	}
 	else {
-	    return 0;
+	    return nullptr;
 	}
     }
 

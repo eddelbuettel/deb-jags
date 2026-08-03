@@ -47,17 +47,18 @@ enum PDFType {PDF_FULL, PDF_PRIOR, PDF_LIKELIHOOD};
 class Distribution
 {
     const std::string _name;
-    const unsigned int _npar;
+    const unsigned long _npar;
 public:
     /**
      * Constructor.
+     *
      * @param name name of the distribution as used in the BUGS language
      * @param npar number of parameters, excluding upper and lower bounds
      */
-    Distribution(std::string const &name, unsigned int npar);
+    Distribution(std::string const &name, unsigned long npar);
     virtual ~Distribution();
     /**
-     * @returns the BUGS language name of the distribution
+     * Returns the BUGS language name of the distribution
      */
     std::string const &name() const;
     /**
@@ -77,7 +78,7 @@ public:
     /**
      * Returns the number of parameters of the distribution
      */
-    unsigned int npar() const;
+    unsigned long npar() const;
     /**
      * Some distributions require some of the parameters to be discrete
      * valued. As most distributions do not require discrete valued paremeters,
@@ -139,12 +140,48 @@ public:
      * implementation returns false.
      */
     virtual bool canBound() const;
+    /**
+     * Indicates whether the distribution is of full rank.  Most
+     * distributions are of full rank so the default method returns
+     * true. Distributions that have constraint on the supported
+     * values (e.g. multinomial, Dirichlet, Wishart) must override
+     * this method. In addition, observable functions (e.g. sum,
+     * dinterval) must also override it.
+     *
+     * This function is used by StochasticNode#fullRank
+     */
+    virtual bool fullRank() const;
+    /**
+     * Indicates whether the distribution can be partly observed.
+     * The default implementation returns false.
+     */
+    virtual bool isPartObservable() const;
+    /**
+     * Returns true if the (log) density of the distribution is
+     * differentiable with respect to its ith parameter. The default
+     * implementation returns false.  Distributions with
+     * differentiable density functions must override this member
+     * function.
+     *
+     * If this function returns true then it guarantees that the
+     * functions ScalarDist#score, VectorDist#score, and
+     * ArrayDist#score will correctly calculate the gradient of the
+     * function.
+     *
+     * False negatives are allowed, i.e. this function may return
+     * false even if the score function exists. This means that the
+     * corresponding score function is not implemented.
+     *
+     * @param i Index of the parameter to take the derivative
+     * (starting from zero).
+     */
+    virtual bool hasScore(unsigned long i) const;
 };
 
 /**
  * Checks that the distribution accepts npar parameters
  */
-inline bool checkNPar(Distribution const *dist, unsigned int npar)
+inline bool checkNPar(Distribution const *dist, unsigned long npar)
 {
     return (dist->npar() == 0 && npar > 0) ||  dist->npar() == npar;
 }

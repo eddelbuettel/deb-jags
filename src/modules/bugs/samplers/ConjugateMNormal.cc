@@ -8,13 +8,15 @@
 #include <sampler/Linear.h>
 #include <sampler/SingletonGraphView.h>
 #include <module/ModuleError.h>
-
-#include "lapack.h"
+#include <util/integer.h>
+#include <matrix/blas.h>
+#include <matrix/lapack.h>
 
 #include <set>
 #include <vector>
 #include <cmath>
 #include <string>
+#include <algorithm>
 
 #include "ConjugateMNormal.h"
 #include "DMNorm.h"
@@ -26,33 +28,86 @@ using std::vector;
 using std::set;
 using std::sqrt;
 using std::string;
+using std::count;
 
 namespace jags {
 namespace bugs {
 
+    /* 
+       Sample partially observed multivariate normal.
+    */
+    static int MNormSample(vector<double> &x,
+			   vector<double> &b, vector<double> &A,
+			   vector<bool> const &observed, RNG *rng)
+    {
+	unsigned long nrow = x.size();
+	unsigned long nfree = count(observed.begin(), observed.end(), false);
+
+	if (nfree < nrow) {
+	    //Pack the leading parts of matrix A and vector b with
+	    //elements corresponding to the free elements of x
+	    for (unsigned long i = 0, p = 0; i < nrow; ++i) {
+		if (!observed[i]) {
+		    for (unsigned long j = 0, q = 0; j < nrow; ++j) {
+			if (!observed[j]) {
+			    A[p * nrow + q++] = A[i * nrow + j];
+			}
+		    }
+		    b[p++] = b[i];
+		}
+	    }
+	}
+
+	int one = 1;
+	int info = 0;
+	int nf = asInteger(nfree);
+	int nr = asInteger(nrow);
+
+	//Solve A %*% x = b to get the posterior mean. The solution
+	//will be in b after the call to dposv.
+	jags_dposv("L", &nf, &one, A.data(), &nr, b.data(), &nr, &info);
+	if (info != 0) return info;
+	
+	//After dposv, the leading nfree x nfree lower triangle of A
+	//holds the Cholesky factorization. Use it to generate a
+	//multivariate normal random vector with mean 0 and precision A
+	vector<double> eps(nfree);
+	for (unsigned long p = 0; p < nfree; ++p) {
+	    eps[p] = rng->normal();
+	}
+	jags_dtrsv("L", "T", "N", &nf, A.data(), &nr, eps.data(), &one);
+		  
+	// Copy back sampled values
+	for (unsigned long i = 0, p = 0; i < nrow; ++i) {
+	    if (!observed[i]) {
+		x[i] += b[p] + eps[p];
+		++p;
+	    }
+	}
+	return info;
+    }
+    
 static void calBeta(double *betas, SingletonGraphView const *gv,
                     unsigned int chain)
 {
     StochasticNode *snode = gv->node();
     double const *xold = snode->value(chain);
-    unsigned int nrow = snode->length();
+    unsigned long nrow = snode->length();
 
-    double *xnew = new double[nrow];
-    for (unsigned int i = 0; i < nrow; ++i) {
-	xnew[i] = xold[i];
-    }
+    vector<double> xnew(nrow);
+    copy(xold, xold + nrow, xnew.begin());
 
     vector<StochasticNode *> const &stoch_children = 
         gv->stochasticChildren();
 
     unsigned long nchildren = stoch_children.size();
     double *beta_j = betas;
-    for (unsigned int j = 0; j < nchildren; ++j) {
+    for (unsigned long j = 0; j < nchildren; ++j) {
 	StochasticNode const *schild = stoch_children[j];
 	double const *mu = schild->parents()[0]->value(chain);
-	unsigned int nrow_child = schild->length();
-	for (unsigned int k = 0; k < nrow_child; ++k) {
-	    for (unsigned int i = 0; i < nrow; ++i) {
+	unsigned long nrow_child = schild->length();
+	for (unsigned long k = 0; k < nrow_child; ++k) {
+	    for (unsigned long i = 0; i < nrow; ++i) {
 		beta_j[nrow * k + i] = -mu[k];
 	    }
 	}
@@ -61,22 +116,20 @@ static void calBeta(double *betas, SingletonGraphView const *gv,
 
     for (unsigned int i = 0; i < nrow; ++i) {
 	xnew[i] += 1;
-	gv->setValue(xnew, nrow, chain);
+	gv->setValue(xnew, chain);
 	beta_j = betas;
-	for (unsigned int j = 0; j < nchildren; ++j) {
+	for (unsigned long j = 0; j < nchildren; ++j) {
 	    StochasticNode const *schild = stoch_children[j];
 	    double const *mu = schild->parents()[0]->value(chain);
-	    unsigned int nrow_child = schild->length();
-	    for (unsigned int k = 0; k < nrow_child; ++k) {
+	    unsigned long nrow_child = schild->length();
+	    for (unsigned long k = 0; k < nrow_child; ++k) {
 		beta_j[nrow * k + i] += mu[k];
 	    }
 	    beta_j += nrow_child * nrow;
 	}
 	xnew[i] -= 1;
     }
-    gv->setValue(xnew, nrow, chain);
-
-    delete [] xnew;
+    gv->setValue(xnew, chain);
 }
 
 static unsigned int sumChildrenLength(SingletonGraphView const *gv)
@@ -92,11 +145,10 @@ static unsigned int sumChildrenLength(SingletonGraphView const *gv)
 }
 
 ConjugateMNormal::ConjugateMNormal(SingletonGraphView const *gv)
-    : ConjugateMethod(gv), _betas(0), 
+    : ConjugateMethod(gv), _betas(nullptr), 
       _length_betas(sumChildrenLength(gv) * gv->length())
 {
-    if(!gv->deterministicChildren().empty() && checkLinear(gv, true))
-    {
+    if(checkLinear(gv, true)) {
 	_betas = new double[_length_betas];
 	calBeta(_betas, gv, 0);
     }
@@ -142,13 +194,13 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 {
     vector<StochasticNode *> const &stoch_children = 
           _gv->stochasticChildren();
-    unsigned int nchildren = stoch_children.size();
+    unsigned long nchildren = stoch_children.size();
     
     StochasticNode *snode = _gv->node();
     double const *xold = snode->value(chain);
     double const *priormean = snode->parents()[0]->value(chain); 
     double const *priorprec = snode->parents()[1]->value(chain);
-    int nrow = snode->length();
+    unsigned long nrow = snode->length();
     /* 
        The log of the full conditional density takes the form
        -1/2(t(x) %*% A %*% x - 2 * b %*% x)
@@ -156,17 +208,15 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
        For computational convenience, we reset the origin to xold,
        the current value of the node.
     */
-    int N = nrow * nrow;
-    double *b = new double[nrow];
-    double *A = new double[N];
-    for (int i = 0; i < nrow; ++i) {
-	b[i] = 0;
-	for (int i2 = 0; i2 < nrow; ++i2) {
-	    b[i] += priorprec[i * nrow + i2] * (priormean[i2] - xold[i2]);
+    unsigned long N = nrow * nrow;
+    vector<double> A(N);
+    copy(priorprec, priorprec + N, A.begin());
+
+    vector<double> b(nrow, 0);
+    for (unsigned long i = 0; i < nrow; ++i) {
+	for (unsigned long j = 0; j < nrow; ++j) {
+	    b[i] += priorprec[i * nrow + j] * (priormean[j] - xold[j]);
 	}
-    }
-    for (int i = 0; i < N; ++i) {
-	A[i] = priorprec[i];
     }
     
     /* FORTRAN routines are all call-by-reference, so we need to create
@@ -174,35 +224,35 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
     double zero = 0;
     double d1 = 1;
     int i1 = 1;
-
+    
     if (_gv->deterministicChildren().empty()) {
       
 	// This can only happen if the stochastic children are all
 	// multivariate normal with the same number of rows and 
 	// columns. We know alpha = 0, beta = I.
 
-	double *delta = new double[nrow]; 
+	vector<double> delta(nrow);
 
-	for (unsigned int j = 0; j < nchildren; ++j) {
+	int Ni = asInteger(N);
+	int ni = asInteger(nrow);
+
+	for (unsigned long j = 0; j < nchildren; ++j) {
 	    double const *Y = stoch_children[j]->value(chain);
 	    double const *tau = stoch_children[j]->parents()[1]->value(chain);
 	    double alpha = 1;
-	
-	    F77_DAXPY (&N, &alpha, tau, &i1, A, &i1);
-	    for (int i = 0; i < nrow; ++i) {
+
+	    jags_daxpy (&Ni, &alpha, tau, &i1, A.data(), &i1);
+	    for (unsigned long i = 0; i < nrow; ++i) {
 		delta[i] = Y[i] - xold[i];
 	    }
-	    F77_DGEMV ("N", &nrow, &nrow, &alpha, tau, &nrow, delta, &i1,
-		       &d1, b, &i1);
+	    jags_dgemv ("N", &ni, &ni, &alpha, tau, &ni, delta.data(), &i1,
+		       &d1, b.data(), &i1);
 	}
-
-	delete [] delta;
-	
     }
     else {
 	
-	bool temp_beta = (_betas == 0);
-        double *betas = 0;
+	bool temp_beta = (_betas == nullptr);
+        double *betas = nullptr;
 	if (temp_beta) {
 	    betas = new double[_length_betas];
 	    calBeta(betas, _gv, chain);
@@ -212,17 +262,17 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
         }
 
 	//Calculate largest possible size of working matrix C
-	unsigned int max_nrow_child = 0;
-	for (unsigned int j = 0; j < nchildren; ++j) {
-	    unsigned int nrow_j = stoch_children[j]->length();
+	unsigned long max_nrow_child = 0;
+	for (unsigned long j = 0; j < nchildren; ++j) {
+	    unsigned long nrow_j = stoch_children[j]->length();
 	    if (nrow_j > max_nrow_child) max_nrow_child = nrow_j;
 	}
-	double *C = new double[nrow * max_nrow_child];
-	double *delta = new double[max_nrow_child];
+	vector<double> C(nrow * max_nrow_child);
+	vector<double> delta(max_nrow_child);
 	
 	/* Now add the contribution of each term to A, b 
 	   
-	   b += N_j * beta_j %*% tau_j (Y_j - mu_j)
+	   b += N_j * beta_j %*% tau_j %*% (Y_j - mu_j)
 	   A += N_j * beta_j %*% tau_j %*% t(beta_j)
 
 	   where 
@@ -236,84 +286,54 @@ void ConjugateMNormal::update(unsigned int chain, RNG *rng) const
 
 	 */
 	double const *beta_j = betas;
-	for (unsigned int j = 0; j < nchildren; ++j) {
+	for (unsigned long j = 0; j < nchildren; ++j) {
 	    
 	    StochasticNode const *schild = stoch_children[j];
 	    double const *Y = schild->value(chain);
 	    double const *mu = schild->parents()[0]->value(chain);
 	    double const *tau = schild->parents()[1]->value(chain);
-	    int nrow_child = schild->length();
+	    unsigned long nrow_child = schild->length();
 
+	    int ni = asInteger(nrow);
+	    
 	    if (nrow_child == 1) {
-
+		// Scalar children: normal
 		double alpha = tau[0];
-		F77_DSYR("L", &nrow, &alpha, beta_j, &i1, A, &nrow);
+		jags_dsyr("L", &ni, &alpha, beta_j, &i1, A.data(), &ni);
 		alpha *= (Y[0] - mu[0]);
-		F77_DAXPY(&nrow, &alpha, beta_j, &i1, b, &i1);
-
+		jags_daxpy(&ni, &alpha, beta_j, &i1, b.data(), &i1);
 	    }
 	    else {
-
+		// Vector children: multivariate normal
 		double alpha = 1;
+		int nc = asInteger(nrow_child);
 
-		F77_DSYMM("R", "L", &nrow, &nrow_child, &alpha, tau,
-                          &nrow_child, beta_j, &nrow, &zero, C, &nrow);
+		jags_dsymm("R", "L", &ni, &nc, &alpha, tau,
+			   &nc, beta_j, &ni, &zero, C.data(), &ni);
 
-		for (int i = 0; i < nrow_child; ++i) {
+		for (unsigned int i = 0; i < nrow_child; ++i) {
 		    delta[i] = Y[i] - mu[i];
 		}
-		
-		F77_DGEMV("N", &nrow, &nrow_child, &d1, C, &nrow,
-			  delta, &i1, &d1, b, &i1);
-		F77_DGEMM("N","T", &nrow, &nrow, &nrow_child,
-			  &d1, C, &nrow, beta_j, &nrow, &d1, A, &nrow);
+		jags_dgemv("N", &ni, &nc, &d1, C.data(), &ni,
+			   delta.data(), &i1, &d1, b.data(), &i1);
+		jags_dgemm("N","T", &ni, &ni, &nc,
+			   &d1, C.data(), &ni, beta_j, &ni, &d1, A.data(), &ni);
 	    }
 	       
 	    beta_j += nrow_child * nrow;
 	}
 
-	delete [] C;
-	delete [] delta;
-
 	if (temp_beta) {
 	    delete [] betas;
 	}
     }
+   
+    vector<double> xnew(nrow);
+    copy(xold, xold + nrow, xnew.begin());
 
-
-    /* 
-       Solve the equation A %*% x = b to get the posterior mean.
-       We have to take a copy of A as it is overwritten during
-       the call to DPOSV. The result is stored in b
-    */
-    double * Acopy = new double[N];
-    for (int i = 0; i < N; ++i) {
-	Acopy[i] = A[i];
-    }
-    int one = 1;
-    int info;
-    F77_DPOSV ("L", &nrow, &one, Acopy, &nrow, b, &nrow, &info);
-    if (info != 0) {
-	delete [] Acopy;
-	delete [] A;
-	delete [] b;
-	throwNodeError(snode,
-		       "unable to solve linear equations in ConjugateMNormal");
-    }
-
-    //Shift origin back to original scale
-    for (int i = 0; i < nrow; ++i) {
-	b[i] += xold[i];
-    }
-    double *xnew = new double[nrow];
-    //NB. This uses the lower triangle of A
-    DMNorm::randomsample(xnew, b, A, true, nrow, rng);
-    _gv->setValue(xnew, nrow, chain);
-
-    delete [] A;
-    delete [] Acopy;
-    delete [] b;
-    delete [] xnew;
+    // Note that A, b are overwritten here
+    MNormSample(xnew, b, A, *snode->observedMask(), rng);
+    _gv->setValue(xnew, chain);
 }
 
 }}

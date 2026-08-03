@@ -23,9 +23,13 @@ namespace jags {
 	 */
 	SimpleRange();
 	/**
+	 * Copy constructor
+	 */
+	SimpleRange(SimpleRange const &range) = default;
+	/**
 	 * Destructor
 	 */
-	~SimpleRange();
+	~SimpleRange() override;
 	/**
 	 * Constructs a simple range given lower and upper limits A
 	 * logic_error is thrown if these are of different lengths
@@ -38,22 +42,21 @@ namespace jags {
 	 *
 	 * @exception range_error
 	 */
-	SimpleRange(std::vector<int> const &lower, 
-		    std::vector<int> const &upper);
-	/**
-	 * Constructs a scalar range from an index. The upper and lower
-	 * bounds are both equal to the supplied index.  
-	 */
-	SimpleRange(std::vector<int> const &index);
+	SimpleRange(std::vector<unsigned long> const &lower, 
+		    std::vector<unsigned long> const &upper);
 	/**
 	 * Constructs a range from a dimension. For each index, the lower
 	 * limit is 1 and  the upper limit is the corresponding element of
-	 * dim (cast to a signed int).
+	 * dim.
 	 *
 	 * This constructor should not be confused with the constructor
-	 * that creates a scalar range from a vector of signed integers.
+	 * that creates a scalar range from a vector of signed long integers.
 	 */
-	SimpleRange(std::vector<unsigned int> const &dim);
+	SimpleRange(std::vector<unsigned long> const &dim);
+	/**
+	 * Copy assignment
+	 */
+	SimpleRange & operator=(SimpleRange const &) = default;
 	/**
 	 * Equality operator. A SimpleRange is uniquely defined by
 	 * its lower and upper limits, so testing for equality is
@@ -64,13 +67,13 @@ namespace jags {
 	 * Inequality operator 
 	 */
 	bool operator!=(SimpleRange const &range) const;
-	/*
+	/**
 	 * Indicates whether the supplied index is contained
 	 * inside this SimpleRange.
-	 bool contains(std::vector<int> const &test_index) const;
-	*/
+	 */
+	bool contains(std::vector<unsigned long> const &test_index) const;
 	/**
-	 * Indicates whether the test SimpleRange is completely
+	 * Indicates whether the supplied SimpleRange is completely
 	 * contained inside this SimpleRange.
 	 *
 	 * @param test_range Test SimpleRange
@@ -94,7 +97,7 @@ namespace jags {
 	 *
 	 * @exception out_of_range
 	 */
-	unsigned int leftOffset(std::vector<int> const &index) const;
+	unsigned long leftOffset(std::vector<unsigned long> const &index) const;
 	/**
 	 * The inverse of rightIndex. The right offset is the position
 	 * of the given index in the sequence when all indices in the
@@ -106,7 +109,7 @@ namespace jags {
 	 *
 	 * @exception out_of_range
 	 */
-	unsigned int rightOffset(std::vector<int> const &index) const;
+	unsigned long rightOffset(std::vector<unsigned long> const &index) const;
 	/**
 	 * Less than operator. It defines the same ordering as
 	 * Range#operator< among SimpleRange objects but the
@@ -117,11 +120,11 @@ namespace jags {
 	/**
 	 * The lower bound of the Range (an alias for Range#first)
 	 */
-	inline std::vector<int> const & lower() const { return first(); }
+	inline std::vector<unsigned long> const & lower() const { return first(); }
 	/**
 	 * The upper bound of the Range (an alias for Range#last)
 	 */
-	inline std::vector<int> const & upper() const { return last(); }
+	inline std::vector<unsigned long> const & upper() const { return last(); }
     };
 
     /**

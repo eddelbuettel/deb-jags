@@ -1,5 +1,5 @@
-#ifndef INFIX_H_
-#define INFIX_H_
+#ifndef FUNC_INFIX_H_
+#define FUNC_INFIX_H_
 
 #include <function/ScalarFunction.h>
 
@@ -16,9 +16,9 @@ class Infix : public ScalarFunction
 {
 public:
     Infix(std::string const &name, unsigned int npar=2);
-    std::string deparse(std::vector<std::string> const &par) const;
+    std::string deparse(std::vector<std::string> const &par) const override;
 };
 
 }}
 
-#endif /* INFIX_H_ */
+#endif /* FUNC_INFIX_H_ */

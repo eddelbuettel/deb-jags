@@ -46,4 +46,20 @@ bool Pow::checkParameterValue(vector<double const *> const &args) const
             return fix.empty() || fix[1];
     }
 
+    bool Pow::hasGradient(unsigned long i) const
+    {
+	// For x < 0, pow(x,y) is only valid for integer y. Hence Pow
+	// is not differentiable with respect to the second argument.
+	return i == 0;
+    }
+    
+    double Pow::gradient(vector<double const *> const &args,
+			 unsigned long i) const
+    {
+	double x = *args[0];
+	double y = *args[1];
+	
+	return y == 0 ? 0 : y * pow(x, y-1);
+    }
+
 }}

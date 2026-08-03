@@ -31,13 +31,13 @@ namespace glm {
 	IWLS(GraphView const *view, 
 	     std::vector<SingletonGraphView const *> const &sub_views,
 	     std::vector<Outcome *> const &outcomes,
-	     unsigned int chain);
+	     unsigned int chain, cholmod_common *wk);
 	/**
 	 * Generates a new proposal from an approximation to the posterior
 	 * distribution derived by a single IWLS step, then carries out
 	 * a Metropolis-Hastings acceptance step.
 	 */
-	void update(RNG *rng);
+	void update(RNG *rng) override;
     };
 
 }}

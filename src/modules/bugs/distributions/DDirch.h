@@ -21,24 +21,25 @@ namespace bugs {
 class DDirch : public VectorDist {
 public:
     DDirch();
-    std::string alias() const;
-    double logDensity(double const *x, unsigned int length, PDFType type,
+    std::string alias() const override;
+    double logDensity(double const *x, PDFType type,
 		      std::vector<double const *> const &parameters,
-		      std::vector<unsigned int> const &lengths,
-		      double const *lower, double const *upper) const;
-    void randomSample(double *x, unsigned int length,
+		      std::vector<unsigned long> const &lengths) const override;
+    void randomSample(double *x,
 		      std::vector<double const *> const &parameters,
-		      std::vector<unsigned int> const &lengths,
-		      double const *lower, double const *upper, RNG *rng) const;
-    void typicalValue(double *x, unsigned int length,
-		      std::vector<double const *> const &parameter,
-		      std::vector<unsigned int> const &lengths,
-		      double const *lower, double const *upper) const;
-    unsigned int length(std::vector<unsigned int> const &lengths) const;
+		      std::vector<unsigned long> const &lengths, RNG *rng)
+	const override;
+    void randomSample(double *x, std::vector<bool> const &observed,
+		      std::vector<double const *> const &parameters,
+		      std::vector<unsigned long> const &lengths, RNG *rng)
+	const override;
+    unsigned long length(std::vector<unsigned long> const &lengths)
+	const override;
     /**
      * Checks that alpha is a vector of length at least 2
      */
-    bool checkParameterLength(std::vector<unsigned int> const &lengths) const;
+    bool checkParameterLength(std::vector<unsigned long> const &lengths)
+	const override;
     /**
      * Checks that each element of alpha is >= 0.
      *
@@ -48,16 +49,22 @@ public:
      * least one non-zero element of alpha.
      */
     bool checkParameterValue(std::vector<double const *> const &parameters,
-			     std::vector<unsigned int> const &lengths)
-	const;
-    void support(double *lower, double *upper, unsigned int length,
+			     std::vector<unsigned long> const &lengths)
+	const override;
+    void support(double *lower, double *upper,
 		 std::vector<double const *> const &parameters,
-		 std::vector<unsigned int> const &lengths) const;
-    bool isSupportFixed(std::vector<bool> const &fixmask) const;
-    unsigned int df(std::vector<unsigned int> const &lengths) const;
+		 std::vector<unsigned long> const &lengths) const override;
+    bool isSupportFixed(std::vector<bool> const &fixmask) const override;
+    bool fullRank() const override;
     double KL(std::vector<double const *> const &par0,
 	      std::vector<double const *> const &par1,
-	      std::vector<unsigned int> const &len) const;
+	      std::vector<unsigned long> const &len) const override;
+    bool hasScore(unsigned long i) const override;
+    void score(double *score, double const *x,
+	       std::vector<double const *> const &par,
+	       std::vector<unsigned long> const &len,
+	       unsigned long i) const override;
+
 };
 
 }}

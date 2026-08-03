@@ -11,9 +11,15 @@ namespace jags {
     
 namespace bugs {
 
-/**
- * Slice sampler for real-valued distributions
- */
+    /**
+     * Slice sampler for use when all observed stochastic children
+     * have a binomial distribution.
+     *
+     * Ths is a quick fix for a more fundamental problem that the
+     * likelihood for the binomial distribution is expensive to
+     * calculate. This sampler will be obsolete when that problem is
+     * solved.
+     */
     class BinomSlicer : public Slicer 
     {
 	SingletonGraphView const *_gv;
@@ -26,16 +32,15 @@ namespace bugs {
 	 * @param width Initial width of slice
 	 * @param maxwidth Maximal width of slice as a multiple of the width
 	 * parameter
-	 * @param nburn Length of burnin
 	 */
 	BinomSlicer(SingletonGraphView const *gv, unsigned int chain,
-		    double width = 1, long maxwidth = 10);
-	double value() const;
-	void setValue(double value);
-	void getLimits(double *lower, double *upper) const;
-	void update(RNG *rng);
+		    double width = 1, unsigned int maxwidth = 10);
+	double value() const override;
+	void setValue(double value) override;
+	void getLimits(double *lower, double *upper) const override;
+	void update(RNG *rng) override;
 	static bool canSample(StochasticNode *node, Graph const &graph);
-	double logDensity() const;
+	double logDensity() const override;
     };
 
 }}

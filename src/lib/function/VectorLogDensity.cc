@@ -13,9 +13,9 @@ namespace jags {
 	  _dist(dist)
     {}
 
-    unsigned int 
-    VectorLogDensity::length(vector<unsigned int> const &lengths,
-			     vector<double const *> const &values) const
+    unsigned long 
+    VectorLogDensity::length(vector<unsigned long> const &,
+			     vector<double const *> const &) const
     {
 	return 1;
     }
@@ -23,29 +23,28 @@ namespace jags {
     void 
     VectorLogDensity::evaluate(double *value,
 			       vector<double const *> const &args,
-			       vector<unsigned int> const &lengths) const
+			       vector<unsigned long> const &lengths) const
     {
-	unsigned int npar = _dist->npar();
+	unsigned long npar = _dist->npar();
 
 	vector<double const *> dargs(npar);
-	vector<unsigned int > dlengths(npar);
-	for (unsigned int i = 0; i < npar; ++i) {
+	vector<unsigned long > dlengths(npar);
+	for (unsigned long i = 0; i < npar; ++i) {
 	    dargs[i] = args[i+1];
 	    dlengths[i] = lengths[i+1];
 	}
 
-	value[0] = _dist->logDensity(args[0], lengths[0], PDF_FULL, 
-				     dargs, dlengths, 0, 0);
+	value[0] = _dist->logDensity(args[0], PDF_FULL, dargs, dlengths);
     }
 
     bool
-    VectorLogDensity::checkParameterLength(vector<unsigned int> const &lengths)
+    VectorLogDensity::checkParameterLength(vector<unsigned long> const &lengths)
 	const
     {
-	unsigned int npar = _dist->npar();
+	unsigned long npar = _dist->npar();
 
-	vector<unsigned int> dlengths(npar);
-	for (unsigned int i = 0; i < npar; ++i) {
+	vector<unsigned long> dlengths(npar);
+	for (unsigned long i = 0; i < npar; ++i) {
 	    dlengths[i] = lengths[i+1];
 	}
 
@@ -55,36 +54,42 @@ namespace jags {
 	return true;
     }
 
+    bool
+    VectorLogDensity::checkParameterDiscrete(vector<bool> const &mask) const
+    {
+	vector<bool> distmask(mask.begin()+1, mask.end());
+	
+	if (_dist->isDiscreteValued(distmask) && !mask[0]) {
+	    return false;
+	}
+	return _dist->checkParameterDiscrete(distmask);
+    }
+
     bool 
     VectorLogDensity::checkParameterValue(vector<double const *> const &args,
-					  vector<unsigned int> const &lengths) 
+					  vector<unsigned long> const &lengths) 
 	const
     {
-	//We have to include discreteness check here as there is
-	//no equivalent of checkParameterDiscrete for Functions.
-
-	unsigned int npar = _dist->npar();
-
-	vector<bool> mask(npar);
-	for (unsigned int i = 0; i < npar; ++i) {
-	    double p = *args[i + 1];
-	    mask[i] = (p == static_cast<int>(p));
-	}
-	if (!_dist->checkParameterDiscrete(mask)) return false;
-
-	if (_dist->isDiscreteValued(mask)) {
-	    if (*args[0] != static_cast<int>(*args[0])) {
-		return false;
-	    }
-	}
-
-	vector<double const *> dargs(npar);
-	vector<unsigned int> dlengths(npar);
-	for (unsigned int i = 0; i < npar; ++i) {
-	    dargs[i] = args[i+1];
-	    dlengths[i] = lengths[i+1];
-	}
+	vector<double const *> dargs(args.begin()+1, args.end());
+	vector<unsigned long> dlengths(lengths.begin()+1, lengths.end());
 	return _dist->checkParameterValue(dargs, dlengths);
     }
 
+    bool VectorLogDensity::hasGradient(unsigned long i) const
+    {
+	return i > 0 && i < _dist->hasScore(i-1);
+    }
+
+    void VectorLogDensity::gradient(double *grad,
+				    vector<double const *> const &args,
+				    vector<unsigned long> const &lengths,
+				    unsigned long i) const
+    {
+	double const *x = args[0];
+
+	vector<double const *> pars(args.begin()+1, args.end());	
+	vector<unsigned long> parlengths(lengths.begin()+1, lengths.end());
+	
+	return _dist->score(grad, x, pars, parlengths, i-1);
+    }
 }

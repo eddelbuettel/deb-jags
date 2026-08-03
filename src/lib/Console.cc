@@ -6,7 +6,6 @@
 #include <model/BUGSModel.h>
 #include <model/Monitor.h>
 #include <graph/NodeError.h>
-#include <graph/ParentError.h>
 #include <sampler/SamplerFactory.h>
 #include <model/MonitorFactory.h>
 #include <rng/RNGFactory.h>
@@ -38,74 +37,12 @@ using std::FILE;
 // Need to distinguish between errors that delete the model
 // and errors that don't delete the model (in update)
 // so that we can then dump parameter values from parser.cc
-#define CATCH_ERRORS_DUMP						\
-    catch (ParentError const &except) {					\
-        except.printMessage(_err, _model->symtab());			\
-	return false;							\
-    }									\
-    catch (NodeError const &except) {					\
-        except.printMessage(_err, _model->symtab());			\
-	return false;							\
-    }									\
-    catch (std::runtime_error const &except) {				\
-	_err << "RUNTIME ERROR:\n";					\
-	_err << except.what() << endl;					\
-	return false;							\
-    }									\
-    catch (std::logic_error const &except) {				\
-	_err << "LOGIC ERROR:\n" << except.what() << '\n';		\
-	_err << "Please send a bug report to "				\
-	     << PACKAGE_BUGREPORT << endl;				\
-	return false;							\
-    }
-
-#define CATCH_ERRORS							\
-    catch (ParentError const &except) {					\
-        except.printMessage(_err, _model->symtab());			\
-	clearModel();							\
-	return false;							\
-    }									\
-    catch (NodeError const &except) {					\
-        except.printMessage(_err, _model->symtab());			\
-	clearModel();							\
-	return false;							\
-    }									\
-    catch (std::runtime_error const &except) {				\
-	_err << "RUNTIME ERROR:\n";					\
-	_err << except.what() << endl;					\
-	clearModel();							\
-	return false;							\
-    }									\
-    catch (std::logic_error const &except) {				\
-	_err << "LOGIC ERROR:\n" << except.what() << '\n';		\
-	_err << "Please send a bug report to "				\
-	     << PACKAGE_BUGREPORT << endl;				\
-	clearModel();							\
-	return false;							\
-    }
-
-/* Helper functions for dumpState */
 
 namespace jags {
 
-static bool isData(Node const *node)
-{
-    return node->randomVariableStatus() == RV_TRUE_OBSERVED;
-}
-
-static bool isParameter(Node const *node)
-{
-    return node->randomVariableStatus() == RV_TRUE_UNOBSERVED;
-}
-
-static bool alwaysTrue(Node const *node)
-{
-  return true;
-}
-
 Console::Console(ostream &out, ostream &err)
-  : _out(out), _err(err), _model(0), _pdata(0), _prelations(0), 
-    _pvariables(0)
+  : _out(out), _err(err), _model(nullptr),
+    _pdata(nullptr), _prelations(nullptr),  _pvariables(nullptr)
 {
 }
 
@@ -120,6 +57,32 @@ Console::~Console()
 	}
 	delete _pvariables;
     }
+}
+
+void Console::handle(bool clear) {
+
+    try {
+	throw;
+    }
+    catch (NodeError const &except) {
+	except.printMessage(_err, _model->symtab());
+    }
+    catch (std::runtime_error const &except) {
+	_err << "RUNTIME ERROR:\n";
+	_err << except.what() << endl;
+    }
+    catch (std::logic_error const &except) {
+	_err << "LOGIC ERROR:\n" << except.what() << '\n';
+	_err << "Please send a bug report to "
+	     << PACKAGE_BUGREPORT << endl;
+    }
+    catch(...) {
+	_err << "Uncaught exception\n";
+	_err << "Please send a bug report to "
+	     << PACKAGE_BUGREPORT << endl;
+    }
+
+    if (clear) clearModel();
 }
 
 static void getVariableNames(ParseTree const *ptree, set<string> &nameset,
@@ -145,7 +108,7 @@ static void getVariableNames(ParseTree const *ptree, set<string> &nameset,
 	 p != param.end(); ++p) 
     {  
 	//ParseTree objects of type P_BOUND can have null parameters
-	if (*p == 0) continue;
+	if (*p == nullptr) continue;
       
 	if ((*p)->treeClass() == P_FOR) {
 	    ParseTree *counter = (*p)->parameters()[0];
@@ -171,21 +134,20 @@ bool Console::checkModel(FILE *file)
 	_out << "Replacing existing model" << endl;
 	clearModel();
     }
-    _model = 0;
+    _model = nullptr;
 
     string message;
     int status =  parse_bugs(file, _pvariables, _pdata, _prelations, message);
     if (status != 0) {
 	_err << endl << "Error parsing model file:" << endl << message << endl;
 	//Tidy up
-	delete _pdata; _pdata = 0;
-	delete _prelations; _prelations = 0;
+	delete _pdata; _pdata = nullptr;
+	delete _prelations; _prelations = nullptr;
 	if (_pvariables) {
 	    for (unsigned int i = 0; i < _pvariables->size(); ++i) {
 		delete (*_pvariables)[i];
 	    }
-	    delete _pvariables;
-	    _pvariables = 0;
+	    delete _pvariables; _pvariables = nullptr;
 	}
 	
 	return false;
@@ -216,7 +178,7 @@ bool Console::checkModel(FILE *file)
 bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
                       bool gendata)
 {
-    if (nchain == 0) {
+    if (nchain <= 0) {
 	_err << "You must have at least one chain" << endl;
 	return false;
     }
@@ -225,7 +187,7 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 	clearModel();
     }
 
-    RNG *datagen_rng = 0;
+    RNG *datagen_rng = nullptr;
     if (_pdata && gendata) {
 	_model = new BUGSModel(1);
 
@@ -242,16 +204,16 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 	    compiler.writeRelations(_pdata);
       
 	    /* Check validity of data generating model */
-	    for (vector<Node*>::const_iterator r = _model->nodes().begin();
-		 r != _model->nodes().end(); ++r)
+	    for (vector<StochasticNode*>::const_iterator r = _model->stochasticNodes().begin();
+		 r != _model->stochasticNodes().end(); ++r)
 	    {
-		if ((*r)->randomVariableStatus() == RV_TRUE_OBSERVED) {
+		if (isObserved(*r)) {
 		    vector<Node const*> const &parents = (*r)->parents();
 		    for (vector<Node const*>::const_iterator p = parents.begin();
 			 p != parents.end(); ++p)
 		    {
 			if (!((*p)->isFixed())) {
-			    _err << "Invalid data graph: observed node " 
+			    _err << "Invalid data graph: observed stochastic node " 
 				 << _model->symtab().getName(*r) 
 				 << " has non-fixed parent " 
 				 << _model->symtab().getName(*p)
@@ -263,18 +225,21 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 		}
 	    }
 	    _out << "   Initializing" << endl;
-	    _model->initialize(true);
+	    _model->initialize(true, 1U, 1U);
 	    // Do a single update (by forward sampling)
 	    _model->update(1);
 	    //Save data generating RNG for later use. It is owned by the
 	    //RNGFactory, not the model.
 	    datagen_rng = _model->rng(0);
 	    _out << "   Reading data back into data table" << endl;
-	    _model->symtab().readValues(data_table, 0, alwaysTrue);
+	    _model->symtab().readValues(data_table, 0, ALL_VALUES);
 	    delete _model;
-	    _model = 0;
+	    _model = nullptr;
 	}
-	CATCH_ERRORS;
+	catch(...) {
+	    handle();
+	    return false;
+	}
     }
 
     _model = new BUGSModel(nchain);
@@ -297,20 +262,29 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 	    return false;
 	}
 	if (_model) {
-	    unsigned int nobs = 0, nparam = 0;
+	    unsigned int nobs = 0, npart = 0, nparam = 0;
 	    vector<StochasticNode*> const &snodes =  _model->stochasticNodes();
 	    for (unsigned int i = 0; i < snodes.size(); ++i) {
 		if (isObserved(snodes[i])) {
-		    ++nobs;
+		    if (isParameter(snodes[i])) {
+			++npart;
+		    }
+		    else {
+			++nobs;
+		    }
 		}
 		else {
 		    ++nparam;
 		}
 	    }
             _out << "Graph information:\n";
-	    _out << "   Observed stochastic nodes: " << nobs << "\n";
+	    _out << "   Fully observed stochastic nodes: " << nobs << "\n";
+	    if (npart > 0) {
+		_out << "   Partly observed stochastic nodes: " << npart << "\n";
+	    }
 	    _out << "   Unobserved stochastic nodes: " << nparam << "\n";
 	    _out << "   Total graph size: " << _model->nodes().size() << endl;
+
 	    if (datagen_rng) {
 		// Reuse the data-generation RNG, if there is one, for chain 0 
 		_model->setRNG(datagen_rng, 0);
@@ -321,14 +295,17 @@ bool Console::compile(map<string, SArray> &data_table, unsigned int nchain,
 	    return false;
 	}
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
     
     return true;
 }
 
-bool Console::initialize()
+bool Console::initialize(unsigned nrep_root, unsigned int nrep_internal)
 {
-    if (_model == 0) {
+    if (_model == nullptr) {
 	_err << "Can't initialize. No model!" << endl;
 	return false;
     }
@@ -344,9 +321,12 @@ bool Console::initialize()
     
     try {
 	_out << "Initializing model" << endl;
-	_model->initialize(false);
+	_model->initialize(false, nrep_root, nrep_internal);
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
     
     return true;
 }
@@ -354,7 +334,7 @@ bool Console::initialize()
 bool Console::setParameters(map<string, SArray> const &init_table,
 			    unsigned int chain)
 {
-  if (_model == 0) {
+  if (_model == nullptr) {
     _err << "Can't set initial values. No model!" << endl;    
     return false;
   }
@@ -365,15 +345,18 @@ bool Console::setParameters(map<string, SArray> const &init_table,
 
   try {
     _model->setParameters(init_table, chain - 1);
-  } 
-  CATCH_ERRORS;
+  }
+  catch(...) {
+      handle();
+      return false;
+  }
 	
   return true;
 }
 
 bool Console::setRNGname(string const &name, unsigned int chain)
 {
-    if (_model == 0) {
+    if (_model == nullptr) {
 	_err << "Can't set RNG name. No model!" << endl;    
 	return false;
     }
@@ -384,14 +367,17 @@ bool Console::setRNGname(string const &name, unsigned int chain)
 	    return false;
 	}
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
 	
     return true;
 }
 
 bool Console::update(unsigned int n)
 {
-    if (_model == 0) {
+    if (_model == nullptr) {
 	_err << "Can't update. No model!" << endl;    
 	return false;
     }
@@ -402,7 +388,10 @@ bool Console::update(unsigned int n)
     try {
 	_model->update(n);
     }
-    CATCH_ERRORS_DUMP;
+    catch(...) {
+	handle(false);
+	return false;
+    }
 
     return true;
 }
@@ -418,15 +407,16 @@ unsigned int Console::iter() const
 }
 
 bool Console::setMonitor(string const &name, Range const &range,
-			 unsigned int thin, string const &type)
+			 unsigned int thin, string const &stat,
+			 string const &summary)
 {
     if (!_model) {
 	_err << "Can't set monitor. No model!" << endl;    
 	return false;
     }
     if (thin == 0) {
-	_err << "Failed to set " << type << " monitor for " <<
-	    name << print(range) << endl;
+	_err << "Failed to set " << stat << " " << summary << " monitor for "
+	     <<  name << printRange(range) << endl;
 	_err << "Thinning interval must be > 0" << endl;
 	return false;
     }
@@ -438,23 +428,26 @@ bool Console::setMonitor(string const &name, Range const &range,
 	    _model->adaptOff();
 	}
 	string msg;
-	bool ok = _model->setMonitor(name, range, thin, type, msg);
+	bool ok = _model->setMonitor(name, range, thin, stat, summary, msg);
 	if (!ok) {
-	    _err << "Failed to set " << type << " monitor for " << 
-		name << print(range) << endl;
+	    _err << "Failed to set " << stat << " " << summary  <<
+		" monitor for " << name << printRange(range) << endl;
 	    if (!msg.empty()) {
 		_err << msg << endl;
 	    }
 	    return false;
 	}
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
 
     return true;
 }
 
 bool Console::clearMonitor(string const &name, Range const &range,
-			   string const &type)
+			   string const &stat, string const &summary)
 {
   if (!_model) {
     _err << "Can't clear monitor. No model!" << endl;    
@@ -462,14 +455,17 @@ bool Console::clearMonitor(string const &name, Range const &range,
   }
 
   try {
-      bool ok = _model->deleteMonitor(name, range, type);      
+      bool ok = _model->deleteMonitor(name, range, stat, summary);      
       if (!ok) {
-	  _err << "Failed to clear " << type << " monitor for node " << 
-	      name << print(range) << endl;
+	  _err << "Failed to clear " << stat << " " << summary  <<
+	      " monitor for node " << name << printRange(range) << endl;
 	  return false;
       }
   }
-  CATCH_ERRORS;
+  catch(...) {
+      handle();
+      return false;
+  }
 
   return true;
 }
@@ -477,13 +473,12 @@ bool Console::clearMonitor(string const &name, Range const &range,
 void Console::clearModel()
 {
     _out << "Deleting model" << endl;
-    delete _model; 
-    _model = 0;
+    delete _model; _model = nullptr;
 }
 
 bool Console::dumpState(map<string,SArray> &data_table,
 			string &rng_name,
-			DumpType type, unsigned int chain)
+			ValueType type, unsigned int chain)
 {
   if (!_model) {
     _err << "No model" << endl;
@@ -497,38 +492,32 @@ bool Console::dumpState(map<string,SArray> &data_table,
     _err << "Invalid chain number" << endl;
     return false;
   }
-  bool (*selection)(Node const *) = 0;
-  switch (type) {
-  case DUMP_PARAMETERS:
-    selection = isParameter;
-    break;
-  case DUMP_DATA:
-    selection = isData;
-    break;
-  case DUMP_ALL:
-    selection = alwaysTrue;
-    break;
-  }
 
   try {
-    _model->symtab().readValues(data_table, chain - 1, selection);
-    
-    if (type == DUMP_PARAMETERS || type == DUMP_ALL) {
+      _model->symtab().readValues(data_table, chain - 1, type);
+      
+    if (type == PARAMETER_VALUES || type == ALL_VALUES) {
       
       vector<int> rngstate;
       if (_model->rng(chain - 1)) {
 	_model->rng(chain - 1)->getState(rngstate);
 	
-	vector<unsigned int> dimrng(1,rngstate.size());
+	vector<unsigned long> dimrng(1,rngstate.size());
 	SArray rngsarray(dimrng);
-	rngsarray.setValue(rngstate);
+
+	vector<double> v(rngstate.size());
+	copy(rngstate.begin(), rngstate.end(), v.begin());
+	rngsarray.setValue(v);
 	
 	data_table.insert(pair<string, SArray>(".RNG.state",rngsarray));
 	rng_name = _model->rng(chain - 1)->name();
       }
     }
   }
-  CATCH_ERRORS;
+  catch(...) {
+      handle();
+      return false;
+  }
   // Model is subsequently cleared by calling functions in parser
   
   return true;
@@ -536,30 +525,53 @@ bool Console::dumpState(map<string,SArray> &data_table,
 
 
 bool Console::dumpMonitors(map<string,SArray> &data_table,
-			   string const &type, bool flat) 
+			   string const &stat,
+			   string const &summary,
+			   bool flat) 
 {
-    if (_model == 0) {
+    if (_model == nullptr) {
 	_err << "Cannot dump monitors.  No model!" << endl;
 	return false;
     }
     try {
 	list<MonitorControl> const &monitors = _model->monitors();
-	list<MonitorControl>::const_iterator p;
-	for (p = monitors.begin(); p != monitors.end(); ++p) {
+	for (auto p = monitors.begin(); p != monitors.end(); ++p) {
 	    Monitor const *monitor = p->monitor();
-	    if (p->niter() > 0 && monitor->type() == type) {
-		data_table.insert(pair<string,SArray>(monitor->name(), 
+	    if (p->niter() > 0 &&
+		p->stat() == stat &&
+		p->summary() == summary)
+	    {
+		string name = p->name() + printRange(p->range());
+		data_table.insert(pair<string,SArray>(name, 
 						      monitor->dump(flat)));
 	    }
 	}
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
 
     return true;
 }
 
-
-bool Console::coda(string const &prefix)
+void Console::dumpNodeNames(vector<string> &node_names,
+			    string const &type) const
+{
+    if (_model == nullptr) {
+	_err << "Cannot dump node names.  No model!" << endl;
+	return;
+    }
+	
+    string warn;
+    _model->dumpNodeNames(node_names, type, warn);
+    if (!warn.empty()) {
+        _err << "WARNING:\n" << warn;
+    }	
+}
+		 
+bool Console::coda(string const &prefix, string const &stat,
+		   string const &summary)
 {
     if (!_model) {
 	_err << "Can't dump CODA output. No model!" << endl;
@@ -568,33 +580,39 @@ bool Console::coda(string const &prefix)
 
     try {
         string warn;
-	_model->coda(prefix, warn);
+	_model->coda(prefix, warn, stat, summary);
         if (!warn.empty()) {
             _err << "WARNING:\n" << warn;
         }
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
 
     return true;
 }
 
 bool Console::coda(vector<pair<string, Range> > const &nodes,
-		   string const &prefix)
+		   string const &prefix, string const &stat,
+		   string const &summary)
 {
     if (!_model) {
 	_err << "Can't dump CODA output. No model!" << endl;
 	return false;
     }
 
-
     try {
         string warn;
-	_model->coda(nodes, prefix, warn);
+	_model->coda(nodes, prefix, warn, stat, summary);
         if (!warn.empty()) {
             _err << "WARNINGS:\n" << warn;
         }
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
 
     return true;
 }
@@ -606,7 +624,7 @@ BUGSModel const *Console::model()
 
 unsigned int Console::nchain() const
 {
-  if (_model == 0) {
+  if (_model == nullptr) {
     return 0;
   }
   else {
@@ -614,9 +632,19 @@ unsigned int Console::nchain() const
   }
 }
 
+unsigned int Console::nthread() const
+{
+  if (_model == nullptr) {
+    return 0;
+  }
+  else {
+    return _model->nthread();
+  }
+}
+
 bool Console::checkAdaptation(bool &status) 
 {
-    if (_model == 0) {
+    if (_model == nullptr) {
 	_err << "Can't update. No model!" << endl;
 	return false;
     }
@@ -628,14 +656,17 @@ bool Console::checkAdaptation(bool &status)
     try {
 	status =  _model->checkAdaptation();
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
 
     return true;
 }
     
 bool Console::adaptOff(void) 
 {
-  if (_model == 0) {
+  if (_model == nullptr) {
     _err << "Cannot stop adaptation. No model!" << endl;
     return false;
   }
@@ -647,7 +678,10 @@ bool Console::adaptOff(void)
   try {
       _model->adaptOff();
   }
-  CATCH_ERRORS;
+  catch(...) {
+      handle();
+      return false;
+  }
 
   return true;
 }
@@ -664,7 +698,7 @@ vector<string> const &Console::variableNames() const
 
 bool Console::dumpSamplers(vector<vector<string> > &sampler_names)
 {
-    if (_model == 0) {
+    if (_model == nullptr) {
 	_err << "Can't dump samplers. No model!" << endl;    
 	return false;
     }
@@ -676,7 +710,10 @@ bool Console::dumpSamplers(vector<vector<string> > &sampler_names)
     try {
 	_model->samplerNames(sampler_names);
     }
-    CATCH_ERRORS;
+    catch(...) {
+	handle();
+	return false;
+    }
 
     return true;
 }
@@ -704,8 +741,7 @@ bool Console::loadModule(string const &name)
 vector<string> Console::listModules()
 {
     vector<string> ans;
-    list<Module*>::const_iterator p;
-    for (p = Module::loadedModules().begin(); 
+    for (auto p = Module::loadedModules().begin(); 
 	 p != Module::loadedModules().end(); ++p)
     {
 	ans.push_back((*p)->name());
@@ -715,8 +751,7 @@ vector<string> Console::listModules()
 
 bool Console::unloadModule(string const &name)
 {
-    list<Module*>::iterator p;
-    for (p = Module::loadedModules().begin(); 
+    for (auto p = Module::loadedModules().begin(); 
 	 p !=  Module::loadedModules().end(); ++p)
     {
 	if ((*p)->name() == name) {
@@ -727,42 +762,13 @@ bool Console::unloadModule(string const &name)
     return false;
 }
 
-static bool setSamplerActive(string const &name, bool flag)
+template<typename T>
+bool setactive(string const &name, bool flag, list<T*> const &faclist)
 {
     bool ans = false;
-    list<pair<SamplerFactory*, bool> > &faclist = Model::samplerFactories();
-    list<pair<SamplerFactory*, bool> >::iterator p;
-    for (p = faclist.begin(); p != faclist.end(); ++p) {
-	if (p->first->name() == name) {
-	    p->second = flag;
-	    ans = true;
-	}
-    }
-    return ans;
-}
-
-static bool setMonitorActive(string const &name, bool flag)
-{
-    bool ans = false;
-    list<pair<MonitorFactory*, bool> > &faclist = Model::monitorFactories();
-    list<pair<MonitorFactory*, bool> >::iterator p;
-    for (p = faclist.begin(); p != faclist.end(); ++p) {
-	if (p->first->name() == name) {
-	    p->second = flag;
-	    ans = true;
-	}
-    }
-    return ans;
-}
-
-static bool setRNGActive(string const &name, bool flag)
-{
-    bool ans = false;
-    list<pair<RNGFactory*, bool> > &faclist = Model::rngFactories();
-    list<pair<RNGFactory*, bool> >::iterator p;
-    for (p = faclist.begin(); p != faclist.end(); ++p) {
-	if (p->first->name() == name) {
-	    p->second = flag;
+    for (auto p = faclist.begin(); p != faclist.end(); ++p) {
+	if ((*p)->name() == name) {
+	    (*p)->setActive(flag);
 	    ans = true;
 	}
     }
@@ -774,66 +780,40 @@ bool Console::setFactoryActive(string const &name, FactoryType type, bool flag)
     bool ok = false;
     switch(type) {
     case SAMPLER_FACTORY:
-	ok = setSamplerActive(name, flag);
+	ok = setactive<SamplerFactory>(name, flag, Model::samplerFactories());
 	break;
     case MONITOR_FACTORY:
-	ok = setMonitorActive(name, flag);
+	ok = setactive<MonitorFactory>(name, flag, Model::monitorFactories());
 	break;
     case RNG_FACTORY:
-	ok = setRNGActive(name, flag);
+	ok = setactive<RNGFactory>(name, flag, Model::rngFactories());
 	break;
     }
     return ok;
 }
 
-static vector<pair<string, bool> > listSamplerFactories()
+template<class T>
+vector<pair<string, bool>> listfac(list<T*> const &flist)
 {
-    vector<pair<string, bool> > ans;
-    list<pair<SamplerFactory*, bool> > const &flist = Model::samplerFactories();
-    for (list<pair<SamplerFactory*, bool> >::const_iterator p = flist.begin();
-	 p != flist.end(); ++p) 
-    {
-	ans.push_back(pair<string,bool>(p->first->name(), p->second));
+    vector<pair<string, bool>> ans;
+    for (auto p = flist.begin(); p != flist.end(); ++p) {
+	ans.push_back(pair<string, bool>((*p)->name(), (*p)->isActive()));
     }
     return ans;
 }
 
-static vector<pair<string, bool> > listMonitorFactories()
+vector<pair<string, bool>>  Console::listFactories(FactoryType type)
 {
-    vector<pair<string, bool> > ans;
-    list<pair<MonitorFactory*, bool> > const &flist = Model::monitorFactories();
-    for (list<pair<MonitorFactory*, bool> >::const_iterator p = flist.begin();
-	 p != flist.end(); ++p) 
-    {
-	ans.push_back(pair<string,bool>(p->first->name(), p->second));
-    }
-    return ans;
-}
-
-static vector<pair<string, bool> > listRNGFactories()
-{
-    vector<pair<string, bool> > ans;
-    list<pair<RNGFactory*, bool> > const &flist = Model::rngFactories();
-    for (list<pair<RNGFactory*, bool> >::const_iterator p = flist.begin();
-	 p != flist.end(); ++p) 
-    {
-	ans.push_back(pair<string,bool>(p->first->name(), p->second));
-    }
-    return ans;
-}
-
-vector<pair<string, bool> >  Console::listFactories(FactoryType type)
-{
-    vector<pair<string, bool> > ans;
+    vector<pair<string, bool>> ans;
     switch(type) {
     case SAMPLER_FACTORY:
-	ans = listSamplerFactories();
+	ans = listfac<SamplerFactory>(Model::samplerFactories());
 	break;
     case MONITOR_FACTORY:
-	ans = listMonitorFactories();
+	ans = listfac<MonitorFactory>(Model::monitorFactories());
 	break;
     case RNG_FACTORY:
-	ans = listRNGFactories();
+	ans = listfac<RNGFactory>(Model::rngFactories());
 	break;
     }
     return ans;
@@ -849,13 +829,27 @@ void Console::setRNGSeed(unsigned int seed)
 {
     if (seed == 0) return;
 
-    list<pair<RNGFactory*, bool> >::const_iterator p;
-    for (p = Model::rngFactories().begin(); p != Model::rngFactories().end(); 
+    for (auto p = Model::rngFactories().begin(); p != Model::rngFactories().end(); 
 	 ++p) 
     {
-	p->first->setSeed(seed);
+	(*p)->setSeed(seed);
     }
     rngSeed() = seed;
 }
 
+    bool Console::setNThread(unsigned int nthread)
+    {
+	if (_model == nullptr) {
+	    _err << "Can't set number of threads. No model!" << endl;
+	    return false;
+	}
+#ifndef _OPENMP	
+	nthread = 1U;
+#endif
+	_model->setNThread(nthread);
+	return true;
+
+
+    }
+    
 } //namespace jags

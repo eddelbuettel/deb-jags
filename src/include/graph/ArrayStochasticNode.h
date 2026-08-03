@@ -12,9 +12,8 @@ class ArrayDist;
  */
 class ArrayStochasticNode : public StochasticNode {
     ArrayDist const * const _dist;
-    std::vector<std::vector<unsigned int> > _dims;
-    void sp(double *lower, double *upper, unsigned int length, 
-	    unsigned int chain) const;
+    std::vector<std::vector<unsigned long> > _dims;
+    void sp(double *lower, double *upper, unsigned int chain) const override;
 public:
     /**
      * Construct
@@ -22,19 +21,14 @@ public:
      * parameters to the distribution.
      */
     ArrayStochasticNode(ArrayDist const *dist, unsigned int nchain,
-			std::vector<Node const *> const &parameters,
-			Node const *lower, Node const *upper,
-			double const *data=0, unsigned int length=0);
-    double logDensity(unsigned int chain, PDFType type) const;
-    void randomSample(RNG *rng, unsigned int chain);
-    void truncatedSample(RNG *rng, unsigned int chain,
-			 double const *lower, double const *upper);
-    void deterministicSample(unsigned int chain);
-    bool checkParentValues(unsigned int chain) const;
+			std::vector<Node const *> const &parameters);
+    double logDensity(unsigned int chain, PDFType type) const override;
+    double logLikelihood(unsigned int chain) const override;
+    void randomSample(RNG *rng, unsigned int chain) override;
+    bool checkParentValues(unsigned int chain) const override;
     //StochasticNode *clone(std::vector<Node const *> const &parents,
     //Node const *lower, Node const *upper) const;
-    unsigned int df() const;
-    double KL(unsigned int chain1, unsigned int chain2, RNG *rng, unsigned int nrep) const;
+    double KL(unsigned int chain1, unsigned int chain2, RNG *rng, unsigned int nrep) const override;
 };
 
 } /* namespace jags */

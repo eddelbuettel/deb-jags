@@ -4,6 +4,9 @@
 
 #include <rng/RNG.h>
 #include <module/ModuleError.h>
+#include <util/integer.h>
+#include <matrix/lapack.h>
+#include <matrix/blas.h>
 
 #include <vector>
 #include <cmath>
@@ -16,35 +19,13 @@ using std::sqrt;
 using std::copy;
 using std::reverse;
 
-
-#define F77_DPOTRF F77_FUNC(dpotrf,DPOTRF)
-#define F77_DTRTRI F77_FUNC(dtrtri, DTRTRI)
-#define F77_DTRMM  F77_FUNC(dtrmm, DTRMM)
-#define F77_DSYRK  F77_FUNC(dsyrk, DSYRK)
-
-extern "C" {
-    void F77_DPOTRF (const char *uplo, const int *n, double *a,
-		     const int *lda, const int *info);
-    void F77_DTRTRI (const char *uplo, const char *diag,
-		     const int *n, double *a, const int *lda, const int *info);
-    void F77_DTRMM(const char *side, const char *uplo, const char *transa,
-		   const char *diag, const int *m, const int *n,
-		   const double *alpha, const double *a, const int *lda,
-		   double *b, const int *ldb);
-    void F77_DSYRK(const char *uplo, const char *trans, const int *n,
-		   const int *k,
-		   const double *alpha, const double *a, const int *lda,
-		   const double *beta, double *c, const int *ldc);
-}
-
-
 namespace jags {
     namespace glm {
 
 	//FIXME We would not need this if we could call
 	//bugs::DWish::sampleWishart
-	void sampleWishart(double *X, int length,
-			   double const *R, double df, int nrow,
+	void sampleWishart(double *X, unsigned long length,
+			   double const *R, double df, unsigned long nrow,
 			   RNG *rng)
 	{
 	    if (df <= nrow) {
@@ -71,11 +52,12 @@ namespace jags {
 	    */
 	    vector<double> C(length);
 	    copy(R, R + length, C.rbegin());
-	    F77_DPOTRF("L", &nrow, &C[0], &nrow, &info);
+	    int ni = asInteger(nrow);
+	    jags_dpotrf("L", &ni, &C[0], &ni, &info);
 	    if (info != 0) {
 		throwRuntimeError("Failed to get Cholesky decomposition of R");
 	    }
-	    F77_DTRTRI("L", "N", &nrow, &C[0], &nrow, &info);
+	    jags_dtrtri("L", "N", &ni, &C[0], &ni, &info);
 	    if (info != 0) {
 		throwRuntimeError("Failed to invert Cholesky decomposition of R");
 	    }
@@ -87,30 +69,30 @@ namespace jags {
 	       - lower off-diagonal elements are zero
 	    */
 	    vector<double> Z(length);
-	    for (int j = 0; j < nrow; j++) {
+	    for (unsigned long j = 0; j < nrow; j++) {
 		double *Z_j = &Z[j*nrow]; //jth column of Z
-		for (int i = 0; i < j; i++) {
+		for (unsigned long i = 0; i < j; i++) {
 		    Z_j[i] = rnorm(0, 1, rng);
 		}
 		Z_j[j] = sqrt(rchisq(df - j, rng));    
-		for (int i = j + 1; i < nrow; i++) {
+		for (unsigned long i = j + 1; i < nrow; i++) {
 		    Z_j[i] = 0;
 		}
 	    }
 
 	    // Z = Z %*% C 
 	    double one = 1;
-	    F77_DTRMM("R", "U", "N", "N", &nrow, &nrow, &one, &C[0], &nrow,
-		      &Z[0], &nrow);
+	    
+	    jags_dtrmm("R", "U", "N", "N", &ni, &ni, &one, &C[0], &ni,
+		      &Z[0], &ni);
 
 	    // X = t(Z) %*% Z
 	    double zero = 0;
-	    F77_DSYRK("U", "T", &nrow, &nrow, &one, &Z[0], &nrow, &zero, X,
-		      &nrow);
+	    jags_dsyrk("U", "T", &ni, &ni, &one, &Z[0], &ni, &zero, X, &ni);
 
 	    // Copy upper triangle of X to lower triangle
-	    for (int i = 0; i < nrow; ++i) {
-		for (int j = 0; j < i; ++j) {
+	    for (unsigned long i = 0; i < nrow; ++i) {
+		for (unsigned long j = 0; j < i; ++j) {
 		    X[j * nrow + i] = X[i * nrow + j];
 		}
 	    }

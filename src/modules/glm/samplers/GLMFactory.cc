@@ -36,8 +36,7 @@ namespace jags {
   Aggregates candidate Nodes with common stochastic children. 
 */
 static bool aggregate(SingletonGraphView const *candidate,
-		      set<StochasticNode const *> &stochastic_children,
-		      Graph const &graph)
+		      set<StochasticNode const *> &stochastic_children)
 {
 
     // Check that there is some overlap in stochastic children between
@@ -68,7 +67,7 @@ static bool aggregate(SingletonGraphView const *candidate,
 	
 	bool operator()(ViewScore const &x, ViewScore const &y) const {
 	    return x.second < y.second;
-	};
+	}
     };
     
     vector<SingletonGraphView*>
@@ -135,7 +134,7 @@ static bool aggregate(SingletonGraphView const *candidate,
 
     static bool isLink(DeterministicNode const *dnode)
     {
-	return dynamic_cast<LinkNode const*>(dnode) != 0;
+	return dynamic_cast<LinkNode const*>(dnode) != nullptr;
     }
     
     vector<bool>
@@ -217,8 +216,26 @@ namespace glm {
 	: _name(name)
     {}
 
-    bool GLMFactory::checkDescendants(GraphView const *view) const
+    bool GLMFactory::checkDescendants(SingletonGraphView const *view) const
     {
+	/* 
+	   Quick heuristics for situations where the heavy machinery
+	   of GLM is unlikely to be useful.
+	*/
+	if (view->stochasticChildren().size() == 1) {
+	    //Seen in the fantail motif created by data-augmentation
+	    //methods (e.g. when user defines their own Albert & Chib
+	    //approximation to the probit regression model).  This can
+	    //substantially slow down the compiler.
+	    return false;
+	}
+	if (view->deterministicChildren().empty()) {
+	    // No possibility to be in a linear model with other nodes
+	    // The linear relationship between view->node() and the
+	    // stochastic children is trivial.
+	    return false;
+	}
+	
 	// Check stochastic children
 	vector<StochasticNode *> const &stoch_nodes = 
 	    view->stochasticChildren();
@@ -229,7 +246,7 @@ namespace glm {
 	    if (!checkOutcome(stoch_nodes[i])) {
 		return false; //Invalid outcome or link
 	    }
-	    if (fixedOutcome() && !isObserved(stoch_nodes[i])) {
+	    if (fixedOutcome() && isParameter(stoch_nodes[i])) {
 		return false; //Unobserved outcome not allowed by sampler
 	    }
 	    //Check that other parameters do not depend on snode	    
@@ -260,19 +277,23 @@ namespace glm {
 
 	string dname = snode->distribution()->name();
 	if (dname != "dnorm" && dname != "dmnorm")
-	    return 0; //Must have normal prior
+	    return nullptr; //Must have normal prior
 
+	if (isObserved(snode))
+	    return nullptr; //Must be fully unobserved
+	
 	if (gibbs && snode->length() != 1) {
-	    return 0;
+	    return nullptr;
 	}
 	if (!gibbs && isBounded(snode)) {
-	    return 0;
+	    return nullptr;
 	}
+	
 
 	SingletonGraphView *view = new SingletonGraphView(snode, graph);
 	if (!checkDescendants(view)) {
 	    delete view;
-	    return 0;
+	    return nullptr;
 	}
 	else {
 	    return view;
@@ -284,26 +305,30 @@ namespace glm {
     
     GLMSampler * 
     GLMFactory::makeSampler(list<StochasticNode*> const &free_nodes, 
+			    set<StochasticNode*> &skip_nodes,
 			    Graph const &graph, bool gibbs) const
+
     {
 	// Find candidate nodes that could be part of a GLM.
 	vector<SingletonGraphView*> candidates;
 	for (list<StochasticNode*>::const_iterator p = free_nodes.begin();
 	     p != free_nodes.end(); ++p)
 	{
+	    if (skip_nodes.count(*p)) continue;
+	      
 	    if (SingletonGraphView *up = makeView(*p, graph, gibbs)) {
 		candidates.push_back(up);
 	    }
 	}
 	if (candidates.empty()) {
-	    return 0;
+	    return nullptr;
 	}
 
 	// Now try to aggregate nodes into a joint linear model
 	unsigned int Nc = candidates.size();
 	vector<bool> keep(Nc, false);
 	vector<bool> resolved(Nc, false);
-	GraphView *view = 0;
+	GraphView *view = nullptr;
 	    
 	keep[0] = true;
 	
@@ -318,7 +343,7 @@ namespace glm {
 	    loop = false;
 	    for (unsigned int j = 1; j < candidates.size(); ++j) {
 		if (!keep[j]) {
-		    keep[j] = aggregate(candidates[j], stoch_children, graph);
+		    keep[j] = aggregate(candidates[j], stoch_children);
 		    if (keep[j]) {
 			loop = true;
 		    }
@@ -357,12 +382,12 @@ namespace glm {
 	    }
 	    else {
 		delete candidates[j];
-		candidates[j] = 0;
+		candidates[j] = nullptr;
 	    }
 	}
 
 	if (sub_views.empty()) {
-	    return 0;
+	    return nullptr;
 	}
 
 	view = new GraphView(sample_nodes, graph);
@@ -379,10 +404,10 @@ namespace glm {
 	    
 	    vector<SingletonGraphView*> sorted_candidates = 
 		sort_by_children(candidates);
-	    vector<bool> keep = get_linear_subset(sorted_candidates,
-						  fixedDesign(), true);
+	    vector<bool> keep2 = get_linear_subset(sorted_candidates,
+						   fixedDesign(), true);
 	    for (unsigned int j = 0; j < sorted_candidates.size(); ++j) {
-		if (keep[j]) {
+		if (keep2[j]) {
 		    sub_views.push_back(sorted_candidates[j]);
 		    sample_nodes.push_back(sorted_candidates[j]->node());
 		}
@@ -393,25 +418,21 @@ namespace glm {
 	    view = new GraphView(sample_nodes, graph);
 	}
 	
-	/* FIXME
-	 * 
+	/* 
 	 * The overhead of a GLM sampling method for a univariate
-	 * sampler is too large So we skip univariate nodes. However,
-	 * by returning a null pointer at this point we terminate the
-	 * factory and so will miss a block of nodes that could be
-	 * sampled together later.
-	 *
-	 * What we need to do here is to mark this node to be skipped in any
-	 * later call.
+	 * sampler is too large So if we are left with only a single
+	 * univariate node we return a nil pointer and mark the node
+	 * to be skipped in a future call.
 	 */
 	if (sub_views.size() == 1 && view->length() == 1) {
+	    skip_nodes.insert(view->nodes()[0]);
 	    delete view;
 	    delete sub_views.back();
-	    return 0;
+	    return nullptr;
 	}
 	
 	unsigned int Nch = nchain(view);
-	vector<GLMMethod*> methods(Nch, 0);
+	vector<GLMMethod*> methods(Nch, nullptr);
 	
 	vector<SingletonGraphView const*> const_sub_views(sub_views.size());
 	copy(sub_views.begin(), sub_views.end(), const_sub_views.begin());
@@ -421,7 +442,11 @@ namespace glm {
 
 	string nm = _name;
 	if (gibbs) nm.append("-Gibbs");
-	return new GLMSampler(view, sub_views, methods, nm);
+
+	
+	GLMSampler *s = new GLMSampler(view, sub_views, methods, nm);
+	skip_nodes.insert(s->nodes().begin(), s->nodes().end());
+	return s;
     }
 
     string GLMFactory::name() const
@@ -434,12 +459,32 @@ namespace glm {
 			     Graph const &graph) const
     {
 	vector<Sampler*> ans;
-	if (GLMSampler *s = makeSampler(nodes, graph, false)) {
-	    ans.push_back(s);
-	    makeRESamplers(nodes, s, graph, ans);
+	set<StochasticNode*> used_nodes;
+	unsigned long nskip = 0;
+	bool loop = true;
+	while (loop) {
+	    if (GLMSampler *s = makeSampler(nodes, used_nodes, graph, false)) {
+		ans.push_back(s);
+		makeRESamplers(nodes, used_nodes, s, graph, ans);
+	    }
+	    else if (used_nodes.size() > nskip) {
+		nskip = used_nodes.size();
+	    }
+	    else {
+		loop = false;
+	    }
 	}
-	else if (GLMSampler *s = makeSampler(nodes, graph, true)) {
-	    ans.push_back(s);
+	loop = true;
+	while (loop) {
+	    if (GLMSampler *s = makeSampler(nodes, used_nodes, graph, true)) {
+		ans.push_back(s);
+	    }
+	    else if (used_nodes.size() > nskip) {
+		nskip = used_nodes.size();
+	    }
+	    else {
+		loop = false;
+	    }
 	}
 	return ans;
     }
@@ -455,15 +500,13 @@ namespace glm {
     }
 
     void GLMFactory::makeRESamplers(list<StochasticNode*> const &free_nodes,
+				    set<StochasticNode*> &used_nodes,
 				    GLMSampler const *s, Graph const &graph,
 				    vector<Sampler*> &samplers) const
     {
 	REGammaFactory2 gfac;
 	REScaledGammaFactory2 sgfac;
 	REScaledWishartFactory2 swfac;
-
-	set<StochasticNode*> used_nodes;
-	used_nodes.insert(s->nodes().begin(), s->nodes().end());
 
 	while (Sampler *resampler = gfac.makeSampler(free_nodes, used_nodes,
 						     s, graph))
@@ -481,7 +524,6 @@ namespace glm {
 	{
 	    samplers.push_back(resampler);
 	}
-
     }
 
 }}
