@@ -16,16 +16,14 @@
 using std::vector;
 using std::sqrt;
 
-extern cholmod_common *glm_wk;
-
 namespace jags {
     namespace glm {
 	
 	HolmesHeldGibbs::HolmesHeldGibbs(GraphView const *view,
 		 vector<SingletonGraphView const *> const &sv,
 		 vector<Outcome *> const &outcomes,
-		 unsigned int chain)
-	    : GLMMethod(view, sv, outcomes, chain)
+		 unsigned int chain, cholmod_common *wk)
+	    : GLMMethod(view, sv, outcomes, chain, wk)
 	{
 	}
 
@@ -38,15 +36,15 @@ namespace jags {
 		(*p)->update(rng);
 	    }
 	
-	    double *b = 0;
-	    cholmod_sparse *A = 0;
+	    double *b = nullptr;
+	    cholmod_sparse *A = nullptr;
 	    calCoef(b, A);
 
 	    if (A->stype != 0) {
 		throwLogicError("Wrong stype in HolmesHeldGibbs::update");
 	    }
 	    
-	    int nrow = _view->length();
+	    unsigned long nrow = _view->length();
 	    vector<double> theta(nrow);
 	    _view->getValue(theta, _chain);
 
@@ -58,9 +56,9 @@ namespace jags {
 
 	    //Extract diagonal from A
 	    vector<double> diagA(nrow);
-	    for (int c = 0; c < nrow; ++c) {
+	    for (unsigned long c = 0; c < nrow; ++c) {
 		for (int j = Ap[c]; j < Ap[c+1]; ++j) {
-		    if (Ai[j] == c) {
+		    if (static_cast<unsigned long>(Ai[j]) == c) {
 			diagA[c] = Ax[j];
 			break;
 		    }
@@ -68,7 +66,8 @@ namespace jags {
 	    }
 
 	    //Transpose design matrix
-	    cholmod_sparse *t_x = cholmod_transpose(_x, 1, glm_wk);
+	    cholmod_sparse *t_x = nullptr;
+	    t_x = cholmod_transpose(_x, 1, _wk);
 	
 	    double *xx = static_cast<double*>(t_x->x);
 	    int *xp = static_cast<int*>(t_x->p);
@@ -82,7 +81,7 @@ namespace jags {
 		
 		for (int r = xp[c]; r < xp[c+1]; ++r) {
 
-		    int i = xi[r];
+		    unsigned long i = static_cast<unsigned long>(xi[r]);
 		    
 		    double theta_i = theta[i];
 		    
@@ -123,7 +122,7 @@ namespace jags {
 		}
 	    }
 
-	    cholmod_free_sparse(&A, glm_wk);
+	    cholmod_free_sparse(&A, _wk);
 	    delete [] b;
 	    
 	    _view->setValue(theta,  _chain);

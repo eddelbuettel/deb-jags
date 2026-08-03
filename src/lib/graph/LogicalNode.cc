@@ -9,12 +9,14 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
-#include <math.h>
+#include <cmath>
 
 using std::vector;
 using std::string;
 using std::set;
 using std::logic_error;
+using std::floor;
+using std::isfinite;
 
 namespace jags {
 
@@ -32,8 +34,37 @@ mkParams(vector<Node const*> const &parents, unsigned int nchain)
     return ans;
 }
 
+    void LogicalNode::initializeFixed()
+    {
+	if (!isFixed()) return;
 
-LogicalNode::LogicalNode(vector<unsigned int> const &dim,
+	/* Code for initializing fixed value LogicalNodes. It cannot
+	   be included in the constructor as it uses the virtual
+	   function deterministicSample. So we call this utility
+	   function from the constructor of each child class
+	   (ScalarLogicalNode, VectorLogicalNode, ArrayLogicalNode) */
+	
+	for (unsigned int ch = 0; ch < _nchain; ++ch) {
+	    deterministicSample(ch);
+	}
+	
+	/* Reset the _discrete flag based on the *value* of the
+	   node. This is more accurate than Function#isDiscreteValued
+	   which may give false negatives for fixed nodes (e.g.  2^N
+	   is discrete for integer N >= 0, but not for N < 0). */
+
+	_discrete = true;
+	double const *val = value(0);
+	for (unsigned long i = 0; i < _length; ++i) {
+	    if (!isfinite(val[i]) || val[i] != floor(val[i])) {
+		_discrete = false;
+		break;
+	    }
+	}
+	
+    }
+
+LogicalNode::LogicalNode(vector<unsigned long> const &dim,
 			 unsigned int nchain,
 			 vector<Node const *> const &parameters,
 			 Function const *function)
@@ -70,8 +101,8 @@ bool LogicalNode::isClosed(set<Node const *> const &ancestors,
 
     vector<bool> mask(par.size());
     vector<bool> fixed_mask;
-    unsigned int nmask = 0;
-    for (unsigned int i = 0; i < par.size(); ++i) {
+    unsigned long nmask = 0;
+    for (unsigned long i = 0; i < par.size(); ++i) {
 	mask[i] = ancestors.count(par[i]);
 	if (mask[i]) {
 	    ++nmask;
@@ -85,30 +116,43 @@ bool LogicalNode::isClosed(set<Node const *> const &ancestors,
         throw logic_error("Invalid mask in LogicalNode::isClosed");
     }
 
+    bool isclosed = false;
+    
     switch(fc) {
     case DNODE_ADDITIVE:
-	return _func->isAdditive(mask, fixed_mask);
+	isclosed = _func->isAdditive(mask, fixed_mask);
 	break;
     case DNODE_LINEAR:
-	return _func->isLinear(mask, fixed_mask);
+	isclosed =  _func->isLinear(mask, fixed_mask);
         break;
     case DNODE_SCALE:
-	return _func->isScale(mask, fixed_mask);
+	isclosed = _func->isScale(mask, fixed_mask);
 	break;
     case DNODE_SCALE_MIX:
-        return (nmask == 1) && _func->isScale(mask, fixed_mask);
+        isclosed = (nmask == 1) && _func->isScale(mask, fixed_mask);
 	break;
     case DNODE_POWER:
-	return _func->isPower(mask, fixed_mask);
+	isclosed =  _func->isPower(mask, fixed_mask);
         break;
     }
 
-    return false; //Wall
+    return isclosed;
 }
+    
+    bool LogicalNode::isDiscreteValued() const
+    {
+	return _discrete;
+    }
 
-bool LogicalNode::isDiscreteValued() const
-{
-    return _discrete;
-}
+    bool LogicalNode::hasGradient(Node const *arg) const
+    {
+	auto par = parents();
+	for (unsigned int i = 0; i < par.size(); ++i) {
+	    if (par[i] == arg) {
+		if (!_func->hasGradient(i)) return false;
+	    }
+	}
+	return true;
+    }
 
 } //namespace jags

@@ -28,7 +28,7 @@ bool DExp::checkParameterValue (vector<double const *> const &par) const
 }
 
 double
-DExp::d(double x, PDFType type,
+DExp::d(double x, PDFType,
 	vector<double const *> const &par, bool give_log)  const
 {
     return dexp(x, SCALE(par), give_log);
@@ -61,4 +61,23 @@ double DExp::KL(vector<double const *> const &par0,
     return r - 1 - log(r);
 }
 
+    bool DExp::hasScore(unsigned long i) const
+    {
+	return i == 0 || i == 1;
+    }
+    
+    double DExp::score(double x, vector<double const *> const &par,
+		       unsigned long i) const
+    {
+	const double lambda = *par[0];
+
+	switch(i) {
+	case 0:
+	    return -lambda;
+	case 1:
+	    return 1/lambda - x;
+	default:
+	    return 0;
+	}
+    }
 }}

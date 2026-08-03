@@ -23,9 +23,20 @@ namespace bugs {
 	return *args[0] >= 0;
     }
 
-    bool Sqrt::isPower(vector<bool> const &mask, vector<bool> const &fix) const
+    bool Sqrt::isPower(vector<bool> const &, vector<bool> const &) const
     {
         return true;
+    }
+
+    bool Sqrt::hasGradient(unsigned long i) const
+    {
+	return i == 0;
+    }
+    
+    double Sqrt::gradient(vector<double const *> const &args,
+			 unsigned long i) const
+    {
+	return 1/(2*sqrt(*args[0]));
     }
 
 }}

@@ -8,6 +8,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 #include <JRmath.h>
 
@@ -15,6 +16,8 @@ using std::min;
 using std::max;
 using std::vector;
 using std::max_element;
+using std::accumulate;
+using std::fill;
 
 #define PROB(par) (par[0])
 #define NCAT(lengths) (lengths[0])
@@ -26,16 +29,16 @@ DCat::DCat()
     : VectorDist("dcat", 1) 
 {}
 
-bool DCat::isDiscreteValued(vector<bool> const &mask) const
+bool DCat::isDiscreteValued(vector<bool> const &) const
 {
     return true;
 }
 
 bool DCat::checkParameterValue(vector<double const *> const &par,
-			       vector<unsigned int> const &lengths) const
+			       vector<unsigned long> const &lengths) const
 {
     bool nz = false;
-    for (unsigned int i = 0; i < NCAT(lengths); i++) {
+    for (unsigned long i = 0; i < NCAT(lengths); i++) {
 	if (PROB(par)[i] < 0.0) {
 	    return false; 
 	}
@@ -46,12 +49,11 @@ bool DCat::checkParameterValue(vector<double const *> const &par,
     return nz;
 }
 
-double DCat::logDensity(double const *x, unsigned int length, PDFType type,
+double DCat::logDensity(double const *x, PDFType type,
 			vector<double const *> const &par,
-			vector<unsigned int> const &lengths,
-			double const *lower, double const *upper) const
+			vector<unsigned long> const &lengths) const
 {
-    unsigned int y = static_cast<unsigned int>(*x);
+    unsigned long y = static_cast<unsigned long>(*x);
     if (y < 1 || y > NCAT(lengths)) {
 	return JAGS_NEGINF;
     }
@@ -63,21 +65,20 @@ double DCat::logDensity(double const *x, unsigned int length, PDFType type,
     else {
 	//Need to normalize the log density
 	double sump = 0.0;
-	for (unsigned int i = 0; i < NCAT(lengths); i++) {
+	for (unsigned long i = 0; i < NCAT(lengths); i++) {
 	    sump += PROB(par)[i];
 	}
 	return log(PROB(par)[y-1]) - log(sump);
     }
 }
 
-void DCat::randomSample(double *x, unsigned int length,
+void DCat::randomSample(double *x,
 			vector<double const *> const &par,
-			vector<unsigned int> const &lengths,
-			double const *lower, double const *upper,
+			vector<unsigned long> const &lengths,
 			RNG *rng) const
 {
     double sump = 0;
-    unsigned int i = 0;
+    unsigned long i = 0;
 
     for ( ; i < NCAT(lengths); ++i) {
 	sump += PROB(par)[i];
@@ -92,46 +93,45 @@ void DCat::randomSample(double *x, unsigned int length,
     *x  = i;
 }
 
-void DCat::support(double *lower, double *upper, unsigned int length,
-	           vector<double const *> const &par,
-	           vector<unsigned int> const &lengths) const
+    void DCat::randomSample(double *x, vector<bool> const &observed, 
+			    vector<double const *> const &par,
+			    vector<unsigned long> const &lengths,
+			    RNG *rng) const
+    {
+	if (!observed[0]) {
+	    randomSample(x, par, lengths, rng);
+	}
+    }
+    
+void DCat::support(double *lower, double *upper,
+	           vector<double const *> const &,
+	           vector<unsigned long> const &lengths) const
 {
-    if (length != 1)
-	throwLogicError("Invalid length in DCat::support");
-
     *lower = 1;
     *upper = NCAT(lengths);
 }
 
-void DCat::typicalValue(double *x, unsigned int length,
-			vector<double const *> const &par,
-			vector<unsigned int> const &lengths,
-			double const *lower, double const *upper) const
-{
-    *x = max_element(PROB(par), PROB(par) + NCAT(lengths)) - PROB(par) + 1;
-}
-
-bool DCat::isSupportFixed(vector<bool> const &fixmask) const
+bool DCat::isSupportFixed(vector<bool> const &) const
 {
     return true;
 }
 
-bool DCat::checkParameterLength(vector<unsigned int> const &lengths) const
+bool DCat::checkParameterLength(vector<unsigned long> const &lengths) const
 {
     return NCAT(lengths) > 0;
 }
 
-unsigned int DCat::length(vector<unsigned int> const &lengths) const
+unsigned long DCat::length(vector<unsigned long> const &) const
 {
     return 1;
 }
 
     double DCat::KL(vector<double const *> const &par0,
 		    vector<double const *> const &par1,
-		    vector<unsigned int> const &lengths) const
+		    vector<unsigned long> const &lengths) const
     {
 	double psum0 = 0, psum1 = 0, y = 0;
-	for (unsigned int i = 0; i < NCAT(lengths); ++i) {
+	for (unsigned long i = 0; i < NCAT(lengths); ++i) {
 	    double p0 = PROB(par0)[i];
 	    double p1 = PROB(par1)[i];
 	    if (p0 == 0) {
@@ -151,4 +151,28 @@ unsigned int DCat::length(vector<unsigned int> const &lengths) const
 	return y;
     }
 
+    bool DCat::hasScore(unsigned long i) const
+    {
+	return i == 1;
+    }
+    
+    void DCat::score(double *s, double const *x,
+		     vector<double const *> const &par,
+		     vector<unsigned long> const &lengths,
+		     unsigned long i) const
+    {
+	if (i == 1) {
+	    double const *prob = PROB(par);
+	    unsigned long N = NCAT(lengths);
+	    
+	    double ipsum = 1.0/accumulate(prob, prob + N, 0.0);
+	    for (unsigned long i = 0; i < N; ++i) {
+		s[i] -= ipsum;
+	    }
+	    
+	    unsigned long y = static_cast<unsigned long>(*x) - 1;
+	    s[y] += 1/prob[y];
+	}
+    }
+    
 }}

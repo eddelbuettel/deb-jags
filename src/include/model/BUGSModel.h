@@ -8,7 +8,7 @@
 
 #include <model/Model.h>
 #include <model/SymTab.h>
-#include <model/MonitorInfo.h>
+//#include <model/MonitorInfo.h> FIXME
 
 namespace jags {
 
@@ -23,10 +23,14 @@ class BUGSModel : public Model
 {
     SymTab _symtab;
     //std::map<Node const*, std::pair<std::string, Range> > _node_map;
-    std::list<MonitorInfo> _bugs_monitors;
+    //std::list<MonitorInfo> _bugs_monitors; FIXME
+
+    // Only to be used by observedStochasticNodes():
+    std::vector<Node const *> _observed_stochastic_nodes;
+
 public:
     BUGSModel(unsigned int nchain);
-    ~BUGSModel();
+    ~BUGSModel() override;
     /**
      * Returns the symbol table of the BUGSModel.
      */
@@ -34,8 +38,8 @@ public:
     /**
      * Writes out selected monitors in CODA format.
      *
-     * @param nodes Vector of nodes to write out. Each node is
-     * described by a pair consisting of a name and a range of
+     * @param nodes Vector of monitored nodes to write out. Each node
+     * is described by a pair consisting of a name and a range of
      * indices.  If a node is not being monitored, then it is ignored.
      *
      * @param prefix String giving prefix to be prepened to the output
@@ -43,15 +47,23 @@ public:
      *
      * @param warn String that will contain any warning messages on
      * exit. It is cleared on entry.
+     * 
+     * @param stat Select Monitors of the given stat, or "*" for all
+     * stats.
+     *
+     * @param summary Select Monitors with the given summary, or "*"
+     * for all summaries.
      *
      * @exception logic_error
      */
     void coda(std::vector<std::pair<std::string,Range> > const &nodes, 
-	      std::string const &prefix, std::string &warn);
+	      std::string const &prefix, std::string &warn,
+	      std::string const &stat, std::string const &summary);
     /**
      * Write out all monitors in CODA format
      */
-    void coda(std::string const &prefix, std::string &warn);
+    void coda(std::string const &prefix, std::string &warn,
+	      std::string const &stat, std::string const &summary);
     /**
      * Sets the state of the RNG, and the values of the unobserved
      * stochastic nodes in the model, for a given chain.
@@ -77,8 +89,8 @@ public:
     /**
      * Creates a new Monitor. The BUGSModel is responsible for the
      * memory management of any monitor created this way. It is not
-     * possible to create two monitors with the same name, range and
-     * type.
+     * possible to create two monitors with the same name, range,
+     * stat, and summary.
      *
      * @param name Name of the node array
      *
@@ -87,7 +99,9 @@ public:
      * 
      * @param thin Thinning interval for monitor
      *
-     * @param type Type of monitor to create
+     * @param stat Statistic to monnitor
+     *
+     * @param summary How to summarize the monitored values
      *
      * @param msg User-friendly error message that may be given if no
      * monitor can be created.
@@ -95,7 +109,8 @@ public:
      * @return True if the monitor was created.  
      */
     bool setMonitor(std::string const &name, Range const &range,
-		    unsigned int thin, std::string const &type,
+		    unsigned int thin, std::string const &stat,
+		    std::string const &summary,
 		    std::string &msg);
     /**
      * Deletes a Monitor that has been previously created with a call
@@ -104,21 +119,26 @@ public:
      * @return True if the monitor was deleted.
      */
     bool deleteMonitor(std::string const &name, Range const &range,
-		       std::string const &type);
+		       std::string const &stat, std::string const &summary);
     /**
      * Traverses the list of monitor factories requesting default
-     * monitors of the given type. The function returns true after the
-     * first monitor factory has added at least one node to the monitor
-     * list. If none of the available monitor factories can create
-     * default monitors of the given type, the return value is false.
+     * monitors of the given stat and summary. The function returns
+     * true after the first monitor factory has added at least one
+     * node to the monitor list. If none of the available monitor
+     * factories can create default monitors of the given type, the
+     * return value is false.
      *
      * @see MonitorFactory#addDefaultMonitors
      */
-    bool setDefaultMonitors(std::string const &type, unsigned int thin);
+    //FIXME: Do we need this?
+    bool setDefaultMonitors(std::string const &stat,
+			    std::string const &summary,
+			    unsigned int thin);
     /**
-     * Removes all Monitors of the given type.
+     * Removes all Monitors with the given stat and summary.
      */
-    void clearMonitors(std::string const &type);
+    void clearMonitors(std::string const &stat,
+		       std::string const &summary);
     /**
      * Writes the names of the samplers, and the corresponding 
      * sampled nodes vectors to the given vector.
@@ -132,6 +152,26 @@ public:
     void samplerNames(std::vector<std::vector<std::string> > &sampler_names) 
 	const;
 
+    /**
+     * Returns a vector of all observed stochastic nodes in the model
+     */ 
+    std::vector<Node const *> const &observedStochasticNodes();
+    /**
+     * Retrieves the names of nodes in the graph matching a given type
+     *
+     * @param node_names Node names will be appended to this vector
+     *
+     * @param type String indicating which type of nodes to select. Possible
+     * values are "constant", "deterministic", "stochastic", "fixed", and "observed".
+     *
+     * @param warn String that will contain a warning if the type argument is not
+     * matched with any valid string.
+     * 
+     * If type="observed" then these names are guaranteed to
+     * correspond to the values given by deviance monitors in the DIC module
+     */
+    void dumpNodeNames(std::vector<std::string> &node_names,
+		       std::string const &type, std::string &warn) const;
 };
 
 } /* namespace jags */

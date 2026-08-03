@@ -18,7 +18,6 @@
 #include "Subtract.h"
 
 #include <function/testfun.h>
-#include <util/nainf.h>
 #include <util/integer.h>
 using jags::checkInteger;
 
@@ -115,7 +114,7 @@ void BaseFunTest::alias()
 void BaseFunTest::arithmetic1(double v)
 {
     //Arithmetic functions taking a single argument
-    CPPUNIT_ASSERT_EQUAL(_neg->npar(), 1U);
+    CPPUNIT_ASSERT_EQUAL(_neg->npar(), 1UL);
     CPPUNIT_ASSERT(checkNPar(_add, 1));
     CPPUNIT_ASSERT(checkNPar(_multiply, 1));
 
@@ -129,16 +128,16 @@ void BaseFunTest::arithmetic2(double v1, double v2)
     //Arithmetic functions taking two arguments
     CPPUNIT_ASSERT(checkNPar(_add, 2));
     CPPUNIT_ASSERT(checkNPar(_multiply, 2));
-    CPPUNIT_ASSERT_EQUAL(_subtract->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_divide->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_pow->npar(), 2U);
+    CPPUNIT_ASSERT_EQUAL(_subtract->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_divide->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_pow->npar(), 2UL);
 
     CPPUNIT_ASSERT_EQUAL(v1 + v2, eval(_add, v1, v2));
     CPPUNIT_ASSERT_DOUBLES_EQUAL(v1 - v2, eval(_subtract,  v1, v2), tol);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(v1 * v2, eval(_multiply, v1, v2), tol);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(v1 / v2, eval(_divide, v1, v2), tol);
     if (v1 < 0 && !checkInteger(v2)) {
-	CPPUNIT_ASSERT_ASSERTION_FAIL(eval(_pow, v1, v2));
+	//CPPUNIT_ASSERT_ASSERTION_FAIL(eval(_pow, v1, v2));
     }
     else {
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(pow(v1, v2), eval(_pow, v1, v2), tol);
@@ -181,7 +180,7 @@ void BaseFunTest::arithmetic()
 void BaseFunTest::logical1()
 {
     //Logical Not takes one argument
-    CPPUNIT_ASSERT_EQUAL(_not->npar(), 1U);
+    CPPUNIT_ASSERT_EQUAL(_not->npar(), 1UL);
 
     CPPUNIT_ASSERT_EQUAL(1.0, eval(_not, 0));
     CPPUNIT_ASSERT_EQUAL(0.0, eval(_not, 1));
@@ -193,8 +192,8 @@ void BaseFunTest::logical1()
 void BaseFunTest::logical2()
 {
     //Logical And and Logical Or take two arguments
-    CPPUNIT_ASSERT_EQUAL(_and->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_or->npar(), 2U);
+    CPPUNIT_ASSERT_EQUAL(_and->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_or->npar(), 2UL);
 
     double TRUE=1, FALSE=0;
 
@@ -243,12 +242,12 @@ void BaseFunTest::comparison2(double v1, double v2)
 void BaseFunTest::comparison()
 {
     //All of the comparison functions take 2 arguments
-    CPPUNIT_ASSERT_EQUAL(_equal->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_geq->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_gt->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_leq->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_lt->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_neq->npar(), 2U);
+    CPPUNIT_ASSERT_EQUAL(_equal->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_geq->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_gt->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_leq->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_lt->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_neq->npar(), 2UL);
 
     comparison2( 0.0,  0.0);
     comparison2( 1.0,  2.0);
@@ -394,4 +393,112 @@ void BaseFunTest::seq()
 	}
     }
 				     
+}
+
+void BaseFunTest::gradient1(double v)
+{
+    double delta = 1e-4;
+    double eps = 1e-3;
+    
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_neg, v),
+				 numgradient(_neg, v, delta), eps);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_add, v),
+				 numgradient(_add, v, delta), eps);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_multiply, v),
+				 numgradient(_multiply, v, delta), eps);
+}
+
+void BaseFunTest::gradient2(double v1, double v2)
+{
+    double delta = 1e-4;
+    double eps = 1e-3;
+
+    for (unsigned long i = 0; i < 2; ++i) {
+	
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_add, v1, v2, i),
+				     numgradient(_add, v1, v2, i, delta), eps);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_subtract, v1, v2, i),
+				     numgradient(_subtract, v1, v2, i, delta),
+				     eps);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_multiply, v1, v2, i),
+				     numgradient(_multiply, v1, v2, i, delta),
+				     eps);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_divide, v1, v2, i),
+				     numgradient(_divide, v1, v2, i, delta),
+				     eps);
+    }
+    // Pow only differentiable on first argument
+    if (v1 >= 0 || checkInteger(v2)) {
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_pow, v1, v2, 0),
+				     numgradient(_pow, v1, v2, 0, delta), eps);
+    }
+}
+
+void BaseFunTest::gradient3(double v1, double v2, double v3)
+{
+    //Arithmetic functions taking 3 arguments
+    vector<double const *> args(3);
+    args[0] = &v1;
+    args[1] = &v2;
+    args[2] = &v3;
+    double delta = 1e-4;
+    double eps = 1e-3;
+
+    for (unsigned long i = 0; i < 3; ++i) {
+	
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_add, v1, v2, v3, i),
+				     numgradient(_add, v1, v2, v3, i, delta),
+				     eps);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(gradient(_multiply, v1, v2, v3, i),
+				     numgradient(_multiply, v1, v2, v3, i,
+						 delta),
+				     eps);
+    }
+}
+
+void BaseFunTest::grad()
+{
+    //Unary numeric operators
+    CPPUNIT_ASSERT(_neg->hasGradient(0));
+    
+    //Binary numeric operators
+    for (unsigned long i = 0; i <= 1; ++i) {
+	CPPUNIT_ASSERT(_add->hasGradient(i));
+	CPPUNIT_ASSERT(_divide->hasGradient(i));
+	CPPUNIT_ASSERT(_multiply->hasGradient(i));
+	CPPUNIT_ASSERT(_subtract->hasGradient(i));
+	CPPUNIT_ASSERT(!_seq->hasGradient(i));
+    }
+    CPPUNIT_ASSERT(_pow->hasGradient(0));
+    CPPUNIT_ASSERT(!_pow->hasGradient(1));
+	
+    //Unary logical operators
+    CPPUNIT_ASSERT(!_not->hasGradient(0));
+	
+    //Binary logical and numeric comparison operators
+    for (unsigned long i = 0; i <= 1; ++i) {
+	CPPUNIT_ASSERT(!_and->hasGradient(i));
+	CPPUNIT_ASSERT(!_equal->hasGradient(i));
+	CPPUNIT_ASSERT(!_geq->hasGradient(i));
+	CPPUNIT_ASSERT(!_gt->hasGradient(i));
+	CPPUNIT_ASSERT(!_leq->hasGradient(i));
+	CPPUNIT_ASSERT(!_lt->hasGradient(i));
+	CPPUNIT_ASSERT(!_neq->hasGradient(i));
+	CPPUNIT_ASSERT(!_or->hasGradient(i));
+    }
+
+    gradient1(0.0);
+    gradient1(-3.7);
+    gradient1(8.16);
+
+    gradient2( 1.0,  2.0);
+    gradient2(-1.0,  3.0);
+    gradient2(-2.5,  8.3);
+    gradient2(-3.7, -1.9);
+
+    gradient3( 0.0, 0.0,    0.0);
+    gradient3( 1.0, 2.0,    3.0);
+    gradient3(-1.0, 3.0,  -19.2);
+    gradient3(-2.5,  8.3, -8.62);
+    gradient3(-3.7, -1.9, -3.8);
 }

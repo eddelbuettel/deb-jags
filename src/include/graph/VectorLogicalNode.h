@@ -18,7 +18,7 @@ class VectorFunction;
  */
 class VectorLogicalNode : public LogicalNode {
     VectorFunction const * const _func;
-    std::vector<unsigned int> _lengths;
+    std::vector<unsigned long> _lengths;
 public:
     /**
      * A logical node is defined by a function (which may be an inline
@@ -29,12 +29,14 @@ public:
     /**
      * Calculates the value of the node based on the parameters. 
      */
-    void deterministicSample(unsigned int chain);
+    void deterministicSample(unsigned int chain) override;
     /**
      * @see VectorFunction#checkParameterValue.
      */
-    bool checkParentValues(unsigned int chain) const;
+    bool checkParentValues(unsigned int chain) const override;
     //DeterministicNode *clone(std::vector<Node const *> const &parents) const;
+    void gradient(double *grad, Node const *arg, unsigned int chain)
+	const override;
 };
 
 } /* namespace jags */

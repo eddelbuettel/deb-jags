@@ -27,14 +27,14 @@ namespace glm {
     {
 	double const &_y;
 	double const *_cuts;
-	const unsigned int _ncut;
+	const unsigned long _ncut;
 	double _z;
       public:
 	OrderedProbit(StochasticNode const *snode, unsigned int chain);
-	double value() const;
-	double precision() const;
-	void update(RNG *rng);
-	void update(double mean, double var, RNG *rng);
+	double value() const override;
+	double precision() const override;
+	void update(RNG *rng) override;
+	void update(double mean, double var, RNG *rng) override;
 	static bool canRepresent(StochasticNode const *snode);
     };
 

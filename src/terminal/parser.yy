@@ -1,3 +1,4 @@
+
 /* -*-C++-*- */
 %{
 #include <config.h>
@@ -58,12 +59,13 @@
     bool open_data_buffer(std::string const *name);
     bool open_command_buffer(std::string const *name);
     void return_to_main_buffer();
-    void setMonitor(jags::ParseTree const *var, int thin, std::string const &type);
-    void clearMonitor(jags::ParseTree const *var, std::string const &type);
-    void doCoda (jags::ParseTree const *var, std::string const &stem);
-    void doAllCoda (std::string const &stem);
-    void doDump (std::string const &file, jags::DumpType type, unsigned int chain);
-    void dumpMonitors(std::string const &file, std::string const &type);
+    void setMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary, int thin);
+    void clearMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary);
+    void doCoda (jags::ParseTree const *var, std::string const &stem, std::string const &stat, std::string const &summary);
+    void doAllCoda (std::string const &stem, std::string const &stat, std::string const &summary);
+    void dumpNodeNames (std::string const &file, std::string const &type);
+    void doDump (std::string const &file, jags::ValueType type, unsigned int chain);
+    void dumpMonitors(std::string const &file, std::string const &stat, std::string const &summary);
     void doSystem(std::string const *command);
     std::string ExpandFileName(char const *s);
 
@@ -128,6 +130,7 @@
 %token <intval> UPDATE
 %token <intval> BY
 %token <intval> MONITORS
+%token <intval> NODENAMES
 %token <intval> MONITOR
 %token <intval> TYPE
 %token <intval> SET
@@ -135,8 +138,11 @@
 %token <intval> THIN
 %token <intval> CODA
 %token <intval> STEM
+%token <intval> STAT
+%token <intval> SUMMARY
 %token <intval> EXIT
 %token <intval> NCHAINS
+%token <intval> NTHREADS
 %token <intval> CHAIN
 %token <intval> LOAD
 %token <intval> UNLOAD
@@ -159,6 +165,7 @@
 %token <intval> ENDDATA
 %token <intval> ASINTEGER
 %token <intval> DOTDATA
+%token <intval> NREP
 
 %token <intval> DIRECTORY
 %token <intval> CD
@@ -166,19 +173,19 @@
 %token <intval> RUN
 %token <intval> ENDSCRIPT
 
-%type <ptree> var index 
+%type <ptree> var 
 %type <ptree> r_assignment r_structure
 %type <ptree> range_element r_dim
 %type <ptree> r_attribute_list
-%type <ptree> r_value 
+%type <ptree> r_value r_real_value r_int_value r_na_value 
 %type <pvec>  r_value_list r_assignment_list range_list
-%type <ptree> r_value_collection r_integer_collection r_collection r_data
+%type <ptree> r_value_collection r_integer_collection r_collection r_data r_compact_sequence
 %type <stringptr> file_name;
 %type <stringptr> r_name;
 
 %%
 
-input: {
+input: %empty {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
 }
@@ -210,6 +217,7 @@ command: model
 | update
 | monitor
 | monitors_to
+| node_names_to
 | coda
 | load
 | unload
@@ -256,7 +264,7 @@ data_in: data r_assignment_list ENDDATA {
 ;
 
 data_to: DATA TO file_name {
-    doDump(*$3, jags::DUMP_DATA, 1);
+    doDump(*$3, jags::DATA_VALUES, 1);
     delete $3;
 }
 ;
@@ -323,11 +331,11 @@ parameters_in: parameters r_assignment_list ENDDATA
 ;
 
 parameters_to: PARAMETERS TO file_name {
-    doDump(*$3, jags::DUMP_PARAMETERS, 1);
+    doDump(*$3, jags::PARAMETER_VALUES, 1);
     delete $3;
 }
 | PARAMETERS TO file_name ',' CHAIN '(' INT ')' {
-    doDump(*$3, jags::DUMP_PARAMETERS, $7);
+    doDump(*$3, jags::PARAMETER_VALUES, $7);
     delete $3;
 }
 ;
@@ -354,17 +362,33 @@ parameters: PARAMETERS IN file_name {
 ;
 
 compile: COMPILE {
-    Jtry(console->compile(_data_table, 1, true));
+    Jtry(console->compile(_data_table, 1U, true));
     print_unused_variables(_data_table, true);
  }
 | COMPILE ',' NCHAINS '(' INT ')' {
     Jtry(console->compile(_data_table, $5, true));
     print_unused_variables(_data_table, true);
 }
+| COMPILE ',' NCHAINS '(' INT ')' NTHREADS '(' INT ')' {
+    Jtry(console->compile(_data_table, $5, true));
+    console->setNThread($9);
+    print_unused_variables(_data_table, true);
+}
+
 ;
 
 initialize: INITIALIZE {
-    if (!console->initialize()) {
+    if (!console->initialize(10000U, 10000U)) {
+	errordump();
+    }
+}
+| INITIALIZE ',' NREP '(' INT ')' {
+    if (!console->initialize($5, $5)) {
+	errordump();
+    }
+}
+| INITIALIZE ',' NREP '(' INT ',' INT ')' {
+    if (!console->initialize($5, $7)) {
 	errordump();
     }
 }
@@ -426,16 +450,8 @@ range_list: range_element {
 }
 ;
 
-range_element: index {
-  $$ = new jags::ParseTree(jags::P_RANGE); setParameters($$, $1);
-}
-| index ':' index {
-  $$ = new jags::ParseTree(jags::P_RANGE); setParameters($$, $1, $3);
-}
-;
-
-/* FIXME: Use integer value here */
-index: INT {$$ = new jags::ParseTree(jags::P_VALUE); $$->setValue($1);}
+range_element: r_int_value
+| r_compact_sequence
 ;
 
 monitor: monitor_set
@@ -443,48 +459,85 @@ monitor: monitor_set
 ;
 
 monitor_set: MONITOR SET var  { 
-    setMonitor($3, 1, "trace"); delete $3;
+    setMonitor($3, "value", "trace", 1);
+    delete $3;
 }
 | MONITOR SET var ',' THIN '(' INT ')' { 
-    setMonitor($3, $7, "trace"); delete $3;
+    setMonitor($3, "value", "trace", $7);
+    delete $3;
 }
 | MONITOR var {
-    setMonitor($2, 1, "trace"); delete $2;
+    setMonitor($2, "value", "trace", 1);
+    delete $2;
 }
 | MONITOR var ',' THIN '(' INT ')' { 
-    setMonitor($2, $6, "trace"); delete $2;
+    setMonitor($2, "value", "trace", $6);
+    delete $2;
 }
-| MONITOR var ',' TYPE '(' NAME ')' {
-    setMonitor($2, 1, *$6);
+| MONITOR var ','  STAT '(' NAME ')' {
+    setMonitor($2, *$6, "trace", 1);
+    delete $2;
     delete $6;
 }
-| MONITOR var ',' TYPE '(' NAME ')' THIN '(' INT ')' {
-    setMonitor($2, $10, *$6); 
+| MONITOR var ',' SUMMARY '(' NAME ')' {
+    setMonitor($2, "value", *$6, 1);
+    delete $2;
     delete $6;
 }
-| MONITOR var ',' THIN '(' INT ')' TYPE '(' NAME ')' {
-    setMonitor($2, $6, *$10); 
+| MONITOR var ',' STAT '(' NAME ')' SUMMARY '(' NAME ')' {
+    setMonitor($2, *$6, *$10, 1); 
+    delete $2;
+    delete $6;
+    delete $10;
+}
+| MONITOR var ',' STAT '(' NAME ')' SUMMARY '(' NAME ')' THIN '(' INT ')' {
+    setMonitor($2, *$6, *$10, $14);
+    delete $2;
+    delete $6;
     delete $10;
 }
 ;
 
 monitor_clear: MONITOR CLEAR var {
-    clearMonitor($3, "trace"); delete $3;
+    clearMonitor($3, "value", "trace"); delete $3;
 }
-| MONITOR CLEAR var ',' TYPE '(' NAME ')' {
-    clearMonitor($3, *$7);
+| MONITOR CLEAR var ',' STAT '(' NAME ')' {
+    clearMonitor($3, *$7, "trace");
     delete $7;
 }
+| MONITOR CLEAR var ',' SUMMARY '(' NAME ')' {
+    clearMonitor($3, "value", *$7);
+    delete $7;
+}
+| MONITOR CLEAR var ',' STAT '(' NAME ')' SUMMARY '(' NAME ')' {
+    clearMonitor($3, *$7, *$11);
+    delete $7;
+}
+
 ;
 
 monitors_to:  MONITORS TO file_name 
 {
-    dumpMonitors(*$3, "trace");
+    dumpMonitors(*$3, "value", "trace");
     delete $3;
 }
 |
-MONITORS TO file_name ',' TYPE '(' NAME ')' {
-    dumpMonitors(*$3, *$7);
+MONITORS TO file_name ',' STAT '(' NAME ')' SUMMARY '(' NAME ')' {
+    dumpMonitors(*$3, *$7, *$11);
+    delete $3;
+    delete $7;
+    delete $11;
+}
+;
+
+node_names_to:  NODENAMES TO file_name 
+{
+    dumpNodeNames(*$3, "all");
+    delete $3;
+}
+|
+NODENAMES TO file_name ',' TYPE '(' NAME ')' {
+    dumpNodeNames(*$3, *$7);
     delete $3;
     delete $7; 
 }
@@ -500,16 +553,23 @@ file_name: NAME { $$ = $1;}
 ;
 
 coda: CODA var {
-  doCoda ($2, "CODA"); delete $2;
+    doCoda ($2, "CODA", "*", "*"); delete $2;
 }
 | CODA var ',' STEM '(' file_name ')' {
-  doCoda ($2, *$6); delete $2; delete $6;
+    doCoda ($2, *$6, "*", "*"); delete $2; delete $6;
+}
+| CODA var ',' STEM '(' file_name ')' STAT '(' NAME ')' SUMMARY '(' NAME ')' {
+    doCoda ($2, *$6, *$10, *$14);
+    delete $2; delete $6; delete $10; delete $14;
 }
 | CODA '*' {
-  doAllCoda ("CODA"); 
+  doAllCoda ("CODA", "*", "*"); 
 }
 | CODA '*' ',' STEM '(' file_name ')' {
-  doAllCoda (*$6); delete $6; 
+    doAllCoda (*$6, "*", "*" ); delete $6; 
+}
+| CODA '*' ',' STEM '(' file_name ')' STAT '(' NAME ')' SUMMARY '(' NAME ')' {
+    doAllCoda (*$6, *$10, *$14); delete $6; delete $10; delete $14;
 }
 ;
 
@@ -578,6 +638,11 @@ set_seed: SET SEED INT
 
 /* Rules for scanning dumped R datasets */
 
+r_compact_sequence: r_int_value ':' r_int_value {
+    $$ = new jags::ParseTree(jags::P_FUNCTION); $$->setName(":");
+    setParameters($$, $1, $3);
+ }
+
 r_assignment_list: r_assignment {
   $$ = new std::vector<jags::ParseTree*>(1, $1);
 }
@@ -590,18 +655,25 @@ r_assignment_list: r_assignment {
 ;
 
 r_assignment: r_name ARROW r_structure {
-  $$ = $3; setName($$, $1);
-}
+    $$ = new jags::ParseTree(jags::P_ARRAY);
+    setName($$, $1);
+    setParameters($$, $3);
+} 
 | r_name ARROW r_collection {
-  $$ = new jags::ParseTree(jags::P_ARRAY);
-  setName($$, $1);
-  setParameters($$, $3);
+    $$ = new jags::ParseTree(jags::P_ARRAY);
+    setName($$, $1);
+    setParameters($$, $3);
+}
+| r_name ARROW r_compact_sequence {
+    $$ = new jags::ParseTree(jags::P_ARRAY);
+    setName($$, $1);
+    setParameters($$, $3);
 }
 | r_name ARROW STRING {
-  /* Allow this for setting the NAME of the random number generator */
-  $$ = new jags::ParseTree(jags::P_VAR); setName($$, $1);
-  jags::ParseTree *p = new jags::ParseTree(jags::P_VAR); setName(p, $3);
-  setParameters($$, p);
+    /* Allow this for setting the NAME of the random number generator */
+    $$ = new jags::ParseTree(jags::P_ARRAY); setName($$, $1);
+    jags::ParseTree *p = new jags::ParseTree(jags::P_VAR); setName(p, $3);
+    setParameters($$, p);
 }
 ;
 
@@ -618,24 +690,25 @@ r_data: r_collection
 }
 
 r_structure: STRUCTURE '(' r_data ',' r_attribute_list ')' {
-  $$ = new jags::ParseTree(jags::P_ARRAY); 
-  if ($5) 
-    setParameters($$, $3, $5);
-  else
-    setParameters($$, $3);
+    if ($5) {
+	$$ = new jags::ParseTree(jags::P_STRUCT); 
+	setParameters($$, $3, $5);
+    }
+    else {
+	$$ = $3;
+    }
 }
 | STRUCTURE '(' r_data ')' {
-    $$ = new jags::ParseTree(jags::P_ARRAY);
-    setParameters($$, $3);
+    $$ = $3;
 }
 ;
 
-/* The only attribute we are interested in is .Dim. The rest are
-   simply discarded - see below */
+/* The only attribute we are interested in is "dim" or, for older dump
+   files, ".Dim". The rest are simply discarded - see below */
 r_attribute_list: r_dim
 | r_generic_attribute {$$=0;}
-| r_attribute_list ',' r_generic_attribute
 | r_attribute_list ',' r_dim {$$=$3;}
+| r_attribute_list ',' r_generic_attribute
 ;
 
 r_dim: DIM '=' r_collection {
@@ -667,46 +740,60 @@ r_value_list: r_value {$$ = new std::vector<jags::ParseTree*>(1, $1); }
 | r_value_list ',' r_value {$$ = $1; $$->push_back($3);}
 ;
 
-r_value: DOUBLE {$$ = new jags::ParseTree(jags::P_VALUE); $$->setValue($1);}
-| NA {$$ = new jags::ParseTree(jags::P_VALUE); $$->setValue(JAGS_NA);}
+r_value: r_real_value
+| r_int_value
+| r_na_value
+;
+
+r_real_value: DOUBLE {$$ = new jags::ParseTree(jags::P_VALUE); $$->setValue($1);}
+;
+
+r_int_value: INT {$$ = new jags::ParseTree(jags::P_VALUE); $$->setValue($1);}
+;
+
+r_na_value: NA {$$ = new jags::ParseTree(jags::P_VALUE); $$->setValue(JAGS_NA);}
 ;
 
 /* Rules for parsing generic attributes.  We don't want to do anything
    with the results, just have the parser accept them */
 
-r_generic_attribute: NAME '=' r_generic_vector {;}
+r_generic_attribute: NAME '=' r_discard_vector {}
 ;
 
-r_generic_list: r_generic_list_element {;}
-| r_generic_list ',' r_generic_list_element {;}
+r_discard_vector: r_discard_numvector {}
+| ASINTEGER '(' r_discard_numvector ')' {}
+| r_discard_charvector {}
+| LIST '(' r_discard_arglist ')' {}
+| STRUCTURE '(' r_discard_arglist ')' {}
+| R_NULL {}
 ;
 
-r_generic_list_element: r_generic_vector {;}
-| NAME '=' r_generic_vector {;}
+r_discard_arglist: r_discard_arglist_element {}
+| r_discard_arglist ',' r_discard_arglist_element {}
 ;
 
-r_generic_vector: r_numeric_vector {;}
-| ASINTEGER '(' r_numeric_vector ')' {;}
-| r_character_vector {;}
-| LIST '(' r_generic_list ')' {;}
-| STRUCTURE '(' r_generic_list ')' {;}
-| R_NULL {;}
+r_discard_arglist_element: r_discard_vector {}
+| NAME '=' r_discard_vector {}
 ;
 
-r_numeric_vector: DOUBLE {;}
-| 'c' '(' r_double_list ')'
+r_discard_numvector: DOUBLE {}
+| INT {}
+| INT ':' INT {}
+| 'c' '(' r_discard_numeric_arglist ')'
 ;
 
-r_double_list: DOUBLE {;}
-| r_double_list ',' DOUBLE {;}
+r_discard_numeric_arglist: DOUBLE {}
+| INT {}
+| r_discard_numeric_arglist ',' DOUBLE {}
+| r_discard_numeric_arglist ',' INT {}
 ;
 
-r_character_vector: STRING {;}
-| 'c' '(' r_string_list ')' {;}
+r_discard_charvector: STRING {}
+| 'c' '(' r_discard_string_arglist ')' {}
 ;
 
-r_string_list: STRING {;}
-| r_string_list ',' STRING {;}
+r_discard_string_arglist: STRING {}
+| r_discard_string_arglist ',' STRING {}
 ;
 
 /* Rules for interacting with the operating system */
@@ -781,58 +868,60 @@ static jags::Range getRange(jags::ParseTree const *var)
   */
   unsigned int size = var->parameters().size();
 
-  std::vector<int>  ind_lower(size), ind_upper(size);
+  std::vector<unsigned long>  ind_lower(size), ind_upper(size);
   for (unsigned int i = 0; i < size; ++i) {
     jags::ParseTree const *range_element = var->parameters()[i];
-    switch(range_element->parameters().size()) {
-    case 1:
-      ind_lower[i] = (int) (range_element->parameters()[0]->value() + 1.0E-6);
-      ind_upper[i] = ind_lower[i];
-      break;
-    case 2:
-      ind_lower[i] = (int) (range_element->parameters()[0]->value() + 1.0E-6);  
-      ind_upper[i] = (int) (range_element->parameters()[1]->value() + 1.0E-6);
-      break;
-    default:
-      //Error! FIXME
-      break;
+    if (range_element->treeClass() == jags::P_VALUE) {
+	ind_lower[i] = static_cast<int>(range_element->value());
+	ind_upper[i] = ind_lower[i];
+    }
+    else if (range_element->treeClass() == jags::P_FUNCTION &&
+	     range_element->name() == ":")
+    {
+	ind_lower[i] = static_cast<int>(range_element->parameters()[0]->value());
+	ind_upper[i] = static_cast<int>(range_element->parameters()[1]->value());
+    }
+    else {
+	std::cerr << "Unable to parse subset expression for " << var->name() << 
+	    ". Taking whole node instead" << std::endl;
+	return jags::Range();
     }
   }
   return jags::SimpleRange(ind_lower, ind_upper);
 }
 
-void setMonitor(jags::ParseTree const *var, int thin, std::string const &type)
+void setMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary, int thin)
 {
     std::string const &name = var->name();
     if (var->parameters().empty()) {
 	/* Requesting the whole node */
-	console->setMonitor(name, jags::Range(), thin, type);
+	console->setMonitor(name, jags::Range(), thin, stat, summary);
     }
     else {
 	/* Requesting subset of a multivariate node */
-	console->setMonitor(name, getRange(var), thin, type);
+	console->setMonitor(name, getRange(var), thin, stat, summary);
     }
 }
 
-void clearMonitor(jags::ParseTree const *var, std::string const &type)
+void clearMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary)
 {
     std::string const &name = var->name();
     if (var->parameters().empty()) {
-	/* Requesting the whole node */
-	console->clearMonitor(name, jags::Range(), type);
+	/* Requesting a whole array */
+	console->clearMonitor(name, jags::Range(), stat, summary);
     }
     else {
-	/* Requesting subset of a multivariate node */
-	console->clearMonitor(name, getRange(var), type);
+	/* Requesting subset of an array */
+	console->clearMonitor(name, getRange(var), stat, summary);
     }
 }
 
-void doAllCoda (std::string const &stem)
+void doAllCoda (std::string const &stem, std::string const &stat, std::string const &summary)
 {
-    console->coda(stem);
+    console->coda(stem, stat, summary);
 }
 
-void doCoda (jags::ParseTree const *var, std::string const &stem)
+void doCoda (jags::ParseTree const *var, std::string const &stem, std::string const &stat, std::string const &summary)
 {
     //FIXME: Allow list of several nodes
 
@@ -845,7 +934,7 @@ void doCoda (jags::ParseTree const *var, std::string const &stem)
 	/* Requesting subset of a multivariate node */
 	dmp.push_back(std::pair<std::string,jags::Range>(var->name(), getRange(var)));
     }
-    console->coda(dmp, stem);
+    console->coda(dmp, stem, stat, summary);
 }
 
 /* Helper function for doDump that handles all the special cases
@@ -854,13 +943,13 @@ static void writeValue(double x, std::ostream &out, bool isdiscrete)
 {
   using namespace std;
 
-  if (x == JAGS_NA) {
+  if (jags_isna(x)) {
     out << "NA";
   }
-  else if (jags_isnan(x)) {
+  else if (isnan(x)) {
     out << "NaN";
   }
-  else if (!jags_finite(x)) {
+  else if (!isfinite(x)) {
     if (x > 0)
       out << "Inf";
     else
@@ -874,7 +963,7 @@ static void writeValue(double x, std::ostream &out, bool isdiscrete)
   }
 }
 
-void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
+void doDump(std::string const &file, jags::ValueType type, unsigned int chain)
 {
     std::map<std::string,jags::SArray> data_table;
     std::string rng_name;
@@ -900,7 +989,7 @@ void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
 	std::vector<double> const &value = sarray.value();
 	long length = sarray.length();
 	out << "`" << name << "` <- " << std::endl;
-	std::vector<unsigned int> const &dim = sarray.dim(false);
+	std::vector<unsigned long> const &dim = sarray.dim(false);
 	bool discrete = sarray.isDiscreteValued();
 
 	if (dim.size() == 1) {
@@ -930,7 +1019,7 @@ void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
 		}
 		writeValue(value[i], out, discrete);
 	    }
-	    out << "), .Dim = c(";
+	    out << "), dim = c(";
 	    for (unsigned int j = 0; j < dim.size(); ++j) {
 		if (j > 0) {
 		    out << ",";
@@ -944,11 +1033,12 @@ void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
     out.close();
 }  
 
-void dumpMonitors(std::string const &file, std::string const &type)
+void dumpMonitors(std::string const &file, std::string const &stat,
+		  std::string const &summary)
 {
     std::map<std::string,jags::SArray> data_table;
 
-    if (!console->dumpMonitors(data_table, type, false)) {
+    if (!console->dumpMonitors(data_table, stat, summary, false)) {
 	return;
     }
 
@@ -959,7 +1049,8 @@ void dumpMonitors(std::string const &file, std::string const &type)
 	return;
     }
 
-    out << "`" << type << "` <-\nstructure(list(";
+    //FIXME: Use recursive list here
+    out << "`" << stat << "_" << summary << "` <-\nstructure(list(";
 
     std::map<std::string, jags::SArray>::const_iterator p;
     for (p = data_table.begin(); p != data_table.end(); ++p) {
@@ -972,9 +1063,9 @@ void dumpMonitors(std::string const &file, std::string const &type)
 	    out << ", \n";
 	}
 	out << "\"" << name << "\" = ";
-	std::vector<unsigned int> const &dim = sarray.dim(false);
+	std::vector<unsigned long> const &dim = sarray.dim(false);
 	bool discrete = sarray.isDiscreteValued();
-	bool named = !sarray.dimNames().empty();
+	bool named = !sarray.dimTags().empty();
 
 	if (dim.size() == 1 && !named) {
 	    // Vector 
@@ -1016,13 +1107,13 @@ void dumpMonitors(std::string const &file, std::string const &type)
 	    }
 	    out << ")";
 	    if (named) {
-		std::vector<std::string> const &dnames = sarray.dimNames();
+		std::vector<jags::DimTag> const &dnames = sarray.dimTags();
 		out << ", .Names = c(";
 		for (unsigned int k = 0; k < dnames.size(); ++k) {
 		    if (k > 0) {
 			out << ",";
 		    }
-		    out << "\"" << dnames[k] << "\"";
+		    out << "\"" << asChar(dnames[k]) << "\"";
 		}
 		out << "))";
 	    }
@@ -1042,7 +1133,65 @@ void dumpMonitors(std::string const &file, std::string const &type)
     out.close();
 }
 
-void setParameters(jags::ParseTree *p, std::vector<jags::ParseTree*> *parameters)
+void dumpNodeNames(std::string const &file, std::string const &type)
+{
+    std::vector<std::string> node_names;
+
+    /* Open output file */
+    std::ofstream out(file.c_str());
+    if (!out) {
+	std::cerr << "Failed to open file " << file << std::endl;
+	return;
+    }
+
+	std::vector<std::string> alltypes;
+	
+	// Special rule for "all" types:
+	if ( type == "all" ) {
+		alltypes.push_back("constant");
+		alltypes.push_back("deterministic");
+		alltypes.push_back("stochastic");
+		alltypes.push_back("fixed");
+		alltypes.push_back("observations");
+	}
+	else {
+		alltypes.push_back(type);
+	}
+	
+	for ( unsigned int i=0; i < alltypes.size(); i++ ){
+	
+	    out << "`" << alltypes[i] << "` <-\n";
+	
+		console->dumpNodeNames(node_names, alltypes[i]);
+
+		// If no matching names just write an empty character vector:
+	    if ( node_names.size() == 0 ) {
+			out << "character(0)\n" << std::endl;
+			out.close();
+			return;
+	    }
+	
+		out << "c(";
+		unsigned int r = 0;
+	    for (unsigned int i = 0;  i < node_names.size(); i++) {
+			out << "\"" << node_names[i] << "\"";
+			if( (i+1) < node_names.size() ) {
+				out << ", ";
+			}
+			r++;
+			if( r == 5 ) {
+				out << "\n";
+				r = 0;
+			}
+		}
+		out << ")\n\n";
+	
+	}
+	
+	out.close();
+}
+
+static void setParameters(jags::ParseTree *p, std::vector<jags::ParseTree*> *parameters)
 {
   /* 
      The parser dynamically allocates vectors of (pointers to)
@@ -1053,7 +1202,7 @@ void setParameters(jags::ParseTree *p, std::vector<jags::ParseTree*> *parameters
   delete parameters; 
 }
 
-void setParameters(jags::ParseTree *p, jags::ParseTree *param1)
+static void setParameters(jags::ParseTree *p, jags::ParseTree *param1)
 {
   /*
     Wrapper function that creates a vector containing param1
@@ -1063,7 +1212,7 @@ void setParameters(jags::ParseTree *p, jags::ParseTree *param1)
   p->setParameters(parameters);
 }
 
-void setParameters(jags::ParseTree *p, jags::ParseTree *param1, jags::ParseTree *param2)
+static void setParameters(jags::ParseTree *p, jags::ParseTree *param1, jags::ParseTree *param2)
 {
   /*
     Wrapper function that creates a vector containing param1
@@ -1090,7 +1239,7 @@ static void errordump()
 	    std::cout << "Dumping chain " << i << " at iteration " 
 		      << console->iter() << " to file " << fname.str() 
 		      << std::endl;
-	    doDump(fname.str(), jags::DUMP_ALL, i);
+	    doDump(fname.str(), jags::ALL_VALUES, i);
 	    fname.str("");
 	}
 	// Moved clearModel from Console.cc CATCH_ERRORS to here
@@ -1350,6 +1499,12 @@ static void adaptstar(long niter, long refresh, int width, bool force)
 
 static void loadModule(std::string const &name)
 {
+    if (name == "dic") {
+	// For backward-compatibility. Turn this into a warning later.
+	std::cout << "The dic module is now a stub." << std::endl;
+	std::cout << "Deviance-based diagnostics are in the pre-loaded diag module." << std::endl;
+    }
+    
     std::cout << "Loading module: " << name;
     lt_dlhandle mod = lt_dlopenext(name.c_str());
     if (mod == NULL) {
@@ -1368,8 +1523,14 @@ static void unloadModule(std::string const &name)
     jags::Console::unloadModule(name);
 }
 
+void exiting() {
+	std::cout << "Exiting JAGS" << std::endl;
+}
+
 int main (int argc, char **argv)
 {
+  std::atexit(exiting);
+
   extern std::FILE *zzin;
 
   std::FILE *cmdfile = 0;
@@ -1424,7 +1585,8 @@ int main (int argc, char **argv)
             << std::endl;
   loadModule("basemod");
   loadModule("bugs");
-
+  loadModule("diag");
+  
   console = new jags::Console(std::cout, std::cerr);
 
   zzparse();
@@ -1444,6 +1606,7 @@ int main (int argc, char **argv)
   for (unsigned int i = 0; i < _dyn_lib.size(); ++i) {
       lt_dlclose(_dyn_lib[i]);
   }
+  
   lt_dlexit();
 }
 

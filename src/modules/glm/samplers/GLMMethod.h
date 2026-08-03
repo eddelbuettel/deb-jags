@@ -42,6 +42,7 @@ namespace glm {
 	unsigned int _chain;
 	std::vector<SingletonGraphView const *> _sub_views;
 	std::vector<Outcome *> _outcomes;
+	cholmod_common *_wk;
 	cholmod_sparse *_x;
 	cholmod_factor *_factor; //???
 	void symbolic();
@@ -68,15 +69,17 @@ namespace glm {
 	 * 
 	 * @param chain Number of the chain (starting from 0) to which
 	 * the sampling method will be applied.
+	 *
+	 * @param wk pointer to the workspace used by the method
 	 */
 	GLMMethod(GraphView const *view, 
 		  std::vector<SingletonGraphView const *> const &sub_views,
 		  std::vector<Outcome *> const &outcomes,
-		  unsigned int chain);
+		  unsigned int chain, cholmod_common *wk);
 	/**
 	 * Virtual destructor
 	 */
-	virtual ~GLMMethod();
+	~GLMMethod() override;
 	/**
 	 * Calculates the coefficients of the posterior distribution
 	 * of the regression parameters. GLMMethod uses a canonical
@@ -94,19 +97,23 @@ namespace glm {
 	 * Returns false. Sampling methods inheriting from GLMMethod
 	 * are not adaptive.
 	 */
-	bool isAdaptive() const;
+	bool isAdaptive() const override;
 	/**
 	 * Does nothing, as GLMMethod is not adaptive.
 	 */
-	void adaptOff();
+	void adaptOff() override;
 	/**
 	 * Returns true, as GLMMethod is not adaptive
 	 */
-	bool checkAdaptation() const;
+	bool checkAdaptation() const override;
 	/**
 	 * Returns the name of the sampler
 	 */
 	std::string name() const;
+	/**
+	 * Return the CHOLMOD workspace 
+	 */
+	cholmod_common * workspace() const;
     };
 
 }}

@@ -2,7 +2,6 @@
 #include "DWeib.h"
 
 #include <rng/RNG.h>
-#include <util/nainf.h>
 
 #include <vector>
 #include <cmath>
@@ -33,7 +32,7 @@ namespace bugs {
 	return SHAPE(par) >= 0 && RATE(par) >  0;
     }
     
-    double DWeib::d(double x, PDFType type,
+    double DWeib::d(double x, PDFType,
 		    vector<double const *> const &par, bool give_log) const
 	
     {
@@ -55,6 +54,27 @@ namespace bugs {
     double DWeib::r(vector<double const *> const &par, RNG *rng) const
     {
 	return rweibull2(SHAPE(par), RATE(par), rng);
+    }
+
+    bool DWeib::hasScore(unsigned long i) const
+    {
+	return i == 0;
+    }
+    
+    double DWeib::score(double x, vector<double const *> const &parameters,
+			unsigned long i) const
+    {
+	double shape = SHAPE(parameters);
+	double rate = RATE(parameters);
+	if (i == 0) {
+	    return 1/shape + log(x) - rate*shape*pow(x, shape - 1);
+	}
+	else if (i == 1) {
+	    return 1/rate - pow(x, shape);
+	}
+	else {
+	    return 0;
+	}
     }
 
 }}

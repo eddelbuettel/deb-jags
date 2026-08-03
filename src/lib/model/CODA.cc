@@ -2,12 +2,14 @@
 #include "CODA.h"
 
 #include <model/Monitor.h>
+#include <model/MonitorStat.h>
+#include <model/MonitorControl.h>
 #include <util/nainf.h>
-#include <util/dim.h>
 
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cmath>
 
 using std::list;
 using std::vector;
@@ -15,18 +17,20 @@ using std::string;
 using std::ostringstream;
 using std::ofstream;
 using std::ostream;
+using std::isnan;
+using std::isfinite;
 
 namespace jags {
 
 static void writeDouble(double x, ostream &out)
 {
-    if (x == JAGS_NA) {
+    if (jags_isna(x)) {
 	out << "NA";
     }
-    else if (jags_isnan(x)) {
+    else if (isnan(x)) {
 	out << "NaN";
     }
-    else if (!jags_finite(x)) {
+    else if (!isfinite(x)) {
 	if (x > 0) 
 	    out << "Inf";
 	else 
@@ -48,21 +52,21 @@ static void writeDouble(double x, ostream &out)
 	*/
 
 	Monitor const *monitor = control.monitor();
-	unsigned int nvar = product(monitor->dim());
+	unsigned long nvalue = monitor->length();
 	
-	vector<bool> ans(nvar, false);
+	vector<bool> ans(nvalue, false);
 	for (unsigned int ch = 0; ch < nchain; ++ch) {
-	    vector<double> const &y = monitor->value(ch);
-	    for (unsigned int v = 0; v < nvar; ++v) {
+	    const vector<double> y = monitor->value(ch);
+	    for (unsigned int v = 0; v < nvalue; ++v) {
 		if (ans[v]) continue;
 		if (monitor->poolIterations()) {
-		    if (y[v] == JAGS_NA) {
+		    if (jags_isna(y[v])) {
 			ans[v] = true;
 		    }
 		}
 		else {
 		    for (unsigned int k = 0; k < control.niter(); ++k) {
-			if (y[k * nvar + v] == JAGS_NA) {
+			if (jags_isna(y[k * nvalue + v])) {
 			    ans[v] = true;
 			    break;
 			}
@@ -86,9 +90,9 @@ static void WriteIndex(MonitorControl const &control,
 	return;
     }
 
-    unsigned int nvar = product(monitor->dim());
-    vector<string> const &enames = monitor->elementNames();
-    for (unsigned int v = 0; v < nvar; ++v) {
+    unsigned long nvalue = monitor->length();
+    vector<string> const &enames = monitor->elementNames(); //FIXME: elementNames should be part of MonitorControl
+    for (unsigned int v = 0; v < nvalue; ++v) {
 	if (missing[v]) continue;
 	index << enames[v] << " " << lineno + 1 << " "
 	      << lineno + control.niter() << '\n';
@@ -96,8 +100,8 @@ static void WriteIndex(MonitorControl const &control,
     }
 }
 
-//Write output file
-static void WriteOutput(MonitorControl const &control, int chain,
+/* Write output file for monitors that do not pool over iterations */
+static void WriteOutput(MonitorControl const &control, unsigned int chain,
 			vector<bool> const &missing,
 			ofstream &output)
 {
@@ -105,35 +109,36 @@ static void WriteOutput(MonitorControl const &control, int chain,
     if (monitor->poolIterations()) {
 	return;
     }
-    
-    vector<double> const &y = monitor->value(chain);
-    unsigned int nvar = product(monitor->dim());
-    for (unsigned int v = 0; v < nvar; ++v) {
+
+        
+    unsigned long nvalue = monitor->length();
+    const vector<double> y = monitor->value(chain);
+    for (unsigned int v = 0; v < nvalue; ++v) {
 	if (missing[v]) continue;
 	unsigned int iter = control.start();
 	for (unsigned int k = 0; k < control.niter(); ++k) {
 	    output << iter << "  ";
-	    writeDouble(y[k * nvar + v], output);
+	    writeDouble(y[k * nvalue + v], output);
 	    output << '\n';
 	    iter += control.thin();
 	}
     }
 }
 
-static void WriteTable(MonitorControl const &control, int chain,
-		       vector<bool> const &missing,
-		       ofstream &index)
+/* Write output table for monitors that pool over iterations */
+static void WriteTable(MonitorControl const &control, unsigned int chain,
+		       vector<bool> const &missing, ofstream &index)
 {
     Monitor const *monitor = control.monitor();
     if (!monitor->poolIterations()) {
 	return;
     }
 
-    vector<double> const &y = monitor->value(chain);
-    vector<string> const &enames = monitor->elementNames();
-    
-    unsigned int nvar = product(monitor->dim());
-    for (unsigned int v = 0; v < nvar; ++v) {
+    const vector<double> y = monitor->value(chain);
+    vector<string> const &enames = monitor->elementNames(); //FIXME: elementNames should be part of MonitorControl, not Monitor
+
+    unsigned long nvalue = monitor->length();
+    for (unsigned int v = 0; v < nvalue; ++v) {
 	if (missing[v]) continue;
 	index << enames[v] << " ";
 	writeDouble(y[v], index);
@@ -141,38 +146,55 @@ static void WriteTable(MonitorControl const &control, int chain,
     }
 }
 
-static bool AnyMonitors(list<MonitorControl> const &mvec,
-			bool pooliter, bool poolchains)
-{
-    /* Check for eligible monitors satisfying poolChains and
-     * poolIterations */
+    static bool checkMonitor(MonitorControl const &p,
+			     string const &stat,
+			     string const &summary,
+			     bool pooliter, bool poolchains)
+    {
+	Monitor const *m = p.monitor();
+	if (stat != "*" && stat != p.stat())
+	    return false;
+	if (summary != "*" && summary != p.summary())
+	    return false;
+	if (pooliter != m->poolIterations())
+	    return false;
+	if (poolchains != m->poolChains())
+	    return false;
 
-    list<MonitorControl>::const_iterator p;
-    for (p = mvec.begin(); p != mvec.end(); ++p) {
-	if (p->monitor()->poolIterations() == pooliter && 
-	    p->monitor()->poolChains() == poolchains) 
-	{
-	    return true;
-	}
+	return true;
     }
-    return false;
-}
-
+	
+    static bool anyMonitor(list<MonitorControl> const &mvec,
+			   string const &stat,
+			   string const &summary,
+			   bool pooliter, bool poolchains)
+    {
+	/* Check to see if there are any eligible monitors matching
+	   specification */ 
+	
+	for (auto p = mvec.begin(); p != mvec.end(); ++p) {
+	    if (checkMonitor(*p, stat, summary, pooliter, poolchains))
+		return true;
+	}
+	return false;
+    }
+    
 /* CODA output for monitors that do not pool over chains */
-void CODA(list<MonitorControl> const &mvec, string const &stem,
-	 unsigned int nchain, string &warn)
+unsigned int CODA(list<MonitorControl> const &mvec, string const &stem,
+		  unsigned int nchain, string &warn,
+		  string const &stat, string const &summary)
 {
     /* Check for eligible monitors */
-    if (!AnyMonitors(mvec, false, false))
-	return;
-
+    if (!anyMonitor(mvec, stat, summary, false, false))
+	return 0;
+    
     /* Open index file */
     string iname = stem + "index.txt";
     ofstream index(iname.c_str());
     if (!index) {
 	string msg = string("Failed to open file ") + iname + "\n";
 	warn.append(msg);
-	return;
+	return 0;
     }
 
     /* Open output files */
@@ -195,20 +217,20 @@ void CODA(list<MonitorControl> const &mvec, string const &stem,
 	    }
 	    string msg = string("Failed to open file ") + oname + "\n";
 	    warn.append(msg);
-	    return;
+		return 0;
 	}
     }
     
     unsigned int lineno = 0;
-    list<MonitorControl>::const_iterator p;
-    for (p = mvec.begin(); p != mvec.end(); ++p) {
-	Monitor const *monitor = p->monitor();
-	if (!monitor->poolChains() && !monitor->poolIterations()) {
+    unsigned int nwritten = 0;
+    for (auto p = mvec.begin(); p != mvec.end(); ++p) {
+	if (checkMonitor(*p, stat, summary, false, false)) {
 	    vector<bool> missing = missingValues(*p, nchain);
 	    WriteIndex(*p, missing, index, lineno);
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
 		WriteOutput(*p, ch, missing, *output[ch]);
 	    }
+	    nwritten++;
 	}
     }
 
@@ -217,14 +239,16 @@ void CODA(list<MonitorControl> const &mvec, string const &stem,
 	output[i]->close();
 	delete output[i];
     }
+    return nwritten;
 }
 
 /* CODA output for monitors that pool over chains */
-void CODA0(list<MonitorControl> const &mvec, string const &stem, string &warn)
+unsigned int CODA0(list<MonitorControl> const &mvec, string const &stem, string &warn,
+		   string const &stat, string const &summary)
 {
     /* Check for eligible monitors */
-    if (!AnyMonitors(mvec, false, true))
-	return;
+    if (!anyMonitor(mvec, stat, summary, false, true))
+	return 0;
 
     /* Open index file */
     string iname = stem + "index0.txt";
@@ -232,7 +256,7 @@ void CODA0(list<MonitorControl> const &mvec, string const &stem, string &warn)
     if (!index) {
 	string msg = string("Failed to open file ") + iname + "\n";
 	warn.append(msg);
-	return;
+	return 0;
     }
     
     /* Open output files */
@@ -242,32 +266,34 @@ void CODA0(list<MonitorControl> const &mvec, string const &stem, string &warn)
 	index.close();
 	string msg = string("Failed to open file ") + oname + "\n";
 	warn.append(msg);
-	return;
+	return 0;
     }
     
     unsigned int lineno = 0;
-    list<MonitorControl>::const_iterator p;
-    for (p = mvec.begin(); p != mvec.end(); ++p) {
-	Monitor const *monitor = p->monitor();
-	if (monitor->poolChains() && !monitor->poolIterations()) {
+    unsigned int nwritten = 0;
+    for (auto p = mvec.begin(); p != mvec.end(); ++p) {
+	if (checkMonitor(*p, stat, summary, false, true)) {
 	    vector<bool> missing = missingValues(*p, 1);
 	    WriteIndex(*p, missing, index, lineno);
 	    WriteOutput(*p, 0, missing, output);
+	    nwritten++;
 	}
     }
     
     index.close();
     output.close();
+    return nwritten;
 }
 
 /* TABLE output for monitors that pool over iterations but not over chains
  */
-void TABLE(list<MonitorControl> const &mvec, string const &stem,
-	  unsigned int nchain, string &warn)
+unsigned int TABLE(list<MonitorControl> const &mvec, string const &stem,
+		   unsigned int nchain, string &warn,
+		   string const &stat, string const &summary)
 {
     /* Check for eligible monitors */
-    if (!AnyMonitors(mvec, true, false))
-	return;
+    if (!anyMonitor(mvec, stat, summary, true, false))
+	return 0;
 
     /* Open output files */
     vector<ofstream*> output;
@@ -288,33 +314,35 @@ void TABLE(list<MonitorControl> const &mvec, string const &stem,
 	    }
 	    string msg = string("Failed to open file ") + oname + "\n";
 	    warn.append(msg);
-	    return;
+	    return 0;
 	}
     }
     
-    list<MonitorControl>::const_iterator p;
-    for (p = mvec.begin(); p != mvec.end(); ++p) {
-	Monitor const *monitor = p->monitor();
-	if (!monitor->poolChains() && monitor->poolIterations()) {
+    unsigned int nwritten = 0;
+    for (auto p = mvec.begin(); p != mvec.end(); ++p) {
+	if (checkMonitor(*p, stat, summary, true, false)) {
 	    vector<bool> missing = missingValues(*p, nchain);
 	    for (unsigned int ch = 0; ch < nchain; ++ch) {
 		WriteTable(*p, ch, missing, *output[ch]);
 	    }
+	    nwritten++;
 	}
     }
-
+    
     for (unsigned int i = 0; i < nchain; ++i) {
 	output[i]->close();
 	delete output[i];
     }
+    return nwritten;
 }
 
 /* TABLE output for monitors that pool over chains and iterations */
-void TABLE0(list<MonitorControl> const &mvec, string const &stem, string &warn)
+unsigned int TABLE0(list<MonitorControl> const &mvec, string const &stem, string &warn,
+		    string const &stat, string const &summary)
 {
     /* Check for eligible monitors */
-    if (!AnyMonitors(mvec, true, true))
-	return;
+    if (!anyMonitor(mvec, stat, summary, true, true))
+	return 0;
 
     /* Open output file */
     string iname = stem + "table0.txt";
@@ -322,19 +350,20 @@ void TABLE0(list<MonitorControl> const &mvec, string const &stem, string &warn)
     if (!output) {
 	string msg = string("Failed to open file ") + iname + "\n";
 	warn.append(msg);
-	return;
+	return 0;
     }
     
-    list<MonitorControl>::const_iterator p;
-    for (p = mvec.begin(); p != mvec.end(); ++p) {
-	Monitor const *monitor = p->monitor();
-	if (monitor->poolChains() && monitor->poolIterations()) {
+    unsigned int nwritten = 0;
+    for (auto p = mvec.begin(); p != mvec.end(); ++p) {
+	if (checkMonitor(*p, stat, summary, true, true)) { 
 	    vector<bool> missing = missingValues(*p, 1);
 	    WriteTable(*p, 0, missing, output);
+	    nwritten++;
 	}
     }
     
     output.close();
+    return nwritten;
 }
 
 } //namespace jags

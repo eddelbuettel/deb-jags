@@ -22,39 +22,44 @@ ScalarDist::ScalarDist(string const &name, unsigned int npar, Support support)
 {
 }
 
-double ScalarDist::l(vector<double const *> const &parameters) const
+double ScalarDist::l(vector<double const *> const &) const
 {
+    double lb = JAGS_POSINF;
+    
     switch(_support) {
     case DIST_UNBOUNDED:
-	return JAGS_NEGINF;
+	lb = JAGS_NEGINF;
 	break;
     case DIST_POSITIVE: case DIST_PROPORTION:
-	return 0;
+	lb = 0;
 	break;
     case DIST_SPECIAL:
 	//You must overload this function 
 	throw logic_error("Cannot call ScalarDist::l for special distribution");
     }
-    return 0; //Wall
+    
+    return lb;
 }
 
-double ScalarDist::u(vector<double const *> const &parameters) const
+double ScalarDist::u(vector<double const *> const &) const
 {
+    double ub = JAGS_NEGINF;
+    
     switch(_support) {
     case DIST_UNBOUNDED: case DIST_POSITIVE:
-	return JAGS_POSINF;
+	ub = JAGS_POSINF;
 	break;
     case DIST_PROPORTION:
-	return 1;
+	ub = 1.0;
 	break;
     case DIST_SPECIAL:
 	//You must overload this function 
 	throw logic_error("Cannot call ScalarDist::u for special distribution");
     }
-    return 0; //Wall
+    return ub;
 }
 
-bool ScalarDist::isSupportFixed(vector<bool> const &fixmask) const
+bool ScalarDist::isSupportFixed(vector<bool> const &) const
 {
     if (_support == DIST_SPECIAL) {
 	//You must overload this function 
@@ -63,11 +68,6 @@ bool ScalarDist::isSupportFixed(vector<bool> const &fixmask) const
     else {
 	return true;
     }
-}
-
-unsigned int ScalarDist::df() const
-{
-    return 1;
 }
 
     double ScalarDist::KL(vector<double const *> const &par1,
@@ -85,10 +85,16 @@ unsigned int ScalarDist::df() const
 	return div / nrep;
     }
 
-    double ScalarDist::KL(vector<double const *> const &par1,
-			  vector<double const *> const &par2) const
+    double ScalarDist::KL(vector<double const *> const &,
+			  vector<double const *> const &) const
     {
-	return JAGS_NA;
+	return JAGS_NAN;
+    }
+
+    double ScalarDist::score(double, std::vector<double const *> const &,
+			     unsigned long) const
+    {
+	return 0;
     }
     
 } //namespace jags

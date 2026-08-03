@@ -7,7 +7,7 @@ using std::string;
 
 namespace jags {
 
-Distribution::Distribution(string const &name, unsigned int npar)
+Distribution::Distribution(string const &name, unsigned long npar)
     : _name(name), _npar(npar)
 {
 }
@@ -26,24 +26,22 @@ string Distribution::alias() const
     return "";
 }
 
-
-
-unsigned int Distribution::npar () const
+unsigned long Distribution::npar () const
 {
   return _npar;
 }
 
-bool Distribution::isLocationParameter(unsigned int i) const
+bool Distribution::isLocationParameter(unsigned int) const
 {
     return false;
 }
 
-bool Distribution::isScaleParameter(unsigned int i) const
+bool Distribution::isScaleParameter(unsigned int) const
 {
     return false;
 }
 
-bool Distribution::isDiscreteValued(vector<bool> const &mask) const
+bool Distribution::isDiscreteValued(vector<bool> const &) const
 {
     return false;
 }
@@ -53,9 +51,24 @@ bool Distribution::canBound() const
     return false;
 }
 
-bool Distribution::checkParameterDiscrete(vector<bool> const &mask) const
+bool Distribution::checkParameterDiscrete(vector<bool> const &) const
 {
     return true;
 }
 
+    bool Distribution::fullRank() const
+    {
+	return true;
+    }
+
+    bool Distribution::hasScore(unsigned long) const
+    {
+	return false;
+    }
+
+    bool Distribution::isPartObservable() const
+    {
+	return false;
+    }
+    
 } //namespace jags

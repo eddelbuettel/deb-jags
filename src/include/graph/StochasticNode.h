@@ -46,12 +46,12 @@ class StochasticNode : public Node {
     Distribution const * const _dist;
     Node const * const _lower;
     Node const * const _upper;
-    bool _observed;
     const bool _discrete;
-    virtual void sp(double *lower, double *upper, unsigned int length,
-		    unsigned int chain) const = 0;
+    const std::array<int, 2> _depth;
+    virtual void sp(double *lower, double *upper, unsigned int chain) const = 0;
 protected:
-    std::vector<std::vector<double const*> > _parameters;
+    std::vector<std::vector<double const*>> _parameters;
+    std::vector<bool> const * _observed;
 public:
     /**
      * Constructs a new StochasticNode 
@@ -65,62 +65,36 @@ public:
      * @param upper Pointer to node defining the lower bound. A NULL
      * pointer denotes no upper bound.
      */
-    StochasticNode(std::vector<unsigned int> const &dim,
+    StochasticNode(std::vector<unsigned long> const &dim,
 		   unsigned int nchain,
 		   Distribution const *dist,
                    std::vector<Node const *> const &parameters,
 		   Node const *lower, Node const *upper);
-    ~StochasticNode();
+    ~StochasticNode() override;
+    /**
+     * StochasticNodes have a stochastic depth one greater than their
+     * deepest parent. The deterministic depth is always zero.
+     */
+    std::array<int, 2> const &depth() const override;
     /**
      * Returns a pointer to the Distribution.
      */
     Distribution const *distribution() const;
     /**
-     * Returns the log of the prior density of the StochasticNode
-     * given the current parameter values.
-     *
-     * @param chain Number of chain (starting from zero) for which
-     * to evaluate log density.
-     *
-     * @param type Indicates whether the full probability density
-     * function is required (PDF_FULL) or whether partial calculations
-     * are permitted (PDF_PRIOR, PDF_LIKELIHOOD). See PDFType for
-     * details.
+     * Stochastic nodes always represent random variables.
      */
-    virtual double logDensity(unsigned int chain, PDFType type) const = 0;
+    bool isRandomVariable() const override;
     /**
-     * Draws a random sample from the prior distribution of the node
-     * given the current values of it's parents, and sets the Node
-     * to that value.
-     *
-     * @param rng Random Number Generator object
-     * @param chain Index umber of chain to modify
+     * Returns a pointer to a logical vector indicating whether each
+     * element of the StochasticNode is observed (true) or unobserved
+     * (false).
      */
-    virtual void randomSample(RNG *rng, unsigned int chain) = 0;
+    std::vector<bool> const *observedMask() const;
     /**
-     * Draws a truncated random sample from the prior distribution of
-     * the node. The lower and upper parameters are pointers to arrays
-     * that are assumed to be of the correct size, or NULL pointers if
-     * there is no bound
-     *
-     * @param lower Optional lower bound
-     * @param upper Optional upper bound
+     * Returns the corresponding element of the boolean vector
+     * returned by observedMask.
      */
-    virtual void truncatedSample(RNG *rng, unsigned int chain,
-				 double const *lower=0, 
-				 double const *upper=0) = 0;
-    /**
-     * A deterministic sample for a stochastic node sets it to a
-     * "typical" value of the prior distribution, given the current
-     * values of its parents. The exact behaviour depends on the
-     * Distribution used to define the StochasticNode, but it will
-     * usually be the prior mean, median, or mode.
-     */
-    virtual void deterministicSample(unsigned int chain) = 0;
-    /**
-     * Stochastic nodes always represent random variables in the model.
-     */
-    bool isRandomVariable() const;
+    bool isObserved(unsigned long index) const override;
     /**
      * Writes the lower and upper limits of the support of a given
      * stochastic node to the supplied arrays. If the node has upper and
@@ -130,43 +104,55 @@ public:
      * @param lower pointer to start of an array that will hold the lower 
      * limit of the support
      *
-     * @param lower pointer to start of an array that will hold the upper 
+     * @param upper pointer to start of an array that will hold the upper 
      * limit of the support
      *
      * @param length size of the lower and upper arrays.
      *
      * @param chain Index number of chain to query
      */
-    void support(double *lower, double *upper, unsigned int length,
+    void support(double *lower, double *upper, unsigned long length,
 		 unsigned int chain) const;
     double const *lowerLimit(unsigned int chain) const;
     double const *upperLimit(unsigned int chain) const;
-    std::string deparse(std::vector<std::string> const &parameters) const;
-    bool isDiscreteValued() const;
+    std::string deparse(std::vector<std::string> const &parameters)
+	const override;
+    bool isDiscreteValued() const override;
     /**
      * A stochastic node is fixed if the setData member function
      * has been called.
      */
-    bool isFixed() const;
+    bool isFixed() const override;
     /**
      * Sets the value of the node to be the same in all chains.
      * After setData is called, the stochastic node is considered
      * observed.
      *
-     * @param data Pointer to an array of data values.  
+     * @param value Pointer to an array of data values.  
      *
      * @param length Length of the array containing the data values.
      *
      * @see Node#setValue
      */
-    void setData(double const *value, unsigned int length);
-    /**
-     * A stochastic node is always a random variable, and is observed
-     * if its value has been set with setData.
-     */
-    RVStatus randomVariableStatus() const;
+    void setData(double const *value, unsigned long length);
+
+    
     Node const *lowerBound() const;
     Node const *upperBound() const;
+
+    /**
+     * Initializes a stochastic node by drawing nsample samples from
+     * the prior distribution. For discrete-valued nodes and bounded
+     * nodes, the sample with the largest log density is used as an
+     * initial value. For continuous, unbounded nodes, the sample mean
+     * is used as an initial value.
+     *
+     * If nsample=1 then this is always equivalent to drawing a sample
+     * from the prior.  For large values of nsample, the initial value
+     * tends to the prior mean (for continuous unbounded nodes) or the
+     * prior mode (for discrete or bounded nodes).
+     */
+    void initialize(RNG *rng, unsigned int nsample, unsigned int chain) override;
     /*
      * Creates a copy of the stochastic node.  Supplying the parents
      * of this node as the argument creates an identical copy.
@@ -178,10 +164,24 @@ public:
 	clone(std::vector<Node const *> const &parameters,
 	      Node const *lower, Node const *upper) const = 0;
     */
-    virtual unsigned int df() const = 0;
-    virtual double KL(unsigned int chain1, unsigned int chain2, RNG *rng,
-		      unsigned int nrep) const = 0;
-    void unlinkParents();
+    void unlinkParents() override;
+	
+    /**
+     * Used by dumpNodeNames to gather a specific subset of node types:
+     */
+    inline bool isConstant() const override { return false; }
+    inline bool isDeterministic() const override { return false; }
+    inline bool isStochastic() const override { return true; }
+
+    /**
+     * Returns true if the stochastic node is fully unobserved and
+     * its distribution is of full rank. Most sampling methods will
+     * assume the node is full rank so this needs to be checked
+     * by the sample factory.
+     *
+     * @see Distribution#fullRank
+     */
+    bool fullRank() const;
 };
 
 /**
@@ -198,9 +198,20 @@ bool isSupportFixed(StochasticNode const *snode);
 bool isBounded(StochasticNode const *node);
 
 /**
- * For stochastic nodes, this is a synonym of isFixed
+ * Returns true if any element of the observedMask is true.  
+ *
+ * Note that for a partially observed stochastic node, both isObserved
+ * and isParameter return true.
  */
-inline bool isObserved(StochasticNode const *s) { return s->isFixed(); }
+bool isObserved(StochasticNode const *node);
+
+/**
+ * Returns true if any element of the observedMask is false.
+ * 
+ * Note that for a partially observed stochastic node, both isObserved
+ * and isParameter return true.
+ */
+bool isParameter(StochasticNode const *node);
 
 } /* namespace jags */
 

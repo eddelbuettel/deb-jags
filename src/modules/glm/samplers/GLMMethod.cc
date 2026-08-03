@@ -26,8 +26,6 @@ using std::set;
 using std::copy;
 using std::sqrt;
 
-extern cholmod_common *glm_wk;
-
 namespace jags {
 
 static void getIndices(set<StochasticNode *> const &schildren,
@@ -71,16 +69,17 @@ namespace glm {
 	//the design matrix to the corresponding outcome. Note that this
 	//is only need when we have multivariate outcomes; with only
 	//scalar outcomes the mapping is trivial
-	vector<Outcome*> outcome_ptr(nrow);
+	vector<double const*> outcome_ptr(nrow);
 	vector<unsigned int> outcome_idx(nrow);
 	unsigned int r = 0; //row counter
 	for (unsigned int i = 0; i < _outcomes.size(); ++i) {
+	    double const *vm = _outcomes[i]->vmean();
 	    for (unsigned int j = 0; j < _outcomes[i]->length(); ++j, ++r) {
-		outcome_ptr[r] = _outcomes[i];
+		outcome_ptr[r] = vm;
 		outcome_idx[r] = j;
 	    }
 	}
-	
+ 	
 	for (unsigned int i = 0; i < snodes.size(); ++i) {
 
 	    unsigned int length = snodes[i]->length();
@@ -89,8 +88,8 @@ namespace glm {
 
 		for (unsigned int j = 0; j < length; ++j) {
 		    for (int r = Xp[c+j]; r < Xp[c+j+1]; ++r) {
-			unsigned int row = Xi[r];
-			Xx[r] = - outcome_ptr[row]->vmean()[outcome_idx[row]];
+ 			unsigned int row = Xi[r];
+			Xx[r] = - outcome_ptr[row][outcome_idx[row]];
 		    }
 		}
 		
@@ -98,13 +97,14 @@ namespace glm {
 		copy(xold, xold + length, xnew.begin());
 		
 		for (unsigned int j = 0; j < length; ++j) {
+		    double xsave = xnew[j];
 		    xnew[j] += 1;
 		    _sub_views[i]->setValue(&xnew[0], length, _chain);
 		    for (int r = Xp[c+j]; r < Xp[c+j+1]; ++r) {
 			unsigned int row = Xi[r];
-			Xx[r] += outcome_ptr[row]->vmean()[outcome_idx[row]];
+			Xx[r] += outcome_ptr[row][outcome_idx[row]];
 		    }
-		    xnew[j] -= 1;
+		    xnew[j] = xsave;
 		}
 		_sub_views[i]->setValue(&xnew[0], length, _chain);
 	    }
@@ -116,10 +116,10 @@ namespace glm {
     GLMMethod::GLMMethod(GraphView const *view, 
 			 vector<SingletonGraphView const *> const &sub_views,
 			 vector<Outcome *> const &outcomes,
-			 unsigned int chain)
+			 unsigned int chain, cholmod_common *wk)
 	: _view(view), _chain(chain), _sub_views(sub_views),
 	  _outcomes(outcomes),
-	  _x(0), _factor(0), _fixed(sub_views.size(), false), 
+	  _wk(wk), _x(nullptr), _factor(nullptr), _fixed(sub_views.size(), false), 
 	  _length_max(0), _nz_prior(0)
     {
 	view->checkFinite(chain); //Check validity of initial values
@@ -166,7 +166,7 @@ namespace glm {
 	Xp[c] = r;
 
 	//Set up sparse representation of the design matrix
-	_x = cholmod_allocate_sparse(nrow, ncol, r, 1, 1, 0, CHOLMOD_REAL, glm_wk);
+	_x = cholmod_allocate_sparse(nrow, ncol, r, 1, 1, 0, CHOLMOD_REAL, wk);
 	int *_xp = static_cast<int*>(_x->p);
 	int *_xi = static_cast<int*>(_x->i);
 
@@ -192,7 +192,7 @@ namespace glm {
 	    delete _outcomes.back();
 	    _outcomes.pop_back();
 	}
-	cholmod_free_sparse(&_x, glm_wk);
+	cholmod_free_sparse(&_x, _wk);
     }
     
     /* 
@@ -200,7 +200,7 @@ namespace glm {
        Cholesky decomposition.
        
        This only needs to be done once, when the GLMMethod is
-       craeted. It is a stripped-down version of the code in update.
+       created. It is a stripped-down version of the code in update.
        Note that the values of the sparse matrices are never
        referenced.
     */
@@ -209,8 +209,7 @@ namespace glm {
 	unsigned int nrow = _view->length();
 
 	// Prior contribution 
-	cholmod_sparse *Aprior =  
-	    cholmod_allocate_sparse(nrow, nrow, _nz_prior, 1, 1, 0, CHOLMOD_PATTERN, glm_wk); 
+	cholmod_sparse *Aprior = cholmod_allocate_sparse(nrow, nrow, _nz_prior, 1, 1, 0, CHOLMOD_PATTERN, _wk); 
 	int *Ap = static_cast<int*>(Aprior->p);
 	int *Ai = static_cast<int*>(Aprior->i);
 
@@ -238,20 +237,20 @@ namespace glm {
 	Ap[c] = r;
 	
 	// Likelihood contribution
-    
-	cholmod_sparse *t_x = cholmod_transpose(_x, 0, glm_wk);
-	cholmod_sort(t_x, glm_wk);
-	cholmod_sparse *Alik = cholmod_aat(t_x, 0, 0, 0, glm_wk);
-	cholmod_sparse *A = cholmod_add(Aprior, Alik, 0, 0, 0, 0, glm_wk);
 
+	cholmod_sparse *t_x = cholmod_transpose(_x, 0, _wk);
+	cholmod_sort(t_x, _wk);
+	cholmod_sparse *Alik = cholmod_aat(t_x, nullptr, 0, 0, _wk);
+	cholmod_sparse *A = cholmod_add(Aprior, Alik, nullptr, nullptr, 0, 0, _wk);
+	
 	//Free working matrices
-	cholmod_free_sparse(&t_x, glm_wk);
-	cholmod_free_sparse(&Aprior, glm_wk);
-	cholmod_free_sparse(&Alik, glm_wk);
-
+	cholmod_free_sparse(&t_x, _wk);
+	cholmod_free_sparse(&Aprior, _wk);
+	cholmod_free_sparse(&Alik, _wk);
+	
 	A->stype = -1;
-	_factor = cholmod_analyze(A, glm_wk); 
-	cholmod_free_sparse(&A, glm_wk);
+	_factor = cholmod_analyze(A, _wk); 
+	cholmod_free_sparse(&A, _wk);
     }
 
     void GLMMethod::calCoef(double *&b, cholmod_sparse *&A) 
@@ -267,9 +266,9 @@ namespace glm {
 	unsigned int nrow = _view->length();
 	b = new double[nrow];
 
-	cholmod_sparse *Aprior =  
-	    cholmod_allocate_sparse(nrow, nrow, _nz_prior, 1, 1, 0, 
-				    CHOLMOD_REAL, glm_wk); 
+	cholmod_sparse *Aprior = nullptr;
+	Aprior = cholmod_allocate_sparse(nrow, nrow, _nz_prior, 1, 1, 0,
+					 CHOLMOD_REAL, _wk); 
     
 	// Set up prior contributions to A, b
 	int *Ap = static_cast<int*>(Aprior->p);
@@ -320,8 +319,9 @@ namespace glm {
 	   matrix. Try this with the lsat example to see what speed-up
 	   it gives.
 	*/
-	cholmod_sparse *t_x = cholmod_transpose(_x, 1, glm_wk);
-	cholmod_sort(t_x, glm_wk); //Needed for multivariate outcomes
+	cholmod_sparse *t_x = nullptr;
+	t_x = cholmod_transpose(_x, 1, _wk);
+	cholmod_sort(t_x, _wk); //Needed for multivariate outcomes
 	
 	int *Tp = static_cast<int*>(t_x->p);
 	int *Ti = static_cast<int*>(t_x->i);
@@ -398,6 +398,7 @@ namespace glm {
 			    TxTau[j] += Tx[r + k*nzrow] * tau[m*j+k];
 			}
 		    }
+		    
 		    for (unsigned int j = 0; j < m; ++j) {
 			Tx[r + j*nzrow] = TxTau[j];
 		    }
@@ -405,15 +406,15 @@ namespace glm {
 	    }
 	    c += m;
 	}
-	
-	cholmod_sparse *Alik = cholmod_ssmult(t_x, _x, CHOLMOD_REAL, 1, 0,
-					      glm_wk);
-	cholmod_free_sparse(&t_x, glm_wk);
-	double one[2] = {1, 0};
-	A = cholmod_add(Aprior, Alik, one, one, 1, 0, glm_wk);
 
-	cholmod_free_sparse(&Aprior, glm_wk);
-	cholmod_free_sparse(&Alik, glm_wk);
+	cholmod_sparse *Alik = cholmod_ssmult(t_x, _x, CHOLMOD_REAL, 1, 0,
+						  _wk);
+	cholmod_free_sparse(&t_x, _wk);
+	double one[2] = {1, 0};
+	A = cholmod_add(Aprior, Alik, one, one, 1, 0, _wk);
+	
+	cholmod_free_sparse(&Aprior, _wk);
+	cholmod_free_sparse(&Alik, _wk);
     }
 
     bool GLMMethod::isAdaptive() const
@@ -428,6 +429,11 @@ namespace glm {
     bool GLMMethod::checkAdaptation() const
     {
 	return true;
+    }
+
+    cholmod_common *GLMMethod::workspace() const
+    {
+	return _wk;
     }
 
 }}

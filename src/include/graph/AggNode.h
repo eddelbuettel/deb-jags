@@ -15,7 +15,7 @@ namespace jags {
  *
  */
 class AggNode : public DeterministicNode {
-    std::vector<unsigned int> _offsets;
+    std::vector<unsigned long> _offsets;
     std::vector<double const *>  _parent_values;
     bool _discrete;
     /* Forbid copying */
@@ -48,38 +48,41 @@ public:
      *
      * @exception length_error out_of_range
      */
-    AggNode(std::vector<unsigned int> const &dim,
+    AggNode(std::vector<unsigned long> const &dim,
 	    unsigned int nchain,
 	    std::vector<Node const *> const &parents, 
-	    std::vector<unsigned int> const &offsets);
-    ~AggNode();
+	    std::vector<unsigned long> const &offsets);
+    ~AggNode() override;
     /**
      * Copies values from parents.
      */
-    void deterministicSample(unsigned int chain);
+    void deterministicSample(unsigned int chain) override;
     /**
      * An aggregate node is discrete valued if all of its parents are.
      */
-    bool isDiscreteValued() const;
+    bool isDiscreteValued() const override;
     /**
      * Aggregate nodes are closed under all classes and are always fixed.
      */
     bool isClosed(std::set<Node const *> const &ancestors, 
-		  ClosedFuncClass fc, bool fixed) const;
+		  ClosedFuncClass fc, bool fixed) const override;
     /**
      * An AggNode places no restrictions on its parents' values. Therefore
      * this function always returns true.
      */
-    bool checkParentValues(unsigned int chain) const;
+    bool checkParentValues(unsigned int chain) const override;
     /**
      * An aggregate node is named after its first and last parents
      */
-    std::string deparse(std::vector<std::string> const &parents) const;
+    std::string deparse(std::vector<std::string> const &parents) const override;
     /**
      * Returns the vector of offsets
      */
-    std::vector<unsigned int> const &offsets() const;
+    std::vector<unsigned long> const &offsets() const;
     //DeterministicNode *clone(std::vector<Node const *> const &parents) const;
+    bool hasGradient(Node const *arg) const override;
+    void gradient(double *grad, Node const *arg, unsigned int chain)
+	const override;
 };
 
 } /* namespace jags */

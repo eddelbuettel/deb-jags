@@ -4,8 +4,6 @@
 #include <util/nainf.h>
 #include <util/dim.h>
 
-#include "c99_math.h"
-
 #include <cmath>
 #include <algorithm>
 
@@ -16,8 +14,8 @@ using std::min;
 using std::max;
 
 //debuggin
-#include <stdexcept>
-using std::logic_error;
+//#include <stdexcept>
+//using std::logic_error;
 
 namespace jags {
 
@@ -42,44 +40,6 @@ RScalarDist::RScalarDist(string const &name, unsigned int npar,
   
     : ScalarDist(name, npar, support), _discrete(discrete)
 {
-}
-
-double 
-RScalarDist::typicalValue(vector<double const *> const &parameters,
-			  double const *lower, double const *upper) const
-{
-    double llimit = l(parameters), ulimit = u(parameters);
-    double plower = 0, pupper = 1;
-    
-    if (lower) {
-	llimit = max(llimit, *lower);
-	plower = calPlower(llimit, parameters);
-    }
-
-    if (upper) {
-	ulimit = min(ulimit, *upper);
-	pupper = calPupper(ulimit, parameters);
-    }
-    
-    double pmed = (plower + pupper)/2;
-    double med = q(pmed, parameters, true, false);	
-
-    //Calculate the log densities
-    double dllimit = d(llimit, PDF_FULL, parameters, true);
-    double dulimit = d(ulimit, PDF_FULL, parameters, true);
-    double dmed = d(med, PDF_FULL, parameters, true);
-
-    //Pick the median if it has the highest density, otherwise pick
-    //a point near to (but not on) the boundary
-    if (dmed >= dllimit && dmed >= dulimit) {
-	return med;
-    }
-    else if (dulimit > dllimit) {
-	return q(0.1 * plower + 0.9 * pupper, parameters, true, false);
-    }
-    else {
-	return q(0.9 * plower + 0.1 * pupper, parameters, true, false);
-    }
 }
 
 double 
@@ -173,7 +133,7 @@ RScalarDist::randomSample(vector<double const *> const &parameters,
 	else {
 	    double logpu = p(*upper, parameters, false, true);
 	    double delta = logpu - logpl;
-	    logp += jags_log1p(rng->uniform() * jags_expm1(delta));
+	    logp += log1p(rng->uniform() * expm1(delta));
 	}
 	return q(logp, parameters, false, true);
     }
@@ -189,7 +149,7 @@ RScalarDist::randomSample(vector<double const *> const &parameters,
 	    if (_discrete) ll -= 1;
 	    double logpl = p(ll, parameters, true, true);
 	    double delta = logpl - logpu;
-	    logp += jags_log1p(rng->uniform() * jags_expm1(delta));
+	    logp += log1p(rng->uniform() * expm1(delta));
 	}
 	return q(logp, parameters, true, true);
     }
@@ -205,12 +165,7 @@ bool RScalarDist::canBound() const
     return true;
 }
 
-bool RScalarDist::isDiscreteValued(vector<bool> const &mask) const
-{
-    return _discrete;
-}
-
-bool RScalarDist::discrete() const
+bool RScalarDist::isDiscreteValued(vector<bool> const &) const
 {
     return _discrete;
 }

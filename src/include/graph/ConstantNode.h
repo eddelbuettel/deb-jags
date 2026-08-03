@@ -20,7 +20,7 @@ namespace jags {
  * implicitly defined (i.e. they only appear on the left hand side of
  * any relation and their values are determined by the user-supplied
  * data) are constructed with the parameter observed=true and are
- * considered to represent observed randmo variables.
+ * considered to represent observed random variables.
  */
 class ConstantNode : public Node {
     const bool _observed;
@@ -33,41 +33,63 @@ public:
     /**
      * Constructs a multi-dimensional constant node 
      */
-    ConstantNode(std::vector<unsigned int> const &dim, 
+    ConstantNode(std::vector<unsigned long> const &dim, 
 		 std::vector<double> const &value,
 		 unsigned int nchain, bool observed);
     /**
+     * Constant nodes have both stochastic depth and deterministic
+     * depth zero.
+     */
+    std::array<int, 2> const &depth() const override;
+    /**
      * Indicates whether a ConstantNode is discrete-valued
      */
-    bool isDiscreteValued() const;
-    /**
-     * This function does nothing. It exists only so that objects
-     * inheriting from ConstantNode can be instantiated.
-     */
-    void deterministicSample(unsigned int);
+    bool isDiscreteValued() const override;
     /**
      * This function does nothing. The value of the constant node is
      * not changed and the state of the RNG remains the same.
      */
-    void randomSample(RNG*, unsigned int);
+    void randomSample(RNG*, unsigned int) override;
+    /**
+     * This function does nothing. Constant nodes are already initialized
+     * when they are created.
+     */
+    void initialize(RNG*, unsigned int, unsigned int) override;
     /**
      * Constant nodes have no parents. This function always returns true.
      */
-    bool checkParentValues(unsigned int) const;
+    bool checkParentValues(unsigned int) const override;
     /**
      * A constant node is named after its value
      */
-    std::string deparse(std::vector<std::string> const &parents) const;
+    std::string deparse(std::vector<std::string> const &parents) const override;
     /**
      * A constant node is always fixed.
      */
-    bool isFixed() const;
+    bool isFixed() const override;
     /**
-     * The RVStatus of a ConstantNode is determined by the parameter
-     * "observed" passed to the constructor.
+     * A ConstantNode is a random variable if the parameter "observed"
+     * passed to the constructor is true.
      */
-    RVStatus randomVariableStatus() const;
-    void unlinkParents();
+    bool isRandomVariable() const override;
+    /**
+     * A ConstantNode is observed if and only if it is a random
+     * variable.
+     */
+    bool isObserved(unsigned long offset) const override;
+    
+    void unlinkParents() override;
+	
+    double logDensity(unsigned int chain, PDFType type) const override;
+    double logLikelihood(unsigned int chain) const override;
+    double KL(unsigned int chain1, unsigned int chain2, RNG *rng,
+	      unsigned int nrep) const override;
+    /**
+     * Used by dumpNodeNames to gather a specific subset of node types:
+     */
+    inline bool isConstant() const override { return true; }
+    inline bool isDeterministic() const override { return false; }
+    inline bool isStochastic() const override { return false; }
 };
 
 } /* namespace jags */

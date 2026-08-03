@@ -36,7 +36,7 @@ bool DDexp::checkParameterValue (vector<double const *> const &par) const
 }
 
 double 
-DDexp::d(double x, PDFType type,
+DDexp::d(double x, PDFType,
 	 vector<double const *> const &par, bool dolog) const
 {
     double d = dexp(fabs(x - MU(par)), SCALE(par), dolog);
@@ -104,6 +104,31 @@ double DDexp::r(vector<double const *> const &par, RNG *rng) const
 	double delta = RATE(par0) * std::abs(MU(par1) - MU(par0));
 	
 	return r * (delta + exp(-delta)) - 1 - log(r);
+    }
+
+    bool DDexp::hasScore(unsigned long i) const
+    {
+	return i >= 0 && i <= 2;
+    }
+    
+    double DDexp::score(double x, vector<double const *> const &parameters,
+			unsigned long i) const
+    {
+	const double mu = MU(parameters);
+	const double lambda = RATE(parameters);
+
+	/* Define graident at x==mu by taking right limit */
+
+	switch(i) {
+	case 0:
+	    return x >= mu ? -lambda : lambda;
+	case 1:
+	    return x >= mu ? lambda : -lambda;
+	case 2:
+	    return 1/lambda - fabs(x - mu);
+	default:
+	    return 0;
+	}
     }
 
 }}

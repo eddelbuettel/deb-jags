@@ -26,7 +26,7 @@ bool DPar::checkParameterValue (vector<double const *> const &par) const
 }
 
 double 
-DPar::d(double x, PDFType type,
+DPar::d(double x, PDFType,
 vector<double const *> const &par, bool give_log) const
 {
   double alpha = ALPHA(par);
@@ -95,7 +95,7 @@ double DPar::l(vector<double const*> const &par) const
     return C(par);
 }
 
-double DPar::u(vector<double const*> const &par) const
+double DPar::u(vector<double const*> const &) const
 {
   return JAGS_POSINF;
 }
@@ -104,5 +104,16 @@ bool DPar::isSupportFixed(vector<bool> const &fixmask) const
 {
     return fixmask[1]; //Fixed if C is fixed
 }
+
+    bool DPar::hasScore(unsigned long i) const
+    {
+	return i == 0;
+    }
+    
+    double DPar::score(double x, vector<double const *> const &parameters,
+		       unsigned long i) const
+    {
+	return 1/ALPHA(parameters) + log(C(parameters)) - log(x);
+    }
 
 }}

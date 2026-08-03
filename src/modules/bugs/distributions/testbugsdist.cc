@@ -15,12 +15,14 @@
 #include "DInterval.h"
 #include "DLnorm.h"
 #include "DLogis.h"
+#include "DLogLik.h"
 #include "DMNorm.h"
 #include "DMNormVC.h"
 #include "DMT.h"
 #include "DMulti.h"
 #include "DNChisqr.h"
 #include "DNegBin.h"
+#include "DGamPois.h"
 #include "DNorm.h"
 #include "DNT.h"
 #include "DPar.h"
@@ -32,9 +34,9 @@
 #include "DUnif.h"
 #include "DWeib.h"
 #include "DWish.h"
+#include "SumDist.h"
 
 #include <MersenneTwisterRNG.h>
-#include <util/nainf.h>
 #include <JRmath.h>
 
 #include <cmath>
@@ -51,6 +53,8 @@ using std::multiset;
 using std::abs;
 using std::ostringstream;
 using std::sort;
+using std::isnan;
+using std::isfinite;
 
 using jags::ScalarDist;
 using jags::RScalarDist;
@@ -74,6 +78,7 @@ void BugsDistTest::setUp() {
     _dhyper = new jags::bugs::DHyper();
     _dinterval = new jags::bugs::DInterval();    
     _dlnorm = new jags::bugs::DLnorm();
+    _dloglik = new jags::bugs::DLogLik();
     _dlogis = new jags::bugs::DLogis();
     _dmnorm = new jags::bugs::DMNorm();
     _dmnormvc = new jags::bugs::DMNormVC();
@@ -81,6 +86,7 @@ void BugsDistTest::setUp() {
     _dmulti = new jags::bugs::DMulti();
     _dnchisqr = new jags::bugs::DNChisqr();
     _dnegbin = new jags::bugs::DNegBin();
+    _dgampois = new jags::bugs::DGamPois();
     _dnorm = new jags::bugs::DNorm();
     _dnt = new jags::bugs::DNT();
     _dpar = new jags::bugs::DPar();
@@ -92,7 +98,6 @@ void BugsDistTest::setUp() {
     _dunif = new jags::bugs::DUnif();
     _dweib = new jags::bugs::DWeib();
     _dwish = new jags::bugs::DWish();
-
 }
 
 void BugsDistTest::tearDown() {
@@ -114,12 +119,14 @@ void BugsDistTest::tearDown() {
     delete _dinterval;    
     delete _dlnorm;
     delete _dlogis;
+    delete _dloglik;
     delete _dmnorm;
     delete _dmnormvc;
     delete _dmt;
     delete _dmulti;
     delete _dnchisqr;
     delete _dnegbin;
+    delete _dgampois;
     delete _dnorm;
     delete _dnt;
     delete _dpar;
@@ -137,39 +144,40 @@ void BugsDistTest::npar()
 {
     //CPPUNIT_ASSERT_MESSAGE("npar check", false);
 
-    CPPUNIT_ASSERT_EQUAL(_dbern->npar(), 1U);
-    CPPUNIT_ASSERT_EQUAL(_dbeta->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dbin->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dcat->npar(), 1U);
-    CPPUNIT_ASSERT_EQUAL(_dchisqr->npar(), 1U);
-    CPPUNIT_ASSERT_EQUAL(_ddirch->npar(), 1U);
-    CPPUNIT_ASSERT_EQUAL(_ddexp->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dexp->npar(), 1U);
-    CPPUNIT_ASSERT_EQUAL(_df->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dgamma->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dgengamma->npar(), 3U);
-    CPPUNIT_ASSERT_EQUAL(_dhyper->npar(), 4U);
-    CPPUNIT_ASSERT_EQUAL(_dinterval->npar(), 2U);    
-    CPPUNIT_ASSERT_EQUAL(_dlnorm->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dlogis->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dmnorm->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dmnormvc->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dmt->npar(), 3U);
-    CPPUNIT_ASSERT_EQUAL(_dmulti->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dchisqr->npar(), 1U);
-    CPPUNIT_ASSERT_EQUAL(_dnegbin->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dnorm->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dnt->npar(), 3U);
-    CPPUNIT_ASSERT_EQUAL(_dpar->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dpois->npar(), 1U);
-    CPPUNIT_ASSERT_EQUAL(_dround->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dsample->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dsum->npar(), 0U);
-    CPPUNIT_ASSERT_EQUAL(_dt->npar(), 3U);
-    CPPUNIT_ASSERT_EQUAL(_dunif->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dweib->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dwish->npar(), 2U);
-
+    CPPUNIT_ASSERT_EQUAL(_dbern->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_dbeta->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dbin->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dcat->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_dchisqr->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_ddirch->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_ddexp->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dexp->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_df->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dgamma->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dgengamma->npar(), 3UL);
+    CPPUNIT_ASSERT_EQUAL(_dhyper->npar(), 4UL);
+    CPPUNIT_ASSERT_EQUAL(_dinterval->npar(), 2UL);    
+    CPPUNIT_ASSERT_EQUAL(_dlnorm->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dlogis->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dloglik->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_dmnorm->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dmnormvc->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dmt->npar(), 3UL);
+    CPPUNIT_ASSERT_EQUAL(_dmulti->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dchisqr->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_dnegbin->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dgampois->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dnorm->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dnt->npar(), 3UL);
+    CPPUNIT_ASSERT_EQUAL(_dpar->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dpois->npar(), 1UL);
+    CPPUNIT_ASSERT_EQUAL(_dround->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dsample->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dsum->npar(), 0UL);
+    CPPUNIT_ASSERT_EQUAL(_dt->npar(), 3UL);
+    CPPUNIT_ASSERT_EQUAL(_dunif->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dweib->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dwish->npar(), 2UL);
 }
 
 void BugsDistTest::name()
@@ -189,12 +197,14 @@ void BugsDistTest::name()
     CPPUNIT_ASSERT_EQUAL(string("dinterval"), _dinterval->name());    
     CPPUNIT_ASSERT_EQUAL(string("dlnorm"), _dlnorm->name());
     CPPUNIT_ASSERT_EQUAL(string("dlogis"), _dlogis->name());
+    CPPUNIT_ASSERT_EQUAL(string("dloglik"), _dloglik->name());
     CPPUNIT_ASSERT_EQUAL(string("dmnorm"), _dmnorm->name());
     CPPUNIT_ASSERT_EQUAL(string("dmnorm.vcov"), _dmnormvc->name());
     CPPUNIT_ASSERT_EQUAL(string("dmt"), _dmt->name());
     CPPUNIT_ASSERT_EQUAL(string("dmulti"), _dmulti->name());
     CPPUNIT_ASSERT_EQUAL(string("dnchisqr"), _dnchisqr->name());
     CPPUNIT_ASSERT_EQUAL(string("dnegbin"), _dnegbin->name());
+    CPPUNIT_ASSERT_EQUAL(string("dgampois"), _dgampois->name());
     CPPUNIT_ASSERT_EQUAL(string("dnorm"), _dnorm->name());
     CPPUNIT_ASSERT_EQUAL(string("dnt"), _dnt->name());
     CPPUNIT_ASSERT_EQUAL(string("dpar"), _dpar->name());
@@ -206,7 +216,6 @@ void BugsDistTest::name()
     CPPUNIT_ASSERT_EQUAL(string("dunif"), _dunif->name());
     CPPUNIT_ASSERT_EQUAL(string("dweib"), _dweib->name());
     CPPUNIT_ASSERT_EQUAL(string("dwish"), _dwish->name());
-
 }
 
 void BugsDistTest::alias()
@@ -226,12 +235,14 @@ void BugsDistTest::alias()
     CPPUNIT_ASSERT_EQUAL(string(""), _dinterval->alias());    
     CPPUNIT_ASSERT_EQUAL(string(""), _dlnorm->alias());
     CPPUNIT_ASSERT_EQUAL(string(""), _dlogis->alias());
+    CPPUNIT_ASSERT_EQUAL(string(""), _dloglik->alias());
     CPPUNIT_ASSERT_EQUAL(string(""), _dmnorm->alias());
     CPPUNIT_ASSERT_EQUAL(string(""), _dmnormvc->alias());
     CPPUNIT_ASSERT_EQUAL(string(""), _dmt->alias());
     CPPUNIT_ASSERT_EQUAL(string("dmultinom"), _dmulti->alias());
     CPPUNIT_ASSERT_EQUAL(string("dnchisq"), _dnchisqr->alias());
     CPPUNIT_ASSERT_EQUAL(string("dnbinom"), _dnegbin->alias());
+    CPPUNIT_ASSERT_EQUAL(string(""), _dgampois->alias());
     CPPUNIT_ASSERT_EQUAL(string(""), _dnorm->alias());
     CPPUNIT_ASSERT_EQUAL(string(""), _dnt->alias());
     CPPUNIT_ASSERT_EQUAL(string(""), _dpar->alias());
@@ -334,7 +345,7 @@ static void scalar_trunclik_discrete(RScalarDist const *dist,
     // Test normalization of truncated likelihood for discrete variables
     // by enumeration
     
-    CPPUNIT_ASSERT(dist->discrete());
+    CPPUNIT_ASSERT(dist->isDiscreteValued());
 
     double delta = lower ? -1 : 1;
     double const *ll = 0;
@@ -370,14 +381,14 @@ static void scalar_trunclik_cont(RScalarDist const *dist,
     // Test normalization of truncated likelihood for continuous
     // variables by approximate integration using the trapezoid method
     
-    CPPUNIT_ASSERT(!dist->discrete());
-    CPPUNIT_ASSERT(jags_finite(bound));
+    CPPUNIT_ASSERT(!dist->isDiscreteValued());
+    CPPUNIT_ASSERT(isfinite(bound));
     
     //Ensure that the density is finite at the other boundary (ob)
     //If not then just return as this method will not work
     double ob = lower ? dist->l(par) : dist->u(par);
-    if (jags_finite(ob)) {
-	if (!jags_finite(dist->d(ob, jags::PDF_FULL, par, false))) {
+    if (isfinite(ob)) {
+	if (!isfinite(dist->d(ob, jags::PDF_FULL, par, false))) {
 	    return;
 	}
     }
@@ -386,7 +397,7 @@ static void scalar_trunclik_cont(RScalarDist const *dist,
     //If lower==false then the grid is in reverse order
     vector<double> x;
     unsigned int N = 1000;
-    if (jags_finite(ob)) {
+    if (isfinite(ob)) {
 	x.push_back(ob);
     }
     double pmax = dist->p(bound, par, lower, false);
@@ -426,7 +437,7 @@ void BugsDistTest::rscalar_trunclik(RScalarDist const *dist,
     double ll = dist->q(0.1, par, true, false);
     double uu = dist->q(0.9, par, true, false);
 
-    if (dist->discrete()) {
+    if (dist->isDiscreteValued()) {
 	scalar_trunclik_discrete(dist, par, ll, true);
 	scalar_trunclik_discrete(dist, par, ll, false);
 	scalar_trunclik_discrete(dist, par, uu, true);
@@ -567,7 +578,7 @@ void BugsDistTest::kl_scalar(ScalarDist const *dist,
     
     //Closed form expression for Kullback-Leibler divergence
     double z = dist->KL(par0, par1);
-    CPPUNIT_ASSERT(z != JAGS_NA);
+    CPPUNIT_ASSERT(!isnan(z));
 
     //Difference between closed-form and Monte Carlo estimates
     CPPUNIT_ASSERT_DOUBLES_EQUAL_MESSAGE(dist->name(), z, ymean,

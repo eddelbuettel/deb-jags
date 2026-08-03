@@ -1,5 +1,5 @@
-#ifndef LINK__NODE_H_
-#define LINK__NODE_H_
+#ifndef LINK_NODE_H_
+#define LINK_NODE_H_
 
 #include <graph/LogicalNode.h>
 #include <vector>
@@ -23,12 +23,12 @@ public:
     /**
      * Calculates the value of the node based on the parameters. 
      */
-    void deterministicSample(unsigned int chain);
+    void deterministicSample(unsigned int chain) override;
     /**
      * Returns true. An inverse link function should accept every
      * value in the range [-Inf, Inf].
      */
-    bool checkParentValues(unsigned int chain) const;
+    bool checkParentValues(unsigned int chain) const override;
     /**
      * Returns the linear predictor
      */
@@ -43,6 +43,9 @@ public:
      */
     std::string const &linkName() const;
     //DeterministicNode *clone(std::vector<Node const *> const &parents) const;
+    bool hasGradient(Node const *arg) const override;
+    void gradient(double *grad, Node const *arg, unsigned int chain)
+	const override;
 };
 
 } /* namespace jags */

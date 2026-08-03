@@ -3,6 +3,7 @@
 #include "REScaledWishartFactory.h"
 #include "REScaledWishart.h"
 
+#include <glm.h>
 #include <graph/StochasticNode.h>
 
 using std::vector;
@@ -19,7 +20,13 @@ namespace jags {
 
 	bool REScaledWishartFactory::canSample(StochasticNode *snode) const
 	{
-	    return snode->distribution()->name() == "dscaled.wishart";
+	    if (snode->distribution()->name() != "dscaled.wishart")
+		return false;
+
+	    if (isObserved(snode))
+		return false;
+
+	    return true;
 	}
 
 	REMethod *
@@ -30,7 +37,8 @@ namespace jags {
 	    vector<Outcome *> const &outcomes,
 	    unsigned int chain) const
 	{
-	    return new REScaledWishart(tau, eps, sub_eps, outcomes, chain);
+	    return new REScaledWishart(tau, eps, sub_eps, outcomes, chain,
+				       workspace(chain));
 	}
 
     } // namespace glm

@@ -23,6 +23,9 @@ class SymTab
   Model *_model;
   std::map<std::string, NodeArray*> _varTable;
   std::map<Node const*, std::string> _names;
+  std::string printName(std::vector<StochasticIndex> const &) const;
+  std::string printValue(std::vector<StochasticIndex> const &,
+			 unsigned int) const;
 public:
   /**
    * Constructs an empty symbol table
@@ -38,7 +41,7 @@ public:
    * with the name, so it can be retrieved with a call to getVariable.
    * If no dimension is given, the variable is assumed to be scalar.
    */
-  void addVariable(std::string const &name, std::vector<unsigned int> const &dim);
+  void addVariable(std::string const &name, std::vector<unsigned long> const &dim);
   /**
    * Returns a pointer to the  NodeArray associated with the given
    * name, or a NULL pointer if there is no such NodeArray.
@@ -75,8 +78,7 @@ public:
 		   unsigned int chain);
   /**
    * Reads the current value of selected nodes in the symbol table and
-   * writes the result to the data table. The selection is based on
-   * a given boolean function that returns true for the selected nodes.
+   * writes the result to the data table.
    *
    * @param data_table Data table to which results will be written.
    * New entries will be created for the selected nodes.  However, a
@@ -84,27 +86,46 @@ public:
    * corresponding to the selection are missing. Existing entries in
    * the data table will be overwritten.
    *
-   * @param condition Function that returns true if the values of a
-   * Node are to be read, and false otherwise.
+   * @param chain Index number of chain from which to read data values
+   *
+   * @param type Indicates which values to read: DATA_VALUES reads
+   * only observed random variables; PARAMETER_VALUES reads only
+   * unobserved random variables; ALL_VALUES reads all values
+   * (including deterministic nodes).
+   *
+   * @see NodeArray#getValue
    */
   void readValues(std::map<std::string, SArray> &data_table, 
-                  unsigned int chain,
-		  bool (*condition)(Node const *)) const;
+                  unsigned int chain, ValueType type) const;
   /**
    * Returns the number of variables in the symbol table
    */
-  unsigned int size() const;
+  unsigned long size() const;
   /**
    * Deletes all the variables in the symbol table
    */
   void clear();
   /**
-   * Gets the BUGS language name of the node if it belongs to
-   * any of the NodeArrays in the symbol table. Special rules for nested
-   * indexing also allow the names of Mixture Nodes to be calculated.
-   * If the node name is not found, an empty string is returned
+   * Gets the BUGS language name of the node if it belongs to any of
+   * the NodeArrays in the symbol table.  If the node name is not
+   * found, an empty string is returned
    */
   std::string getName(Node const *node) const;
+  /**
+   * Gets the value of the indices for a MixtureNode if it belongs to any
+   * of the NodeArrays in the symbol table. In the BUGS language,
+   * mixture nodes are defined by nested indexing, with one or more of
+   * the indices being unobserved quantities.
+   *
+   * @param node Mixture node
+   *
+   * @@param chain Chain number
+   */
+  std::string getMixtureIndex(Node const *node, unsigned long chain) const;
+  /**
+   * Locks all the NodeArrays contained in the SymTab
+   */
+  void lock();
 };
 
 } /* namespace jags */

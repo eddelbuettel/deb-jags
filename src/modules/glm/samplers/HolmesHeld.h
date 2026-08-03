@@ -24,7 +24,7 @@ namespace glm {
 	HolmesHeld(GraphView const *view, 
 		   std::vector<SingletonGraphView const *> const &sub_views,
 		   std::vector<Outcome *> const &outcomes,
-		   unsigned int chain);
+		   unsigned int chain, cholmod_common *wk);
 	/**
 	 * Updates the auxiliary variables marginalizing over the
 	 * value of the linear predictor. This function is called by
@@ -34,7 +34,7 @@ namespace glm {
 	 * the regression parameters is represented by the matrix "A"
 	 * and the posterior mean "mu" solves A %*% mu = b.
 	 *
-	 * In this call, "N" holds the factorization 
+	 * The class member _factor contains the factorization
 	 * P %*% A %*% t(P) = L %*% D %*% t(L)
          * where P is a permutation matrix chosen to make
 	 * the factorization more efficient, and "w" solves
@@ -45,7 +45,7 @@ namespace glm {
 	 * multivariate truncated normal distribution. Each element of
 	 * z[] is updated in turn by Gibbs sampling.
 	 */
-	void updateAuxiliary(cholmod_dense *b, cholmod_factor *N, RNG *rng);
+	void updateAuxiliary(cholmod_dense *w, RNG *rng) override;
     };
     
 }}

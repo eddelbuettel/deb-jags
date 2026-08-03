@@ -9,6 +9,8 @@
 #include "HolmesHeld.h"
 #include "HolmesHeldGibbs.h"
 
+#include <glm.h>
+
 #include <module/ModuleError.h>
 #include <sampler/SingletonGraphView.h>
 
@@ -41,7 +43,7 @@ namespace glm {
 	for (p = view->stochasticChildren().begin();
 	     p != view->stochasticChildren().end(); ++p)
 	{
-	    Outcome *outcome = 0;
+	    Outcome *outcome = nullptr;
 	    if (BinaryProbit::canRepresent(*p)) {
 		outcome = new BinaryProbit(*p, chain);
 	    }
@@ -62,10 +64,12 @@ namespace glm {
 	}
 
 	if (gibbs) {
-	    return new HolmesHeldGibbs(view, subviews, outcomes, chain);
+	    return new HolmesHeldGibbs(view, subviews, outcomes, chain,
+				       workspace(chain));
 	}
 	else {
-	    return new HolmesHeld(view, subviews, outcomes, chain);
+	    return new HolmesHeld(view, subviews, outcomes, chain,
+				  workspace(chain));
 	}
 	
     }

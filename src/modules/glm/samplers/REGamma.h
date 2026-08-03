@@ -17,12 +17,12 @@ namespace jags {
 		    GraphView const *eps, 
 		    std::vector<SingletonGraphView const *> const &veps,
 		    std::vector<Outcome *> const &outcomes,
-		    unsigned int chain);
-	    void updateTau(RNG *rng);
-	    void updateSigma(RNG *rng);
-	    bool isAdaptive() const;
-	    void adaptOff();
-	    bool checkAdaptation() const;
+		    unsigned int chain, cholmod_common *wk);
+	    void updateTau(RNG *rng) override;
+	    void updateSigma(RNG *rng) override;
+	    bool isAdaptive() const override;
+	    void adaptOff() override;
+	    bool checkAdaptation() const override;
 	};
 
     }

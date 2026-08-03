@@ -25,7 +25,8 @@ using std::partial_sum;
 namespace jags {
 
      bool isCat(StochasticNode const *snode) {
-	return snode->distribution()->name() == "dcat";
+	 //FIXME when dcat is split into dcat.ordinal and dcat.nominal
+	 return snode->length() == 1 && snode->distribution()->name() == "dcat";
     }
 
      bool isDirichlet(StochasticNode const *snode) {
@@ -64,7 +65,7 @@ namespace jags {
 		    int word = static_cast<int>(*words[d][i]->value(ch)) - 1;
 		    _wordTokens[d].push_back(word);
 		    _topicsByWord[word][topic]++;
-		    if (!isObserved(words[d][i])) _wordsObserved = false;
+		    if (isParameter(words[d][i])) _wordsObserved = false;
 		}
 	    }
 
@@ -142,9 +143,9 @@ namespace jags {
 		    //Draw random sample from categorical distribution
 		    partial_sum(prob.begin(), prob.end(), sump.begin());
 		    double p = rng->uniform() * sump.back();
-		    topic = upper_bound(sump.begin(), sump.end(), p) -
-			sump.begin();
-		    if (topic == _nTopic) --topic;
+		    auto ub = upper_bound(sump.begin(), sump.end(), p);
+		    if (ub == sump.end()) --ub;
+		    topic = ub - sump.begin();
 
 		    //Restore current value to tables
 		    thisDocTopics[topic]++;
@@ -181,9 +182,9 @@ namespace jags {
 	    unsigned int nWord = word_priors[0]->length();
 	    if (nWord == 0) return false;
 
-	    //topics and words are arranged hierarchically by document
+	    //Topics and words are arranged hierarchically by document
 
-	    //topics and words have categorical distribution topics
+	    //Topics and words have categorical distribution. Topics
 	    //must be unobserved (because we are sampling them) and
 	    //words must be observed (this may be relaxed in a future version).
 	    for (unsigned int d = 0; d < nDoc; ++d) {
@@ -192,11 +193,11 @@ namespace jags {
 		    if (!isCat(topics[d][i])) return false;
 		    if (!isCat(words[d][i])) return false;
 		    if (isObserved(topics[d][i])) return false;
-		    if (!isObserved(words[d][i])) return false;
+		    if (isParameter(words[d][i])) return false;
 		}
 	    }
 	    
-	    //Word priors have a Dirichlet distribution.  They are
+	    //Word priors have a Dirichlet distribution.  They are fully
 	    //unobserved, as we need to marginalize over their
 	    //distribution
 	    for (unsigned int t = 0; t < nTopic; ++t) {
@@ -210,7 +211,7 @@ namespace jags {
 		if (word_priors[t]->parents()[0] != word_hyper) return false;
 	    }
 
-	    //Topic priors have a Dirichlet distribution. They are
+	    //Topic priors have a Dirichlet distribution. They are fully
 	    //unobserved, as we need to marginalize over their
 	    //distribution.
 	    for (unsigned int d = 0; d < nDoc; ++d) {
@@ -260,10 +261,10 @@ namespace jags {
 	    //nodes with a common mixTab.
 	    vector<DeterministicNode*> const &wp_dchild = 
 		wp_gv.deterministicChildren();
-	    MixTab const *mtab = 0;
+	    MixTab const *mtab = nullptr;
 	    for (unsigned int i = 0; i < wp_dchild.size(); ++i) {
 		MixtureNode const *m = asMixture(wp_dchild[i]);
-		if (m == 0) return false;
+		if (m == nullptr) return false;
 		if (i == 0) {
 		    mtab = m->mixTab();
 		}

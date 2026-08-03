@@ -15,7 +15,7 @@ namespace jags {
 namespace base {
 
     RealSlicer::RealSlicer(SingletonGraphView const *gv, unsigned int chain,
-			   double width, long maxwidth)
+			   double width, unsigned int maxwidth)
 	: Slicer(width, maxwidth), _gv(gv), _chain(chain)
     {
 	if (!canSample(gv->node()))
@@ -31,7 +31,7 @@ namespace base {
 	if (node->isDiscreteValued() || node->length() != 1)
 	    return false;
 
-	if (node->df() == 0)
+	if (!node->fullRank())
 	    return false; 
 
 	return true;

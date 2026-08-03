@@ -15,7 +15,8 @@
 %}
 
 %option prefix="zz"
-
+%option nounput
+     
 EXPONENT	[eE][+-][0-9]+
 BRACKET         [ \t]*\(
 
@@ -34,7 +35,9 @@ parameters		zzlval.intval=PARAMETERS; return PARAMETERS;
 
 compile			zzlval.intval=COMPILE; return COMPILE;
 nchains                 zzlval.intval=NCHAINS; return NCHAINS;
+nthreads                zzlval.intval=NTHREADS; return NTHREADS;
 initialize              zzlval.intval=INITIALIZE; return INITIALIZE;
+nrep                    zzlval.intval=NREP; return NREP;
 chain                   zzlval.intval=CHAIN; return CHAIN;
 
 update			zzlval.intval=UPDATE; return UPDATE;
@@ -45,6 +48,7 @@ by                      zzlval.intval=BY; return BY;
 
 monitor			zzlval.intval=MONITOR; return MONITOR;
 monitors		zzlval.intval=MONITORS; return MONITORS;
+nodenames		zzlval.intval=NODENAMES; return NODENAMES;
 type			zzlval.intval=TYPE; return TYPE;
 set			zzlval.intval=SET; return SET;
 clear			zzlval.intval=CLEAR; return CLEAR;
@@ -59,6 +63,8 @@ seed                    zzlval.intval=SEED; return SEED;
 
 coda			zzlval.intval=CODA; return CODA;
 stem			zzlval.intval=STEM; return STEM;
+stat			zzlval.intval=STAT; return STAT;
+summary			zzlval.intval=SUMMARY; return SUMMARY;
 
 load                    zzlval.intval=LOAD; return LOAD;
 unload                  zzlval.intval=UNLOAD; return UNLOAD;
@@ -117,17 +123,15 @@ run                     zzlval.intval=RUN; return RUN;
 <INITIAL,RDATA>"-"?("."[0-9]+)  {
   zzlval.val = atof(zztext); return DOUBLE;
 }
-<RDATA>"-"?[0-9]+  {
-  zzlval.val = atof(zztext); return DOUBLE;
-}
 <RDATA>"-"?[0-9]+"L" {
-  zzlval.val = atof(zztext); return DOUBLE;
+  zzlval.intval = atoi(zztext); return INT;
 }
-<INITIAL>"-"?[0-9]+	{
+<INITIAL,RDATA>"-"?[0-9]+	{
   zzlval.intval = atoi(zztext); return INT;
 }
 
 <RDATA>".Dim"                   return DIM;
+<RDATA>"dim"                    return DIM;
 <RDATA>".Data"                  return DOTDATA;
 <RDATA>"NA"		        return NA;
 <RDATA>"NULL"		        return R_NULL;
@@ -137,6 +141,12 @@ run                     zzlval.intval=RUN; return RUN;
 <RDATA>"as.integer"/{BRACKET}   return ASINTEGER;
 
 [a-zA-Z\.]+[a-zA-Z0-9\._\-\\\/]* { 
+  zzlval.stringptr = new std::string(zztext);
+  return NAME;
+}
+
+_observations_ { 
+  // Exception to the name rule for monitoring observed stochastic nodes:
   zzlval.stringptr = new std::string(zztext);
   return NAME;
 }

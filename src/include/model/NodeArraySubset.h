@@ -16,10 +16,11 @@ namespace jags {
      * 
      */
     class NodeArraySubset {
-	std::vector<unsigned int> _dim;
+	std::vector<unsigned long> _dim;
 	unsigned int _nchain;
 	std::vector<Node *> _node_pointers;
-	std::vector<unsigned int> _offsets;
+	std::vector<unsigned long> _offsets;
+	std::vector<bool> _missing;
       public:
 	/**
 	 * Constructor. Creates a NodeArraySubset from a NodeArray
@@ -34,14 +35,26 @@ namespace jags {
 	 */
 	std::vector<double> value(unsigned int chain) const;
 	/**
+	 * Returns a boolean vector indicating which elements of the value
+	 * vector are missing (represented by the special value JAGS_NA).
+	 * These elements correspond to parts of the array subset that are
+	 * not filled with Nodes.
+	 */
+	std::vector<bool> missing() const;
+	/**
 	 * Returns the dimension of the subset
 	 */
-	std::vector<unsigned int> const &dim() const;
+	std::vector<unsigned long> const &dim() const;
 	/**
 	 * Returns a vector containing the nodes that contribute
 	 * values to the NodeArraySubset. Repeated values are removed.
 	 */
 	std::vector<Node const *> nodes() const;
+	/**
+	 * Returns a vector containing all the nodes that contribute
+	 * values to the NodeArraySubset, including repeated values.
+	 */
+	std::vector<Node const *> allnodes() const;
 	/**
 	 * Returns the number of chains
 	 */
@@ -49,7 +62,7 @@ namespace jags {
 	/**
 	 * Returns the number of values in the subset
 	 */
-	unsigned int length() const;
+	unsigned long length() const;
     };
     
 } /* namespace jags */

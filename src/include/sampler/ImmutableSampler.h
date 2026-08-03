@@ -29,7 +29,7 @@ namespace jags {
 	 * @param gv View of the sample graph, passed directly to the
 	 * parent class Sampler.
 	 *
-	 * @param methods Pointer to an ImmutableSampleMethod This
+	 * @param method Pointer to an ImmutableSampleMethod. This
 	 * must be dynamically allocated, as the
 	 * ImmutableSampler will take ownership of it, and
 	 * will delete it when the destructor is called.
@@ -39,28 +39,24 @@ namespace jags {
 	 */
 	ImmutableSampler(GraphView *gv, ImmutableSampleMethod* method,
 			 std::string const &name);
-	~ImmutableSampler();
-	/**
-	 * Updates all chains in parallel using the update method
-	 * provided to the constructor
-	 */
-	void update(std::vector<RNG*> const &rngs);
+	~ImmutableSampler() override;
+	void update(unsigned int chain, RNG * rng) override;
 	/**
 	 * The sampler is not adaptive
 	 */
-	bool isAdaptive() const;
+	bool isAdaptive() const override;
 	/**
 	 * This does nothing
 	 */
-	void adaptOff();
+	void adaptOff() override;
 	/**
 	 * This always returns true
 	 */
-	bool checkAdaptation() const;
+	bool checkAdaptation() const override;
 	/**
 	 * Returns the name of the sampler, as given to the constructor.b
 	 */
-	std::string name() const;
+	std::string name() const override;
     };
 
 } /* namespace jags */

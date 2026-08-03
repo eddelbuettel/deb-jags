@@ -5,11 +5,13 @@
 #include <util/nainf.h>
 
 #include <cmath>
+#include <numeric>
 
 #include <JRmath.h>
 
 using std::vector;
 using std::string;
+using std::accumulate;
 
 #define PROB(par) (par[0])
 #define SIZE(par) (*par[1])
@@ -26,12 +28,12 @@ string DMulti::alias() const
     return "dmultinom";
 }
     
-bool DMulti::isDiscreteValued(vector<bool> const &mask) const
+bool DMulti::isDiscreteValued(vector<bool> const &) const
 {
     return true;
 }
 
-bool DMulti::checkParameterLength(vector<unsigned int> const &len) const
+bool DMulti::checkParameterLength(vector<unsigned long> const &len) const
 {
     //Check that PROB is non-empty and SIZE is a scalar
     return len[0] >= 1 && len[1] == 1;
@@ -44,7 +46,7 @@ bool DMulti::checkParameterDiscrete(vector<bool> const &mask) const
 
 bool 
 DMulti::checkParameterValue(vector<double const *> const &par,
-			    vector<unsigned int> const &len) const
+			    vector<unsigned long> const &len) const
 {
     if (SIZE(par) < 0)
 	return false;
@@ -52,7 +54,7 @@ DMulti::checkParameterValue(vector<double const *> const &par,
     // If SIZE is non-zero, we need at least one non-zero probability
     bool nz = SIZE(par) == 0;
 
-    for (unsigned int i = 0; i < len[0]; ++i) {
+    for (unsigned long i = 0; i < len[0]; ++i) {
 	if (PROB(par)[i] < 0)
 	    return false;
 	else if (PROB(par)[i] > 0)
@@ -62,14 +64,14 @@ DMulti::checkParameterValue(vector<double const *> const &par,
     return nz;
 }
 
-double DMulti::logDensity(double const *x, unsigned int length, PDFType type,
+double DMulti::logDensity(double const *x, PDFType type,
 			  vector<double const *> const &par,
-			  vector<unsigned int> const &len,
-			  double const *lower, double const *upper) const
+			  vector<unsigned long> const &len) const
 {
     double loglik = 0.0;
     double S = 0;
-    for (unsigned int i = 0; i < length; i++) {
+    unsigned long N = length(len);
+    for (unsigned long i = 0; i < N; i++) {
 	if (x[i] < 0 || floor(x[i]) != x[i]) {
 	    return JAGS_NEGINF;
 	}
@@ -91,7 +93,7 @@ double DMulti::logDensity(double const *x, unsigned int length, PDFType type,
     if (type != PDF_PRIOR) {
 	//Terms depending on parameters only
 	double sump = 0.0;
-	for (unsigned int i = 0; i < length; ++i) {
+	for (unsigned long i = 0; i < N; ++i) {
 	    sump += PROB(par)[i];
 	}
 	if (SIZE(par) != 0) {
@@ -101,7 +103,7 @@ double DMulti::logDensity(double const *x, unsigned int length, PDFType type,
 
     if (type != PDF_LIKELIHOOD) {
 	//Terms depending on sampled value only
-	for (unsigned int i = 0; i < length; ++i) {
+	for (unsigned long i = 0; i < N; ++i) {
 	    loglik -= lgammafn(x[i] + 1);
 	}
     }
@@ -115,125 +117,162 @@ double DMulti::logDensity(double const *x, unsigned int length, PDFType type,
     return loglik;
 }
 
-void DMulti::randomSample(double *x, unsigned int length,
-			  vector<double const *> const &par,
-			  vector<unsigned int> const &len,
-			  double const *lower, double const *upper,
-			  RNG *rng) const
-{
-    /* Sample multinomial as a series of binomial distributions */
-
-    double N = SIZE(par);
-    double const *prob = PROB(par);
-
-    //Normalize probability
-    double sump = 0;
-    for (unsigned int i = 0; i < length; ++i) {
-	sump += prob[i];
-    }
-
-    for (unsigned int i = 0; i < length - 1; i++) {
-	if (N == 0) {
-	    x[i] = 0;
+    void DMulti::randomSample(double *x,
+			      vector<double const *> const &par,
+			      vector<unsigned long> const &len,
+			      RNG *rng) const
+    {
+	double size = SIZE(par);
+	double const *prob = PROB(par);
+	unsigned long N = length(len);
+    
+	//Normalize probability
+	double sump = 0;
+	for (unsigned long i = 0; i < N; ++i) {
+	    sump += prob[i];
 	}
-	else {
-	    x[i] = rbinom(N, prob[i]/sump, rng);
-	    N -= x[i];
-	    sump -= prob[i];
-	}
-    }
-    x[length - 1] = N;
-}
-
-void DMulti::support(double *lower, double *upper, unsigned int length,
-	     vector<double const *> const &par,
-	     vector<unsigned int> const &len) const
-{
-    for (unsigned int i = 0; i < length; ++i) {
-	lower[i] = 0;
-        if (PROB(par)[i] == 0) 
-           upper[i] = 0;
-        else
-	   upper[i] = SIZE(par);
-    }
-}
-
-unsigned int DMulti::length(vector<unsigned int> const &len) const
-{
-    return len[0];
-}
-
-
-void DMulti::typicalValue(double *x, unsigned int length,
-			  vector<double const *> const &par,
-			  vector<unsigned int> const &len,
-			  double const *lower, double const *upper) const
-{
-    /* Draw a typical value in the same way as a random sample, but
-       substituting the median at each stage */
-
-    double N = SIZE(par);
-    double const *prob = PROB(par);
-
-    double sump = 0.0;
-    for (unsigned int i = 0; i < length; ++i) {
-	sump += prob[i];
-    }
-
-    for (unsigned int i = 0; i < length - 1; i++) {
-	if (N == 0) {
-	    x[i] = 0;
-	}
-	else {
-	    x[i] = qbinom(0.5, N, prob[i]/sump, true, false);
-	    N -= x[i];
-	    sump -= prob[i];
-	}
-    }
-    x[length - 1] = N;
-}
-
-bool DMulti::isSupportFixed(vector<bool> const &fixmask) const
-{
-    return fixmask[1];
-}
-
-unsigned int DMulti::df(vector<unsigned int> const &len) const
-{
-    return len[0] - 1;
-} 
-
-double DMulti::KL(vector<double const *> const &par1,
-		  vector<double const *> const &par2,
-		  vector<unsigned int> const &lengths) const
-{
-    if (SIZE(par1) != SIZE(par2))
-	return JAGS_POSINF;
-
-    unsigned int ncat = lengths[0];
-    double y = 0, S1 = 0, S2 = 0;
-    for (unsigned int i = 0; i < ncat; ++i) {
-	double p1 = PROB(par1)[i];
-	double p2 = PROB(par2)[i];
 	
-	if (p1 == 0) {
-	    S2 += p2;
+	for (unsigned long i = 0; i < N - 1; i++) {
+	    if (size == 0) {
+		x[i] = 0;
+	    }
+	    else {
+		x[i] = rbinom(size, prob[i]/sump, rng);
+		size -= x[i];
+		sump -= prob[i];
+	    }
 	}
-	else if (p2 == 0) {
-	    return JAGS_POSINF;
+	x[N - 1] = size;
+    }
+
+    void DMulti::randomSample(double *x, vector<bool> const &observed,
+			      vector<double const *> const &par,
+			      vector<unsigned long> const &len,
+			      RNG *rng) const
+    {
+	double size = SIZE(par);
+	double const *prob = PROB(par);
+	unsigned long N = length(len);
+    
+	double sump = 0; //Probability sum of free elements
+	unsigned long nfree = 0; //Count free elements
+	for (unsigned long i = 0; i < N; ++i) {
+	    if (observed[i]) {
+		size -= x[i];
+	    }
+	    else {
+		sump += prob[i];
+		nfree++;
+	    }
 	}
-	else {
-	    y += p1 * (log(p1) - log(p2));
-	    S1 += p1;
-	    S2 += p2;
+	    
+	for (unsigned long i = 0; i < N; i++) {
+	    if (!observed[i]) {
+		nfree--;
+		if (size > 0) {
+		    if (nfree > 0) {
+			x[i] = rbinom(size, prob[i]/sump, rng);
+			size -= x[i];
+			sump -= prob[i];
+		    }
+		    else {
+			x[i] = size;
+			break;
+		    }
+		}
+		else {
+		    x[i] = 0;
+		}
+	    }
 	}
     }
-    y /= S1;
-    y += log(S2) - log(S1);
-    y *= SIZE(par1);
+    
+	void DMulti::support(double *lower, double *upper,
+			     vector<double const *> const &par,
+			     vector<unsigned long> const &len) const
+	{
+	    unsigned long N = length(len);
+	    for (unsigned long i = 0; i < N; ++i) {
+		lower[i] = 0;
+		if (PROB(par)[i] == 0) 
+		    upper[i] = 0;
+		else
+		    upper[i] = SIZE(par);
+	    }
+	}
 
-    return y;
-}
+	unsigned long DMulti::length(vector<unsigned long> const &len) const
+	{
+	    return len[0];
+	}
 
+	bool DMulti::isSupportFixed(vector<bool> const &fixmask) const
+	{
+	    return fixmask[1];
+	}
+
+	bool DMulti::fullRank() const
+	{
+	    return false;
+	} 
+
+	double DMulti::KL(vector<double const *> const &par1,
+			  vector<double const *> const &par2,
+			  vector<unsigned long> const &lengths) const
+	{
+	    if (SIZE(par1) != SIZE(par2))
+		return JAGS_POSINF;
+
+	    unsigned long ncat = lengths[0];
+	    double y = 0, S1 = 0, S2 = 0;
+	    for (unsigned long i = 0; i < ncat; ++i) {
+		double p1 = PROB(par1)[i];
+		double p2 = PROB(par2)[i];
+	
+		if (p1 == 0) {
+		    S2 += p2;
+		}
+		else if (p2 == 0) {
+		    return JAGS_POSINF;
+		}
+		else {
+		    y += p1 * (log(p1) - log(p2));
+		    S1 += p1;
+		    S2 += p2;
+		}
+	    }
+	    y /= S1;
+	    y += log(S2) - log(S1);
+	    y *= SIZE(par1);
+
+	    return y;
+	}
+
+    bool DMulti::hasScore(unsigned long i) const
+    {
+	return i == 1;
+    }
+
+    void DMulti::score(double *grad, double const *x,
+		       vector<double const *> const &parameters,
+		       vector<unsigned long> const &lengths,
+		       unsigned long i) const
+    {
+	if (i == 1) {
+    
+	    unsigned long N = length(lengths);
+	    double const * prob = PROB(parameters);
+	    double size = SIZE(parameters);
+	    
+	    double sumprob = accumulate(prob, prob + N, 0);
+	    
+	    for (unsigned long i = 0; i < N; i++) {
+		grad[i] += x[i]/prob[i] - size/sumprob;
+	    }
+	}
+	
+    }
+    
 
 }}
+

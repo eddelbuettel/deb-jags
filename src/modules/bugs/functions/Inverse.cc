@@ -1,40 +1,45 @@
 #include <config.h>
-#include "matrix.h"
+
 #include <util/dim.h>
+#include <util/integer.h>
+#include <matrix/matrix.h>
+#include <module/ModuleError.h>
+
 #include "Inverse.h"
 
 using std::vector;
+using std::string;
 
 namespace jags {
 namespace bugs {
 
-    Inverse::Inverse (): ArrayFunction ("inverse", 1)
+    Inverse::Inverse (): ArrayFunction ("inverse.chol", 1)
     {
+    }
+
+    string Inverse::alias() const
+    {
+        return "inverse";
     }
 
     void Inverse::evaluate (double *value, vector<double const *> const &args,
-			    vector<vector<unsigned int> > const &dims) const
+			    vector<vector<unsigned long> > const &dims) const
     {
-	//FIXME: RETURN VALUE IGNORED
-	inverse_spd (value, args[0], dims[0][0]);
+	bool can_invert = inverse_chol (value, args[0], dims[0][0]);
+	if (!can_invert) {
+	    throwFuncError(this, "Cannot invert matrix. It may not be positive definite");
+	}
     }
 
     bool 
-    Inverse::checkParameterDim (vector<vector<unsigned int> > const &dims) const
+    Inverse::checkParameterDim (vector<vector<unsigned long> > const &dims) const
     {
 	return isSquareMatrix(dims[0]) || isScalar(dims[0]);
     }
 
-    bool 
-    Inverse::checkParameterValue(vector<double const *> const &args,
-				 vector<vector<unsigned int> > const &dims) const
-    {
-	return check_symmetry(args[0], dims[0][0]);
-    }
-
-    vector<unsigned int> 
-    Inverse::dim (vector<vector<unsigned int> > const &dims,
-		  vector<double const *> const &values) const
+    vector<unsigned long> 
+    Inverse::dim (vector<vector<unsigned long> > const &dims,
+		  vector<double const *> const &) const
     {
 	return dims[0];
     }

@@ -1,19 +1,18 @@
 #include <config.h>
-#include <util/dim.h>
-#include <util/nainf.h>
 #include "DMNormVC.h"
 #include "DMNorm.h"
 
-#include <lapack.h>
-#include <matrix.h>
+#include <util/dim.h>
+#include <util/nainf.h>
+#include <matrix/lapack.h>
+#include <matrix/matrix.h>
+#include <module/ModuleError.h>
 
 #include <cmath>
 #include <vector>
 #include <cfloat>
 
 #include <JRmath.h>
-
-#include "matrix.h"
 
 using std::vector;
 
@@ -25,23 +24,24 @@ namespace jags {
 	{}
 
 	double
-	DMNormVC::logDensity(double const *x, unsigned int m, PDFType type,
+	DMNormVC::logDensity(double const *x, PDFType type,
 			     vector<double const *> const &parameters,
-			     vector<vector<unsigned int> > const &dims,
-			     double const *lower, double const *upper) const
+			     vector<vector<unsigned long> > const &dims) const
 	{
 	    double const * mu = parameters[0];
 	    double const * V  = parameters[1];
-
+	    unsigned long m = dims[0][0];
+	    
 	    vector<double> T(m * m);
-	    inverse_spd (&T[0], V, m);
-
+	    bool can_invert = inverse_chol (T.data(), V, m);
+	    if (!can_invert) return JAGS_NEGINF;
+	    
 	    double loglik = 0;
 	    vector<double> delta(m);
-	    for (unsigned int i = 0; i < m; ++i) {
+	    for (unsigned long i = 0; i < m; ++i) {
 		delta[i] = x[i] - mu[i];
 		loglik -= (delta[i] * T[i + i * m] * delta[i])/2;
-		for (unsigned int j = 0; j < i; ++j) {
+		for (unsigned long j = 0; j < i; ++j) {
 		    loglik -= delta[i] * T[i + j * m] * delta[j];
 		}
 	    }
@@ -61,20 +61,20 @@ namespace jags {
 	}
 
 	void
-	DMNormVC::randomSample(double *x, unsigned int m,
+	DMNormVC::randomSample(double *x,
 			       vector<double const *> const &parameters,
-			       vector<vector<unsigned int> > const &dims,
-			       double const *lower, double const *upper,
+			       vector<vector<unsigned long> > const &dims,
 			       RNG *rng) const
 	{
 	    double const * mu = parameters[0];
 	    double const * T = parameters[1];
-    
+	    unsigned long m = dims[0][0];
+	    
 	    DMNorm::randomsample(x, mu, T, false, m, rng);
 	}
 
 	bool
-	DMNormVC::checkParameterDim(vector<vector<unsigned int> > const &dims)
+	DMNormVC::checkParameterDim(vector<vector<unsigned long> > const &dims)
 	    const
 	{
 	    //Allow scalar mean and precision. 
@@ -88,51 +88,150 @@ namespace jags {
 	    return true;
 	}
 
-	vector<unsigned int>
-	DMNormVC::dim(vector<vector<unsigned int> > const &dims) const
+	vector<unsigned long>
+	DMNormVC::dim(vector<vector<unsigned long> > const &dims) const
 	{
 	    return dims[0];
 	}
 	
-	bool
-	DMNormVC::checkParameterValue(vector<double const *> const &parameters,
-				      vector<vector<unsigned int> > const &dims)
-	    const
-	{
-	    double const *precision = parameters[1];
-	    unsigned int n = dims[0][0];
-
-	    return check_symmetry(precision, n) &&
-		check_symmetric_ispd(precision, n);
-	}
-
-
 	void
-	DMNormVC::support(double *lower, double *upper, unsigned int length,
-			  vector<double const *> const &parameters,
-			  vector<vector<unsigned int> > const &dims) const
+	DMNormVC::support(double *lower, double *upper,
+			  vector<double const *> const &,
+			  vector<vector<unsigned long> > const &dims) const
 	{
-	    for (unsigned int i = 0; i < length; ++i) {
+	    unsigned length = dims[0][0];
+	    for (unsigned long i = 0; i < length; ++i) {
 		lower[i] = JAGS_NEGINF;
 		upper[i] = JAGS_POSINF;
 	    }
 	}
 
-	void
-	DMNormVC::typicalValue(double *x, unsigned int m,
-			       vector<double const *> const &parameters,
-			       vector<vector<unsigned int> > const &dims,
-			       double const *lower, double const *upper) const
-	{
-	    for (unsigned int i = 0; i < m; ++i) {
-		x[i] = parameters[0][i];
-	    }
-	}
-	
-	bool DMNormVC::isSupportFixed(vector<bool> const &fixmask) const
+	bool DMNormVC::isSupportFixed(vector<bool> const &) const
 	{
 	    return true;
 	}
 
-    }
-}
+	bool DMNormVC::checkParameterValue(vector<double const *> const &,
+					   vector<vector<unsigned long> > const &) const
+	{
+	    return true; //FIXME: define in base class
+	}
+
+	/*
+	void DMNormVC::randomsample(double *x, double const *mu, double const *Sigma,
+				    unsigned long nrow,
+				    vector<bool> const &observed, unsigned long nobs,
+				    RNG *rng)
+	{
+	    if (nrow == nobs) return;
+	    
+	    unsigned long nfree = nrow - nobs;
+	    unsigned long N = nfree*nfree;
+	    
+	    vector<double> Sigff(nfree*nfree), Sigfo(nfree*nobs), Sigof(nobs*nfree), Sigoo(nobs*nobs);
+	    vector<double> wf(nfree), wo(nobs);
+		
+	    if (nobs == 0) {
+		copy(Sigma, Sigma + N, Sigff.begin());
+	    }
+	    else {
+		//Partition variance matrix Sigma into free and observed parts
+		for (unsigned long i = 0, pf = 0, po = 0; i < nrow; ++i) {
+		    if (observed[i]) {
+			for (unsigned long j = 0, qf = 0, qo = 0; j < nrow; ++j) {
+			    if (observed[j]) {
+				Sigoo[po*nobs + qo++] = Sigma[i*nrow + j];
+			    }
+			    else {
+				Sigof[po*nobs + qf++] = Sigma[i*nrow + j];
+			    }
+			}
+			wo[po++] = x[i] - mu[i];
+		    }
+		    else {
+			for (unsigned long j = 0, qf = 0, qo = 0; j < nrow; ++j) {
+			    if (observed[j]) {
+				Sigfo[pf*nfree + qo++] = Sigma[i*nrow + j];
+			    }
+			    else {
+				Sigff[pf*nfree + qf++] = Sigma[i*nrow + j];
+			    }
+			}
+			wf[pf++] = mu[i];
+		    }
+		}
+	    }
+
+	    //FIXME unfinished.
+	    
+	    //Factorize Sigff.
+	    //...
+
+	    if (nobs > 0) {
+		//Solve Sigma[o,o] %*% x = (Y[o] - mu[o])
+		//Do matrix multiplication Sigma[f,o] %*% x + mu[f]
+	    }
+		
+	    //Generate independent normal random variables eps
+	    //Calculate L %*% eps to get correct variance
+
+	    //Write back to free portions of x
+	    for (unsigned long i = 0, p = 0; i < nrow; ++i) {
+		if (!observed[i]) x[i] = wf[p++];
+	    }
+	}
+	*/
+
+	bool DMNormVC::hasScore(unsigned long i) const
+	{
+	    return true;
+	}
+
+	void DMNormVC::score(double *s, double const *x,
+			     std::vector<double const *> const &parameters,
+			     std::vector<std::vector<unsigned long>> const &dims, 
+			     unsigned long i) const
+	{
+	    double const * mu = parameters[0];
+	    double const * V  = parameters[1];
+	    unsigned long m = dims[0][0];
+	    unsigned long N = m * m;
+
+	    // Deviation from mean
+	    vector<double> delta(m);
+	    for (unsigned long j = 0; j < m; ++j) {
+		delta[j] = x[j] - mu[j];
+	    }
+
+	    // FIXME: Use BLAS/LAPACK calls here
+	    
+	    // Precision matrix
+	    vector<double> T(N);
+	    bool can_invert = inverse_chol (T.data(), V, m);
+	    if (!can_invert) {
+		throwDistError(this, "Cannot calculate score. Variance matrix may not be positive definite");
+	    }
+	    
+	    vector<double> eta(m, 0);
+	    for (unsigned long j = 0; j < m; ++j) {
+		for (unsigned long k = 0; k < m; ++k) {
+		    eta[j] += T[k + j * m] * delta[k];
+		}
+	    }
+	    
+	    if (i == 0) {
+		for (unsigned long j = 0; j < m; ++j) {
+		    copy(eta.begin(), eta.end(), s);
+		}
+	    }
+	    else if (i == 1) {
+		for (unsigned long j = 0; j < m; ++j) {
+		    for (unsigned long k = 0; k < m; ++k) {
+			s[j * k * m] = (eta[j] * eta[k] - T[j + k *m])/2;
+		    }
+		}
+	    }
+	}
+	
+    } //namespace bugs
+} //namespace jags

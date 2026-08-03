@@ -1,42 +1,57 @@
 #include <config.h>
-#include <stdexcept>
+
+#include <util/integer.h>
+
 #include <cmath>
-#include <cfloat>
-#include <climits>
-#include <string>
+#include <limits>
 
-using std::runtime_error;
 using std::fabs;
-using std::string;
-
-static const double eps = 16 * DBL_EPSILON;
-
-static int coerceInteger(double fval)
-{
-    if (fval > 0) {
-	return static_cast<int>(fval + eps);
-    }
-    else {
-	return static_cast<int>(fval - eps);
-    }
-}
+using std::sqrt;
+using std::round;
+using std::numeric_limits;
 
 namespace jags {
 
-int asInteger(double fval)
-{
-    if (fval >= INT_MAX || fval <= INT_MIN) {
-	throw runtime_error(string("double value out of range for conversion to int"));
+    static const unsigned long JAGS_ULONG_MAX = numeric_limits<unsigned long>::max();
+    
+    static const int JAGS_INT_MIN = numeric_limits<int>::min();
+    static const int JAGS_INT_MAX = numeric_limits<int>::max();
+    
+    /*
+      Numerical tolerance for values close to an integer. Following R
+      we use the square root of the machine precision.
+    */ 
+    static const double JAGS_EPS = sqrt(numeric_limits<double>::epsilon());
+  
+    int asInteger(double fval)
+    {
+	if (fval < JAGS_INT_MIN) {
+	    return JAGS_INT_MIN;
+	}
+	else if (fval > JAGS_INT_MAX) {
+	    return JAGS_INT_MAX;
+	}
+	else {
+	    return static_cast<int>(round(fval));
+	}
     }
-    return coerceInteger(fval);
-}
 
-bool checkInteger(double fval)
-{
-    if (fval >= INT_MAX || fval <= INT_MIN) {
-	return false;
+    bool checkInteger(double fval)
+    {
+	return fabs(fval - round(fval)) < JAGS_EPS;
     }
-    return fabs(fval - coerceInteger(fval)) < eps;
-}
-
+    
+    unsigned long asULong(double fval)
+    {
+	if (fval < 0) {
+	    return 0UL;
+	}
+	else if (fval > JAGS_ULONG_MAX) {
+	    return JAGS_ULONG_MAX;
+	}
+	else {
+	    return static_cast<unsigned long>(round(fval));
+	}
+    }
+    
 }

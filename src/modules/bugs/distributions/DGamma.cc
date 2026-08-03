@@ -65,17 +65,6 @@ double DGamma::r(vector<double const *> const &par, RNG *rng) const
     return rgamma(SHAPE(par), SCALE(par), rng);
 }
 
-double DGamma::typicalValue(vector<double const *> const &par,
-			    double const *lower, double const *upper) const
-{
-    if (lower == 0 && upper == 0) {
-	return SHAPE(par) * SCALE(par);
-    }
-    else {
-	return RScalarDist::typicalValue(par, lower, upper);
-    }
-}
-
 double DGamma::KL(vector<double const *> const &par0,
 		  vector<double const *> const &par1) const
 {
@@ -84,5 +73,28 @@ double DGamma::KL(vector<double const *> const &par0,
     return (r - 1) * b0  - b1 * log(r)
 	+ (b0 - b1) * digamma(b0) + lgammafn(b1) - lgammafn(b0);
 }
+
+    bool DGamma::hasScore(unsigned long i) const
+    {
+	return (i >= 0 && i <= 2);
+    }
+
+    double DGamma::score(double x, vector<double const *> const &par,
+			    unsigned long i) const
+    {
+	double b = SHAPE(par);
+	double a = RATE(par);
+
+	switch(i) {
+	case 0:
+	    return (b-1)/x - a;
+	case 1:
+	    return log(x) + log(a) - digamma(b);
+	case 2:
+	    return -x + b/a;
+	default:
+	    return 0;
+	}
+    }
 
 }}

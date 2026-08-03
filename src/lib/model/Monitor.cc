@@ -1,6 +1,6 @@
 #include <config.h>
 #include <model/Monitor.h>
-#include <graph/StochasticNode.h>
+#include <model/MonitorStat.h>
 #include <graph/Node.h>
 #include <util/dim.h>
 
@@ -13,90 +13,116 @@ using std::copy;
 
 namespace jags {
 
-Monitor::Monitor(string const &type, vector<Node const *> const &nodes)
-    : _type(type), _nodes(nodes)
-{
-}
+    Monitor::Monitor(vector<Node const *> const &nodes, MonitorStat *stat)
+	: _nodes(nodes), _nchain(countChains(nodes)), _niter(0UL), _stat(stat)
+    {
+    }
 
-Monitor::Monitor(string const &type, Node const *node)
-    : _type(type), _nodes(vector<Node const*>(1,node))
-{
-}
+    Monitor::~Monitor()
+    {
+	delete _stat;
+    }
 
-Monitor::~Monitor()
-{}
+    void Monitor::update()
+    {
+	_niter++;
+	if (this->poolChains()) {
+	    update(0);
+	}
+	else {
+	    for (unsigned int i = 0; i < _nchain; ++i) {
+		update(i);
+	    }
+	}
+    }
+    
+    vector<Node const*> const &Monitor::nodes() const
+    {
+	return _nodes;
+    }
 
-string const &Monitor::type() const
-{
-    return _type;
-}
+    unsigned long Monitor::niter() const
+    {
+	return _niter;
+    }
 
-vector<Node const*> const &Monitor::nodes() const
-{
-    return _nodes;
-}
+    unsigned int Monitor::nchain() const
+    {
+	return _nchain;
+    }
 
-string const &Monitor::name() const
-{
-    return _name;
-}
+    unsigned long Monitor::length() const
+    {
+	return _stat->length();
+    }
 
-void Monitor::setName(string const &name)
-{
-    _name = name;
-}
+    vector<unsigned long> Monitor::dim() const
+    {
+	return _stat->dim();
+    }
 
-vector<string> const &Monitor::elementNames() const
-{
-    return _elt_names;
-}
+    vector<string> Monitor::elementNames() const
+    {
+	return _stat->names();
+    }
 
-void Monitor::setElementNames(vector<string> const &names)
-{
-    _elt_names = names;
-}
-
+    vector<vector<string>> Monitor::dimNames() const
+    {
+	unsigned long ndim = _stat->dim().size();
+	if (ndim == 1UL) {
+	    // Stat is a vector. Dimnames match element names.
+	    return vector<vector<string>>(1, _stat->names());
+	}
+	else {
+	    // Stat is an array. Leave dimnames empty.
+	    return vector<vector<string>>(ndim, vector<string>());
+	}
+    }
+    
 SArray Monitor::dump(bool flat) const
 {
-    unsigned int nchain = poolChains() ? 1 : nodes()[0]->nchain();
-    unsigned int nvalue = value(0).size();
-
-    vector<double> v(nvalue * nchain);
+    unsigned int nchain = poolChains() ? 1 : _nchain;
+    unsigned int niter = poolIterations() ? 1 : _niter;
+    unsigned long nvalue = this->length();
+    
+    vector<double> v(nvalue * niter * nchain);
     vector<double>::iterator p = v.begin();
     for (unsigned int ch = 0; ch < nchain; ++ch) {
-	p = copy(value(ch).begin(), value(ch).end(), p);
+	const vector<double> x = this->value(ch);
+	p = copy(x.begin(), x.end(), p);
     }
 
-    vector<unsigned int> vdim = dim();
-    unsigned int vlen = product(vdim);
-    if (nvalue % vlen != 0) {
-	throw logic_error("Inconsistent dimensions in Monitor");
-    }
-    unsigned int niter = nvalue / vlen;
-    if (poolIterations() && niter != 1) {
-	throw logic_error("Invalid number of iterations in Monitor");
-    }
-
+    vector<unsigned long> vdim = dim();
     if (flat) {
-	vdim = vector<unsigned int>(1, vlen);
+	vdim = vector<unsigned long>(1, nvalue);
     }
 	
-    vector<string> names(vdim.size(), "");
-
+    vector<DimTag> tags(vdim.size(), DIM_VALUE);
+    
     if (!poolIterations()) {
 	vdim.push_back(niter);
-	names.push_back("iteration");
+	tags.push_back(DIM_ITER);
     }
     if (!poolChains()) {
 	vdim.push_back(nchain);
-	names.push_back("chain");
+	tags.push_back(DIM_CHAIN);
     }
 	
     SArray ans(vdim);
     ans.setValue(v);    
-    ans.setDimNames(names);
+    ans.setDimTags(tags);
+    ans.setValueNames(elementNames());
     if (flat) {
-	ans.setSDimNames(_elt_names, 0);
+	ans.setDimNames(elementNames(), 0);
+    }
+    else {
+	vector<vector<string>> dimnames = dimNames();
+	if (dimnames.size() > vdim.size()) {
+	    throw logic_error("Size mismatch for Monitor dimnames");
+	}
+	for (unsigned long i = 0; i < dimnames.size(); ++i) {
+	    ans.setDimNames(dimnames[i], i);
+	}
     }
     return(ans);
 }

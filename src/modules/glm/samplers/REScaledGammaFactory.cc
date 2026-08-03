@@ -3,6 +3,7 @@
 #include "REScaledGammaFactory.h"
 #include "REScaledGamma.h"
 
+#include <glm.h>
 #include <graph/StochasticNode.h>
 
 using std::vector;
@@ -30,7 +31,7 @@ namespace jags {
 	    vector<Outcome *> const &outcomes,
 	    unsigned int chain) const
 	{
-	    return new REScaledGamma(tau, eps, sub_eps, outcomes, chain);
+	    return new REScaledGamma(tau, eps, sub_eps, outcomes, chain, workspace(chain));
 	}
 
     } // namespace glm

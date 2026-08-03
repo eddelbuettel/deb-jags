@@ -1,7 +1,7 @@
 #ifndef FUNC_TAB_H_
 #define FUNC_TAB_H_
 
-#include <list>
+#include <map>
 #include <string>
 
 #include <function/FunctionPtr.h>
@@ -18,8 +18,9 @@ namespace jags {
  */
 class FuncTab
 {
-    std::list<FunctionPtr> _flist;
-    FunctionPtr const _nullfun;
+    std::map<std::string, FunctionPtr> _fmap;
+    std::map<std::string, LinkFunction const *> _lmap;
+    const FunctionPtr _nullfun;
 public:
     /**
      * Constructs a new empty FuncTab
@@ -32,7 +33,7 @@ public:
     /**
      * Finds the inverse of a link function by name
      *
-     * @parameter name Name of the link function
+     * @param name Name of the link function
      *
      * @return Pointer to the inverse link function or a NULL pointer
      * if it was not found.
@@ -40,6 +41,8 @@ public:
     LinkFunction const *findLink (std::string const &name) const;
     /**
      * Finds a function by name.
+     *
+     * @param name Name of the function
      *
      * @return a polymorphic function pointer. If the function cannot be
      * found, then the pointer is a null FunctionPtr object.

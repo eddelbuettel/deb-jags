@@ -3,6 +3,7 @@
 #include "REGammaFactory.h"
 #include "REGamma.h"
 
+#include <glm.h>
 #include <graph/StochasticNode.h>
 
 using std::vector;
@@ -30,7 +31,7 @@ namespace jags {
 	    vector<Outcome *> const &outcomes,
 	    unsigned int chain) const
 	{
-	    return new REGamma(tau, eps, sub_eps, outcomes, chain);
+	    return new REGamma(tau, eps, sub_eps, outcomes, chain, workspace(chain));
 	}
 
     } // namespace glm

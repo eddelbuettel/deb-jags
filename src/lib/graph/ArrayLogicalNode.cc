@@ -14,7 +14,7 @@ using std::logic_error;
 
 namespace jags {
 
-static vector<unsigned int> mkDim(ArrayFunction const *func, 
+static vector<unsigned long> mkDim(ArrayFunction const *func, 
 				  vector<Node const *> const &parents)
 {
     /* 
@@ -23,10 +23,10 @@ static vector<unsigned int> mkDim(ArrayFunction const *func,
     */
 
     unsigned long N = parents.size();
-    vector<vector<unsigned int> > dims(N);
+    vector<vector<unsigned long> > dims(N);
     vector<bool> fixed(N), discrete(N);
     vector<double const *> values(N);
-    for (unsigned int j = 0; j < N; ++j) {
+    for (unsigned long j = 0; j < N; ++j) {
 	dims[j] = parents[j]->dim();
 	fixed[j] = parents[j]->isFixed();
 	values[j] = parents[j]->value(0);
@@ -50,10 +50,10 @@ static vector<unsigned int> mkDim(ArrayFunction const *func,
     return func->dim(dims, values);
 }
 
-static vector<vector<unsigned int> > const &
+static vector<vector<unsigned long> > const &
 mkParameterDims(vector<Node const *> const &parameters) {
-    vector<vector<unsigned int> > dims(parameters.size());
-    for (unsigned int j = 0; j < parameters.size(); ++j) {
+    vector<vector<unsigned long> > dims(parameters.size());
+    for (unsigned long j = 0; j < parameters.size(); ++j) {
         dims[j] = parameters[j]->dim();
     }
     return getUnique(dims);
@@ -65,11 +65,7 @@ ArrayLogicalNode::ArrayLogicalNode(ArrayFunction const *function,
     : LogicalNode(mkDim(function,parameters), nchain, parameters, function),
       _func(function), _dims(mkParameterDims(parameters))
 {
-    if (isFixed()) {
-	for (unsigned int ch = 0; ch < _nchain; ++ch) {
-	    deterministicSample(ch);
-	}
-    }
+    initializeFixed();
 }
 
 void ArrayLogicalNode::deterministicSample(unsigned int chain)
@@ -77,11 +73,25 @@ void ArrayLogicalNode::deterministicSample(unsigned int chain)
     _func->evaluate(_data + chain * _length, _parameters[chain], _dims);
 }
 
+    void ArrayLogicalNode::gradient(double *grad, Node const *arg,
+				    unsigned int chain) const
+    {
+	auto par = parents();
+	for (unsigned long i = 0; i < par.size(); ++i) {
+	    if (par[i] == arg) {
+		_func->gradient(grad, _parameters[chain], _dims, i);
+	    }
+	}
+    }
+    
 bool ArrayLogicalNode::checkParentValues(unsigned int chain) const
 {
     return _func->checkParameterValue(_parameters[chain], _dims);
 }
 
+
+
+    
     /*
 DeterministicNode *
 ArrayLogicalNode::clone(vector<Node const*> const &parents) const

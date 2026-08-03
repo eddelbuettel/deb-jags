@@ -7,9 +7,9 @@
 namespace jags {
 
 enum TreeClass { 
-    P_VAR, P_RANGE, P_BOUNDS, P_DENSITY, P_LINK, P_COUNTER, 
+    P_VAR, P_DISTMOD, P_DENSITY, P_LINK, P_COUNTER, 
     P_VALUE, P_STOCHREL, P_DETRMREL, P_FOR,  P_FUNCTION, P_RELATIONS,
-    P_VECTOR, P_ARRAY, P_DIM, P_LENGTH, P_SUBSET, P_INTERVAL
+    P_VECTOR, P_ARRAY, P_SUBSET, P_STRUCT, P_NULL
 };
 
 /**
@@ -81,7 +81,7 @@ public:
   TreeClass treeClass() const;
   /**
    * Returns the name for a ParseTree with treeClass P_VAR, P_COUNTER,
-   * P_FUNCTION, P_LINK, P_DISTRIBUTION, or P_ARRAY
+   * P_FUNCTION, P_LINK, P_DISTRIBUTION, P_ARRAY, or P_MODIFIER
    */
   std::string const &name() const;
   /**
@@ -91,7 +91,7 @@ public:
   /**
    * Returns the line number.
    */
-  int line() const;
+  unsigned long line() const;
 };
 
 } /* namespace jags */

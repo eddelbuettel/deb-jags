@@ -19,8 +19,6 @@ using std::vector;
 using std::string;
 using std::sqrt;
 
-extern cholmod_common *glm_wk;
-
 static cholmod_sparse shallow_copy(cholmod_sparse *x, unsigned int c)
 {
     //Take a copy of column c of sparse matrix x without allocating
@@ -57,24 +55,23 @@ namespace glm {
     HolmesHeld::HolmesHeld(GraphView const *view,
 			   vector<SingletonGraphView const *> const &sub_views,
 			   vector<Outcome *> const &outcomes,
-			   unsigned int chain)
-	: GLMBlock(view, sub_views, outcomes, chain)
+			   unsigned int chain, cholmod_common *wk)
+	: GLMBlock(view, sub_views, outcomes, chain, wk)
     {
     }
 
-    void HolmesHeld::updateAuxiliary(cholmod_dense *W, 
-				     cholmod_factor *N, RNG *rng)
+    void HolmesHeld::updateAuxiliary(cholmod_dense *W, RNG *rng)
     {
 	/* 
 	   In the parent GLMMethod class, the posterior precision of
            the regression parameters is represented by the matrix "A";
            the posterior mean "mu" solves A %*% mu = b.
 	   
-           In this call, "N" holds the factorization of P %*% A %*% t(P), 
-           where P is a permutation matrix.  The factorization takes
-           the form L %*% D %*% t(L), where D is diagonal and L is
-           a lower triangular matrix. The parameter "w" solves
-           L %*% w = P %*% b
+           The variable _factor holds the factorization of P %*% A %*%
+           t(P), where P is a permutation matrix.  The factorization
+           takes the form L %*% D %*% t(L), where D is diagonal and L
+           is a lower triangular matrix. The parameter "w" solves 
+	   L %*% w = P %*% b
 	   
 	   IMPORTANT NOTE: mu, b use a parameterization in which the
 	   current value of the regression parameters is taken as the
@@ -85,37 +82,38 @@ namespace glm {
 	vector<StochasticNode *> const &schildren = 
 	    _view->stochasticChildren();
 
-	int nrow = schildren.size();
+	unsigned long nrow = schildren.size();
+
+	cholmod_sparse *pt_x = nullptr;
 
 	//Transpose and permute the design matrix
-	cholmod_sparse *t_x = cholmod_transpose(_x, 1, glm_wk);
+	cholmod_sparse *t_x = cholmod_transpose(_x, 1, _wk);
 	int *fperm = static_cast<int*>(_factor->Perm);
-	cholmod_sparse *pt_x = cholmod_submatrix(t_x, fperm, t_x->nrow,
-						 0, -1, 1, 1, glm_wk);
-	cholmod_free_sparse(&t_x, glm_wk);
+	pt_x = cholmod_submatrix(t_x, fperm, t_x->nrow,
+				 nullptr, -1, 1, 1, _wk);
+	cholmod_free_sparse(&t_x, _wk);
 	
-	int ncol = _x->ncol;
+	unsigned long ncol = _x->ncol;
 	vector<double> d(ncol, 1);
 	if (!_factor->is_ll) {
 	    // LDL' decomposition. The diagonal D matrix is stored as
 	    // the diagonal of _factor
 	    int *fp = static_cast<int*>(_factor->p);
 	    double *fx = static_cast<double*>(_factor->x);
-	    for (int r = 0; r < ncol; ++r) {
+	    for (unsigned long r = 0; r < ncol; ++r) {
 		d[r] = fx[fp[r]];
 	    }
 	}
 
 	double *Wx = static_cast<double *>(W->x);
 	
-	cholmod_dense *U = 0, *Y = 0, *E = 0;
-	cholmod_sparse *uset = 0;
+	cholmod_dense *U = nullptr, *Y = nullptr, *E = nullptr;
+	cholmod_sparse *uset = nullptr;
 
-	cholmod_dense *X = cholmod_allocate_dense(ncol, 1, ncol,
-						  CHOLMOD_REAL, glm_wk);
+	cholmod_dense *X = cholmod_allocate_dense(ncol, 1, ncol, CHOLMOD_REAL, _wk);
 	double *Xx = static_cast<double*>(X->x);
 
-	for (int r = 0; r < nrow; ++r) {
+	for (unsigned long r = 0; r < nrow; ++r) {
 
 	    // We need to do this loop with minimal memory
 	    // allocation. The cholmod_solve2 function uses a
@@ -139,9 +137,9 @@ namespace glm {
 		int c = xi[j];
 		Xx[c] = xx[j];
 	    }
-	    
+
 	    cholmod_solve2(CHOLMOD_L, _factor, X, &xset, &U, &uset, &Y, &E,
-			   glm_wk);
+			   _wk);
 
 	    double mu_r = _outcomes[r]->mean(); // See IMPORTANT NOTE above
 	    double tau_r = _outcomes[r]->precision();
@@ -183,13 +181,13 @@ namespace glm {
 	    
 	//Free workspace
 
-	cholmod_free_sparse(&pt_x, glm_wk);
-	cholmod_free_sparse(&uset, glm_wk);
-	
-	cholmod_free_dense(&U, glm_wk);
-	cholmod_free_dense(&Y, glm_wk);
-	cholmod_free_dense(&E, glm_wk);
-	cholmod_free_dense(&X, glm_wk);
+	cholmod_free_sparse(&pt_x, _wk);
+	cholmod_free_sparse(&uset, _wk);
+	    
+	cholmod_free_dense(&U, _wk);
+	cholmod_free_dense(&Y, _wk);
+	cholmod_free_dense(&E, _wk);
+	cholmod_free_dense(&X, _wk);
     }
     
 }}

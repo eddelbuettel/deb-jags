@@ -11,12 +11,13 @@
 using std::vector;
 using std::string;
 using std::log;
+using std::log1p;
 
 namespace jags {
     namespace bugs {
 
     BinomSlicer::BinomSlicer(SingletonGraphView const *gv, unsigned int chain,
-			   double width, long maxwidth)
+			   double width, unsigned int maxwidth)
 	: Slicer(width, maxwidth), _gv(gv), _chain(chain)
     {
 	gv->checkFinite(chain);
@@ -28,8 +29,8 @@ namespace jags {
 	if (node->isDiscreteValued() || node->length() != 1)
 	    return false;
 
-	if (node->df() == 0)
-	    return false; 
+	if (!node->fullRank())
+	    return false;
 
 	SingletonGraphView gv(node, graph);
 	vector<StochasticNode *> const &schild = gv.stochasticChildren();
@@ -67,11 +68,9 @@ namespace jags {
 	    case SLICER_POSINF:
 		throwNodeError(_gv->node(),
 			       "Slicer stuck at value with infinite density");
-		break;
 	    case SLICER_NEGINF:
 		throwNodeError(_gv->node(),
 			       "Current value is inconsistent with data");
-		break;
 	    case SLICER_OK:
 		break;
 	    }
@@ -88,14 +87,13 @@ namespace jags {
 	    double p = schild[i]->parents()[0]->value(_chain)[0];
 	    double n = schild[i]->parents()[1]->value(_chain)[0];
 	    if (y==0) {
-		//FIXME: Need C++11 for log1p
-		loglik += n*log(1-p);
+		loglik += n*log1p(-p);
 	    }
 	    else if (y==n) {
 		loglik += y*log(p);
 	    }
 	    else {
-		loglik += y*log(p)+(n-y)*log(1-p);
+		loglik += y*log(p)+(n-y)*log1p(-p);
 	    }
 	}
         return loglik;

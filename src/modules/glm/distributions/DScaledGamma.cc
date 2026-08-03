@@ -2,7 +2,6 @@
 #include "DScaledGamma.h"
 
 #include <JRmath.h>
-#include <util/nainf.h>
 
 using std::vector;
 
@@ -30,7 +29,7 @@ namespace jags {
 	    return (*par[0] > 0 && *par[1] > 0);
 	}
 
-	double DScaledGamma::d(double x, PDFType type,
+	double DScaledGamma::d(double x, PDFType ,
 			       vector<double const *> const &par,
 			       bool give_log) const
 	{

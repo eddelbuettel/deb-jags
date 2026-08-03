@@ -13,6 +13,7 @@
 #include "OrderedLogit.h"
 #include "OrderedProbit.h"
 #include "MNormalLinear.h"
+#include "LogNormalLinear.h"
 
 #include <graph/Graph.h>
 #include <graph/StochasticNode.h>
@@ -47,7 +48,8 @@ namespace jags {
 		AuxMixBinomial::canRepresent(snode) ||
 		OrderedLogit::canRepresent(snode) ||
 		OrderedProbit::canRepresent(snode) ||
-		MNormalLinear::canRepresent(snode);
+		MNormalLinear::canRepresent(snode) ||
+		LogNormalLinear::canRepresent(snode);
 	}
 
 	bool REFactory::checkTau(SingletonGraphView const *tau) const
@@ -116,8 +118,8 @@ namespace jags {
 	    list<StochasticNode*> const &free_nodes, 
 	    Graph const &graph) const
 	{
-	    SingletonGraphView *tau = 0;
-	    GraphView *eps = 0;
+	    SingletonGraphView *tau = nullptr;
+	    GraphView *eps = nullptr;
 	    for (list<StochasticNode*>::const_iterator p = free_nodes.begin();
 		 p != free_nodes.end(); ++p)
 	    {
@@ -129,13 +131,13 @@ namespace jags {
 			    break;
 			}
 		    }
-		    delete eps; eps = 0;
-		    delete tau; tau = 0;
+		    delete eps; eps = nullptr;
+		    delete tau; tau = nullptr;
 		}
 	    }
 
 	    if (!tau || !eps) {
-		return 0;
+		return nullptr;
 	    }
 
 	    vector<SingletonGraphView *> sub_eps;
@@ -148,14 +150,14 @@ namespace jags {
 	    }
 
 	    unsigned int Nch = nchain(tau);
-	    vector<REMethod*> methods(Nch, 0);
+	    vector<REMethod*> methods(Nch, nullptr);
 	    for (unsigned int ch = 0; ch < Nch; ++ch) {
 		vector<Outcome *> outcomes;
 		vector<StochasticNode *> const &sch = eps->stochasticChildren();
 		for (vector<StochasticNode *>::const_iterator p = sch.begin();
 		     p != sch.end(); ++p)
 		{
-		    Outcome *outcome = 0;
+		    Outcome *outcome = nullptr;
 		    if (NormalLinear::canRepresent(*p)) {
 			outcome = new NormalLinear(*p, ch);
 		    }
@@ -182,6 +184,9 @@ namespace jags {
 		    }
 		    else if (MNormalLinear::canRepresent(*p)) {
 			outcome = new MNormalLinear(*p, ch);
+		    }
+		    else if (LogNormalLinear::canRepresent(*p)) {
+			outcome = new LogNormalLinear(*p, ch);
 		    }
 		    else {
 			throwLogicError("Invalid outcome in REFactory");

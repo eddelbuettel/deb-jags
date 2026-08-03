@@ -2,6 +2,7 @@
 #define MIXTURE_NODE_H_
 
 #include <graph/DeterministicNode.h>
+#include <model/StochasticIndex.h>
 #include <map>
 #include <vector>
 
@@ -9,13 +10,6 @@ namespace jags {
 
     class Node;
     class MixTab;
-
-    /** 
-     * A MixMap is an STL map that associates an index value (a vector
-     * of unsigned integers) with a node.  
-     */
-    typedef std::map<std::vector<int>, Node const *> MixMap;
-
 
 /**
  * @short Node for mixture models.
@@ -33,8 +27,9 @@ namespace jags {
  * x[1], ... x[M].
  */
 class MixtureNode : public DeterministicNode {
-    MixTab const *_table;
-    unsigned int _Nindex;
+    std::vector<StochasticIndex> const _indices;
+    MixTab const &_table;
+    unsigned long _nindex;
     bool _discrete;
     std::vector<Node const *> _active_parents;
     void updateActive(unsigned int chain);
@@ -42,21 +37,20 @@ public:
     /**
      * Constructs a MixtureNode. 
      *
-     * @param index Vector of index nodes. These must be discrete-valued,
-     *  scalar, and unobserved.
+     * @param index Vector of index nodes. These must be
+     *  discrete-valued, scalar, and unobserved.
      *
      * @param nchain Number of chains
      *
-     * @param map a MixMap object which associates each possible value
-     * of the index nodes with a single parent. 
+     * @param mixtab a MixTab object which associates each possible
+     * value of the index nodes with a single parent.
      */
-    MixtureNode(std::vector<Node const *> const &index,
-		unsigned int nchain, MixMap const &mixmap);
-    ~MixtureNode();
+    MixtureNode(std::vector<StochasticIndex> const &index,
+		unsigned int nchain, MixTab const &mixtab);
     /**
      * Copies the value of the active parent
      */
-    void deterministicSample(unsigned int chain);
+    void deterministicSample(unsigned int chain) override;
     /**
      * Returns a pointer to the currently active parent (i.e. the one
      * determined by the current index values) in the given chain.
@@ -65,7 +59,7 @@ public:
     /**
      * Returns the number of index nodes.
      */
-    unsigned int index_size() const;
+    unsigned long index_size() const;
     /**
      * Returns a pointer to the MixTab
      */
@@ -74,13 +68,13 @@ public:
      * A MixtureNode is discrete valued if all of its possible
      * parents are discrete
      */
-    bool isDiscreteValued() const;
+    bool isDiscreteValued() const override;
     /**
      * A MixtureNode preserves all closed classes if none of its index
-     * nodes are descendants of X. It is never fixed
+     * nodes are descendants of X. It is never fixed.
      */
     bool isClosed(std::set<Node const *> const &ancestors, 
-		  ClosedFuncClass fc, bool fixed) const;
+		  ClosedFuncClass fc, bool fixed) const override;
     /**
      * This function always returns true. It ignores possible errors
      * in the index nodes.  This is because the deterministicSample
@@ -89,7 +83,7 @@ public:
      * calculations in the checkParentValues function would therefore
      * be redundant.
      */
-    bool checkParentValues(unsigned int chain) const;
+    bool checkParentValues(unsigned int chain) const override;
     /**
      * Creates a name for the mixture node of the form.
      *
@@ -100,9 +94,11 @@ public:
      * Exceptionally, the name of a mixture node is not a reconstruction
      * of its BUGS-language definition.
      */
-    std::string deparse(std::vector<std::string> const &parents) const;
+    std::string deparse(std::vector<std::string> const &parents) const override;
     //DeterministicNode *clone(std::vector<Node const *> const &parents) const;
-    
+    bool hasGradient(Node const *arg) const override;
+    void gradient(double *grad, Node const *arg, unsigned int chain)
+	const override;    
 };
 
 bool isMixture(Node const *);

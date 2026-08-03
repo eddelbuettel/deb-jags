@@ -1,5 +1,5 @@
-#ifndef MIX_MAP_H_
-#define MIX_MAP_H_
+#ifndef MIX_TAB_H_
+#define MIX_TAB_H_
 
 #include <sarray/SimpleRange.h>
 
@@ -20,24 +20,34 @@ namespace jags {
      */
     class MixTab {
 	const SimpleRange _range;
+	std::vector<unsigned long> const &_dim;
 	std::vector<Node const *> _nodes;
       public:
 	/**
 	 * Constructs a MixTab from a MixMap
 	 */
-	MixTab(std::map<std::vector<int>, Node const *> const &mixmap);
+	MixTab(std::map<std::vector<unsigned long>, Node const *> const &mixmap);
 	/** 
 	 * Returns a pointer to the node corresponding to the given
 	 * index.  If there is no node matching the index, a NULL
 	 * pointer is returned.
 	 */
-	Node const * getNode(std::vector<int> const &index) const;
+	Node const * getNode(std::vector<unsigned long> const &index) const;
 	/**
-	 * Returns the range covered by the indices
+	 * Returns a minimal range that contains all valid indices.
+	 * Required by the LDA sampler in the mix module.
 	 */
-	Range const &range() const;
+	SimpleRange const &range() const;
+	/**
+	 * Returns the vector of possible values of getNode.
+	 */
+	std::vector<Node const *> const &nodes() const;
+	/**
+	 * Returns the common dimension of all nodes in the MixTab
+	 */
+	std::vector<unsigned long> const &dim() const;
     };
 
 } /* namespace jags */
 
-#endif /* MIX_MAP_H_ */
+#endif /* MIX_TAB_H_ */

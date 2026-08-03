@@ -68,10 +68,10 @@ double DBeta::r(vector<double const *> const &par, RNG *rng) const
 double DBeta::KL(vector<double const *> const &par1, 
 		 vector<double const *> const &par2) const
 {
-    double a1 = *par1[0];
-    double b1 = *par1[1];
-    double a2 = *par2[0];
-    double b2 = *par2[1];
+    const double a1 = *par1[0];
+    const double b1 = *par1[1];
+    const double a2 = *par2[0];
+    const double b2 = *par2[1];
 
     return lbeta(a2, b2) - lbeta(a1, b1) 
 	- (a2 - a1) * digamma(a1)
@@ -79,4 +79,27 @@ double DBeta::KL(vector<double const *> const &par1,
 	+ (a2 + b2 - a1 - b1) * digamma(a1 + b1);
 }
 
+    bool DBeta::hasScore(unsigned long i) const
+    {
+	return i >= 0 && i <= 2;
+    }
+    
+    double DBeta::score(double x, vector<double const *> const &parameters,
+			unsigned long i) const
+    {
+	const double a = *parameters[0];
+	const double b = *parameters[1];
+
+	switch(i) {
+	case 0:
+	    return (a-1)/x - (b-1)/(1-x);
+	case 1:
+	    return log(x) - digamma(a) + digamma(a + b);
+	case 2:
+	    return log(1-x) - digamma(b) + digamma(a + b);
+	default:
+	    return 0;
+	}
+    }
+    
 }}

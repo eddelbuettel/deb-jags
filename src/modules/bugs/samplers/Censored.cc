@@ -18,9 +18,9 @@ using std::string;
 namespace jags {
 namespace bugs {
 
-static int indicator(SingletonGraphView const *gv, unsigned int ch)
+static double indicator(SingletonGraphView const *gv, unsigned int ch)
 {
-    return static_cast<int>(gv->stochasticChildren()[0]->value(ch)[0]);
+    return gv->stochasticChildren()[0]->value(ch)[0];
 }
 
 static Node const *breaks(SingletonGraphView const *gv)
@@ -30,11 +30,11 @@ static Node const *breaks(SingletonGraphView const *gv)
 
 Censored::Censored(SingletonGraphView const *gv)
     : ConjugateMethod(gv), 
-      _snode(dynamic_cast<StochasticNode*>(gv->node()))
+      _snode(dynamic_cast<ScalarStochasticNode*>(gv->node()))
 {
-    int nbreaks = breaks(gv)->length();
+    unsigned long nbreaks = breaks(gv)->length();
     for (unsigned int ch = 0; ch < _snode->nchain(); ++ch) {
-	int y = indicator(gv, ch);
+	double y = indicator(gv, ch);
 	if (y < 0 || y > nbreaks) {
 	    throwNodeError(_snode, "Bad interval-censored node");
 	}
@@ -47,7 +47,13 @@ bool Censored::canSample(StochasticNode *snode, Graph const &graph)
     // single child: an observed stochastic node with a "dinterval"
     // distribution. 
   
-    if (snode->isDiscreteValued() || snode->length() != 1)
+    if (snode->isDiscreteValued())
+	return false;
+
+    if (!snode->fullRank())
+	return false;
+    
+    if (dynamic_cast<ScalarStochasticNode*>(snode) == nullptr)
 	return false;
 
     // The sampler relies on the fact that boundable distributions can
@@ -80,12 +86,12 @@ bool Censored::canSample(StochasticNode *snode, Graph const &graph)
 
 void Censored::update(unsigned int chain, RNG * rng) const
 {
-    int y = indicator(_gv, chain);
+    unsigned long y = static_cast<unsigned long>(indicator(_gv, chain));
     double const *b = breaks(_gv)->value(chain);
-    int ymax = breaks(_gv)->length();
+    unsigned long ymax = breaks(_gv)->length();
 
-    double const *lower = (y == 0) ? 0 : b + y - 1;
-    double const *upper = (y == ymax) ? 0 : b + y;
+    double const *lower = (y == 0) ? nullptr : b + y - 1;
+    double const *upper = (y == ymax) ? nullptr : b + y;
 	
     _snode->truncatedSample(rng, chain, lower, upper);
 }

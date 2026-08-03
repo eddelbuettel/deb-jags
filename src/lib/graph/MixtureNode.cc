@@ -3,12 +3,14 @@
 #include <graph/GraphMarks.h>
 #include <graph/Graph.h>
 #include <graph/MixTab.h>
+#include <graph/MixtureNodeError.h>
+
+//Debugging only
+//#include <util/nainf.h>
 
 #include <utility>
 #include <vector>
 #include <stdexcept>
-
-#include <graph/NodeError.h>
 
 using std::vector;
 using std::map;
@@ -21,187 +23,111 @@ using std::pair;
 
 namespace jags {
 
-    typedef map<MixMap, pair<MixTab*, int> > MixTabMap;
-
-    static MixTabMap &mixTabMap()
+    static unsigned long countVariable(vector<StochasticIndex> const &index)
     {
-	// Repository of MixTab objects that are shared between
-	// MixtureNodes.  We use reference counting to keep track of
-	// whether a MixTab is in use.
-	static MixTabMap _map;
-	return _map;
-    }
-
-    static MixTab const *getTable(MixMap const &mixmap)
-    {
-	// Returns a MixTab object from the repository corresponding
-	// to the given MixMap.
-
-	// N.B. This must be called only by the MixtureNode
-	// constructor!
-
-	MixTabMap &tabmap = mixTabMap();
-	MixTabMap::iterator p = tabmap.find(mixmap);
-	if (p == tabmap.end()) {
-	    //MixTab does not exist in repository; create and
-	    //insert a new one.
-	    MixTab *newtab = new MixTab(mixmap);
-	    MixTabMap::mapped_type newentry(newtab, 1);
-	    p = tabmap.insert(MixTabMap::value_type(mixmap, newentry)).first;
+	unsigned long nindex = 0;
+	for (auto p = index.begin(); p != index.end(); ++p) {
+	    if (p->isVariable()) nindex++;
 	}
-	else {
-	    //MixTab already exists in the repository; increment
-	    //reference count
-	    p->second.second++;
-	}
-	return p->second.first;
-    }
-
-    static MixTabMap::iterator findTable(MixTab const *table)
-    {
-	// Inverse lookup of the MixTab repository using the MixTab
-
-	MixTabMap &tabmap = mixTabMap();
-	MixTabMap::iterator p = tabmap.begin();
-	
-	for( ; p != tabmap.end(); ++p) {
-	    if (p->second.first == table) {
-		return p;
-	    }
-	}
-	throw logic_error("Failed to find MixTab in MixtureNode");
-	return p; //Wall
-    }
-
-    static void removeTable(MixTab const *table)
-    {
-	// Decrements the reference count of a MixTab in the shared
-	// repository.  When the reference count reaches zero, the MixTab
-	// is removed.
-	
-	// N.B. This must be called only by the MixtureNode destructor!
-	
-	MixTabMap::iterator p = findTable(table);
-	p->second.second--;
-	if (p->second.second == 0) {
-	    mixTabMap().erase(p);
-	}
+	return nindex;
     }
     
-    /*
-      Calculates the dimensions of a mixture node given its possible
-      parent values. If the parents have inconsistent dimensions, then
-      a logic error is thrown.
-    */
-    static vector<unsigned int> const &mkDim(MixMap const &mixmap)
-    {
-	MixMap::const_iterator p = mixmap.begin();
-	vector<unsigned int> const &dim = p->second->dim();
-	for (++p ; p != mixmap.end(); ++p) {
-	    if (p->second->dim() != dim) {
-		throw logic_error("Dimension mismatch in MixtureNode parents");
-	    }
-	}
-	return dim;
-    }
-    
-    /* 
-       Creates a vector of parent nodes from the arguments passed to the
-       constructor. 
-       
-       The index nodes come first, in the order supplied, then the parents
-       supplied in the mixmap parameter, in the order determined by the
-       corresponding indices.
-    */
     static vector<Node const *> 
-    mkParents(vector<Node const *> const &index, MixMap const &mixmap)
+    mkParents(vector<StochasticIndex> const &index, MixTab const &mixtab)
     {
 	vector<Node const *> parents;
-	parents.reserve(index.size() + mixmap.size());
-	for (unsigned int i = 0; i < index.size(); ++i) {
-	    parents.push_back(index[i]);
+	for (auto p = index.begin(); p != index.end(); ++p) {
+	    if (p->isVariable())
+		parents.push_back(p->variableIndex());
 	}
-	for (map<vector<int>, Node const *>::const_iterator p = mixmap.begin();
-	     p != mixmap.end(); ++p) 
-	{
-	    parents.push_back(p->second);
+
+	unsigned long n = 0;
+	vector<Node const *> const &mixparents = mixtab.nodes();
+	for (auto p = mixparents.begin(); p != mixparents.end(); ++p) {
+	    if (*p != nullptr) {
+		parents.push_back(*p);
+		n++;
+	    }
 	}
+
+	if (n < 2) {
+	    throw invalid_argument("Trivial MixMap in MixtureNode constructor");
+	}
+	
 	return parents;
     }
 
-MixtureNode::MixtureNode (vector<Node const *> const &index,
-			  unsigned int nchain,
-			  MixMap const &mixmap)
-    : DeterministicNode(mkDim(mixmap), nchain, mkParents(index, mixmap)),
-      _table(getTable(mixmap)), _Nindex(index.size()), _discrete(true),
-      _active_parents(nchain)
-{
-    // Check validity of index argument
-
-    if (index.empty())
-	throw invalid_argument("NULL index in MixtureNode constructor");
-
-    for (vector<Node const *>::const_iterator i = index.begin(); 
-	 i != index.end(); ++i)
+    MixtureNode::MixtureNode(vector<StochasticIndex> const &index,
+			     unsigned int nchain, MixTab const &mixtab)
+	: DeterministicNode(mixtab.dim(), nchain, mkParents(index, mixtab)),
+	  _indices(index), _table(mixtab), _nindex(countVariable(index)),
+	  _discrete(true), _active_parents(nchain)
     {
-	Node const *node = *i;
-	if (node->length() != 1 || !node->isDiscreteValued() ||
-	    node->isFixed()) 
-	{
-	    throw invalid_argument("Invalid index in MixtureNode constructor");
-	}
-    }
+	// Check validity of index argument
 
-    // Check validity of MixMap argument
-    if (mixmap.size() < 2)
+	if (index.empty())
+	    throw invalid_argument("NULL index in MixtureNode constructor");
+
+	// FIXME: This should be built into StochasticIndex class
+	for (auto i = index.begin(); i != index.end(); ++i) {
+	    if (i->isVariable()) {
+		Node const *node = i->variableIndex();
+		if (node->length() != 1 || !node->isDiscreteValued() || node->isFixed()) 
+		{
+		    throw invalid_argument("Invalid index in MixtureNode constructor");
+		}
+	    }
+	}
+
+	/*
+	// Check validity of MixMap argument
+	if (mixmap.size() < 2)
 	throw invalid_argument("Trivial MixMap in MixtureNode constructor");
-
-    // Check consistency of arguments
-    if (index.size() != mixmap.begin()->first.size()) {
+	
+	// Check consistency of arguments
+	if (index.size() != mixmap.begin()->first.size()) {
 	throw invalid_argument("Dimension mismatch in MixtureNode constructor");
-    }
+	}
+	*/
 
-    //Check discreteness 
-    vector<Node const *> const &par = parents();
-    for (unsigned int i = _Nindex; i < par.size(); ++i)
-    {
-	if (!par[i]->isDiscreteValued()) {
-	    _discrete = false;
-	    break;
+	//Check discreteness 
+	vector<Node const *> const &par = parents();
+	for (unsigned long i = _nindex; i < par.size(); ++i)
+	{
+	    if (!par[i]->isDiscreteValued()) {
+		_discrete = false;
+		break;
+	    }
+
 	}
     }
-}
-
-MixtureNode::~MixtureNode()
-{
-    removeTable(_table);
-}
 
 /* Do not delete commented sections: they are useful for debugging
 #include <iostream>
 #include <sarray/Range.h>
-#include <sarray/nainf.h>
+#include <util/nainf.h>
 #include <graph/NodeError.h>
 */
+
 void MixtureNode::updateActive(unsigned int chain)
 {
-    vector<int> i(_Nindex);
+    vector<unsigned long> i(_nindex);
     vector <Node const*> const &par = parents();
-    for (unsigned int j = 0; j < _Nindex; ++j) {
-	i[j] = static_cast<int>(*par[j]->value(chain));
+    for (unsigned long j = 0; j < _nindex; ++j) {
+	i[j] = static_cast<unsigned long>(*par[j]->value(chain));
     }
 
-    _active_parents[chain] = _table->getNode(i);
-    if (_active_parents[chain] == 0) {
+    _active_parents[chain] = _table.getNode(i);
+    if (_active_parents[chain] == nullptr) {
 	/*
-	std::cout << "Got " << print(Range(i)) << "\nOriginally\n";
-	for (unsigned int j = 0; j < _Nindex; ++j) {
+	std::cout << "Got " << printIndex(i) << "\nOriginally\n";
+	for (unsigned int j = 0; j < _nindex; ++j) {
 	    std::cout << par[j]->value(chain)[0] << "\n";
-	    if (par[j]->value(chain)[0] == JAGS_NA)
+	    if (jags_isna(par[j]->value(chain)[0]))
 		std::cout << "(which is  missing)\n";
 	}
 	*/
-	throw NodeError(this, "Invalid index in MixtureNode");
+	throw MixtureNodeError(this, "Invalid index in mixture node", chain);
     }
 }
 
@@ -216,17 +142,17 @@ Node const *MixtureNode::activeParent(unsigned int chain) const
     return _active_parents[chain];
 }
 
-unsigned int MixtureNode::index_size() const
+unsigned long MixtureNode::index_size() const
 {
-  return _Nindex;
+  return _nindex;
 }
 
 string MixtureNode::deparse(vector<string> const &parents) const
 {
     string name = "mixture(index=[";
 
-    vector<int> i(_Nindex);
-    for (unsigned int j = 0; j < _Nindex; ++j) {
+    vector<unsigned long> i(_nindex);
+    for (unsigned long j = 0; j < _nindex; ++j) {
 	if (j > 0) {
 	    name.append(",");
 	}
@@ -236,8 +162,8 @@ string MixtureNode::deparse(vector<string> const &parents) const
 
     /* We can't list all possible parents in a name, since there is
        no limit on the number. So we take the first and last */
-    name.append(parents[_Nindex]); //first parent
-    if (parents.size() > _Nindex + 2) {
+    name.append(parents[_nindex]); //first parent
+    if (parents.size() > _nindex + 2) {
         name.append("...");
     }
     else {
@@ -259,6 +185,28 @@ bool isMixture(Node const *node)
   return dynamic_cast<MixtureNode const*>(node);
 }
 
+bool MixtureNode::hasGradient(Node const *arg) const
+{
+    //A Mixture nodes is not differentiable with respect to the indices.
+    auto par = parents();
+    for (unsigned long i = 0; i < _nindex; ++i) {
+	if (arg == par[i]) {
+	    return false;
+	}
+    }
+    return true;
+}
+
+void MixtureNode::gradient(double *grad, Node const *arg,
+			   unsigned int chain) const
+{
+    //Gradient is trivially 1 with respect to the active node only
+    if (arg == _active_parents[chain]) {
+	for (unsigned int i = 0; i < _length; ++i) {
+	    grad[i] += 1;
+	}
+    }
+}
 
 bool MixtureNode::isClosed(set<Node const *> const &ancestors, 
 			   ClosedFuncClass fc, bool fixed) const
@@ -268,7 +216,7 @@ bool MixtureNode::isClosed(set<Node const *> const &ancestors,
 
     //Check that none of the indices are in the ancestor set
     vector<Node const*> const &par = parents();
-    for (unsigned int i = 0; i < _Nindex; ++i) {
+    for (unsigned long i = 0; i < _nindex; ++i) {
 	if (ancestors.count(par[i])) {
 	    return false;
 	}
@@ -280,7 +228,7 @@ bool MixtureNode::isClosed(set<Node const *> const &ancestors,
     case DNODE_SCALE: case DNODE_ADDITIVE:
 	//Only a scale or additive function if all possible parents are scale
 	//or additive functions, respectively.
-	for (unsigned int i = _Nindex; i < par.size(); ++i) {
+	for (unsigned long i = _nindex; i < par.size(); ++i) {
 	    if (ancestors.count(par[i])==0)
 		return false;
 	}
@@ -290,7 +238,7 @@ bool MixtureNode::isClosed(set<Node const *> const &ancestors,
     return true;
 }
 
-bool MixtureNode::checkParentValues(unsigned int chain) const
+bool MixtureNode::checkParentValues(unsigned int) const
 {
     return true;
 }
@@ -298,9 +246,9 @@ bool MixtureNode::checkParentValues(unsigned int chain) const
     /*
 DeterministicNode *MixtureNode::clone(vector<Node const *> const &parents) const
 {
-    vector<Node const *> index(_Nindex);
+    vector<Node const *> index(_nindex);
     vector<Node const *>::const_iterator p = parents.begin();
-    for (unsigned int i = 0; i < _Nindex; ++i) {
+    for (unsigned int i = 0; i < _nindex; ++i) {
 	index[i] = *p;
 	++p;
     }
@@ -326,7 +274,9 @@ bool MixtureNode::isDiscreteValued() const
 
     MixTab const *MixtureNode::mixTab() const
     {
-	return _table;
+	return &_table;
     }
 
-} //namespace jags
+}
+
+//namespace jags

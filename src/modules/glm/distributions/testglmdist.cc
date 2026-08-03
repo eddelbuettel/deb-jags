@@ -7,8 +7,8 @@
 #include "DOrderedLogit.h"
 
 #include <MersenneTwisterRNG.h>
-#include <util/nainf.h>
 #include <JRmath.h>
+#include <matrix/lapack.h>
 
 #include <cmath>
 #include <set>
@@ -24,19 +24,9 @@ using std::multiset;
 using std::abs;
 using std::ostringstream;
 using std::sort;
-
-#define F77_DPOTRF F77_FUNC(dpotrf,DPOTRF)
-#define F77_DPOTRI F77_FUNC(dpotri, DPOTRI)
+using std::isfinite;
 
 using jags::RScalarDist;
-
-extern "C" {
-    void F77_DPOTRF (const char *uplo, const int *n, double *a,
-		     const int *lda, const int *info);
-    void F77_DPOTRI (const char *uplo, const int *n, double *a,
-		     const int *lda, const int *info);
-
-}
 
 void GLMDistTest::setUp() {
 
@@ -61,9 +51,9 @@ void GLMDistTest::npar()
 {
     //CPPUNIT_ASSERT_MESSAGE("npar check", false);
 
-    CPPUNIT_ASSERT_EQUAL(_dscaled_gamma->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dscaled_wishart->npar(), 2U);
-    CPPUNIT_ASSERT_EQUAL(_dordered_logit->npar(), 2U);
+    CPPUNIT_ASSERT_EQUAL(_dscaled_gamma->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dscaled_wishart->npar(), 2UL);
+    CPPUNIT_ASSERT_EQUAL(_dordered_logit->npar(), 2UL);
 }
 
 void GLMDistTest::name()
@@ -169,14 +159,14 @@ static void scalar_trunclik_cont(RScalarDist const *dist,
     // Test normalization of truncated likelihood for continuous
     // variables by approximate integration using the trapezoid method
     
-    CPPUNIT_ASSERT(!dist->discrete());
-    CPPUNIT_ASSERT(jags_finite(bound));
+    CPPUNIT_ASSERT(!dist->isDiscreteValued());
+    CPPUNIT_ASSERT(isfinite(bound));
     
     //Ensure that the density is finite at the other boundary (ob)
     //If not then just return as this method will not work
     double ob = lower ? dist->l(par) : dist->u(par);
-    if (jags_finite(ob)) {
-	if (!jags_finite(dist->d(ob, jags::PDF_FULL, par, false))) {
+    if (isfinite(ob)) {
+	if (!isfinite(dist->d(ob, jags::PDF_FULL, par, false))) {
 	    return;
 	}
     }
@@ -185,7 +175,7 @@ static void scalar_trunclik_cont(RScalarDist const *dist,
     //If lower==false then the grid is in reverse order
     vector<double> x;
     unsigned int N = 1000;
-    if (jags_finite(ob)) {
+    if (isfinite(ob)) {
 	x.push_back(ob);
     }
     double pmax = dist->p(bound, par, lower, false);
@@ -373,14 +363,14 @@ static bool inverse_spd (double *A, int n)
     /* invert n x n symmetric positive definite matrix A*/
 
     int info = 0;
-    F77_DPOTRF ("L", &n, A, &n, &info);
+    jags_dpotrf("L", &n, A, &n, &info);
     if (info < 0) {
 	CPPUNIT_FAIL("Illegal argument in inverse_spd");
     }
     else if (info > 0) {
 	CPPUNIT_FAIL("Cannot invert matrix: not positive definite");
     }
-    F77_DPOTRI ("L", &n, A, &n, &info); 
+    jags_dpotri("L", &n, A, &n, &info); 
 
     for (int i = 0; i < n; ++i) {
 	for (int j = 0; j < i; ++j) {
@@ -415,9 +405,9 @@ void GLMDistTest::dkw_swish(vector<double> const &S,
     par.push_back(&df);
 
     //Set up dimensions
-    vector<vector<unsigned int> > dims;
-    dims.push_back(vector<unsigned int>(1, ndim));
-    dims.push_back(vector<unsigned int>(1, 1));
+    vector<vector<unsigned long> > dims;
+    dims.push_back(vector<unsigned long>(1, ndim));
+    dims.push_back(vector<unsigned long>(1, 1));
 
     //Sanity checks
     CPPUNIT_ASSERT_MESSAGE("scaled.wishart",
@@ -429,7 +419,7 @@ void GLMDistTest::dkw_swish(vector<double> const &S,
 			   
     //Calculate maximum error for DKW test.
     for (unsigned int i = 0; i < N; ++i) {
-	_dscaled_wishart->randomSample(&x[0], x.size(), par, dims, 0, 0, _rng);
+	_dscaled_wishart->randomSample(&x[0], par, dims, _rng);
 
 	inverse_spd(&x[0], ndim);
 	

@@ -1,0 +1,167 @@
+#include <config.h>
+
+#include "LeverageMonitorFactory.h"
+#include "DensityEnums.h"
+#include "LeverageStat.h"
+#include "LooLeverageStat.h"
+#include "LeverageTotalStat.h"
+
+#include <model/BUGSModel.h>
+#include <model/MeanMonitor.h>
+#include <model/TraceMonitor.h>
+#include <model/TraceWeight.h>
+#include <model/NodeArraySubset.h>
+#include <graph/Node.h>
+
+
+using std::string;
+using std::vector;
+using std::pair;
+
+namespace jags {
+    namespace diag {
+
+	template<class S>
+	pair<Monitor*,MonitorStat*>
+	newLeverageMonitor(vector<Node const *> const &nodes,
+			   SummaryType summary_type,
+			   vector<RNG*> &rngs,
+			   unsigned int nrep)
+	{
+	    MonitorStat * stat = new  S(nodes, rngs, nrep);
+	    Monitor *m = nullptr;
+	    switch(summary_type) {
+	    case TRACE:
+		m =  new TraceMonitor(nodes, stat);
+		break;
+	    case MEAN:
+		m = new MeanMonitor(nodes, stat);
+		break;
+	    case TRACEWEIGHT:
+		if (stat->weighted() == UNWEIGHTED) {
+		    delete stat;
+		    stat = nullptr;
+		}
+		else {
+		    m = new TraceWeight(nodes, stat);
+		}
+		break;
+	    case VAR:
+	    case COV:
+	    case STUNSET:
+		delete stat;
+		stat = nullptr;
+		break; //-Wswitch
+	    }
+	    return pair<Monitor*,MonitorStat*>(m,stat);
+	}
+	
+	Monitor *LeverageMonitorFactory::getMonitor(string const &name, 
+						   Range const &range,
+						   BUGSModel *model,
+						   string const &stat,
+						   string const &summary,
+						   string &msg)
+	{
+	    string nname = name;
+	    string nstat = stat;
+	    
+	    if (name == "pD" && stat == "value") {
+		/*
+		  In JAGS 4.x.y. "pD" was defined as a virtual
+		  node. We retain this for back-compatibility.
+		*/
+		if (model->symtab().getVariable("pD")) {
+		    return nullptr; //Quit if we have a user-defined pD variable
+		}
+		nname = "_observations_";
+		nstat = "leverage_total";
+	    }
+	    if (nstat != "leverage" && nstat != "loo_leverage" && nstat != "leverage_total") {
+		return nullptr;
+	    }
+	    
+	    vector<Node const *> nodes;
+	    Range node_range = range;
+	    if (nname == "_observed_" || nname == "_observations_") {
+		if (!isNULL(range)) {
+		    msg = string("Cannot take a subset of ") + name;
+		    return nullptr;
+		}
+
+		vector<Node const *> const &observed_snodes = model->observedStochasticNodes();
+		if (observed_snodes.empty()) {
+		    msg = "There are no observed stochastic nodes";
+		    return nullptr;
+		}
+		else {
+		    nodes = observed_snodes;
+		}
+	    }
+	    else {
+		NodeArray *array = model->symtab().getVariable(nname);
+		if (!array) {
+		    return nullptr;
+		}
+		if (!isNULL(range) && !array->range().contains(range)) {
+		    msg = string("Invalid subset ") + name + printRange(range);
+		    return nullptr;
+		}
+		NodeArraySubset nodearray = NodeArraySubset(array, range);
+		//FIXME: check for closure
+		nodes = nodearray.nodes();
+	    }
+
+	    if (model->nchain() < 2) {
+		msg = "At least two chains are required for leverage monitors";
+		return nullptr;
+	    }
+	    
+	    vector<RNG*> rngs;	    
+	    for (unsigned int i = 0; i < model->nchain(); ++i) {
+		rngs.push_back(model->rng(i));
+	    }
+
+	    /* Create the correct subtype of monitor */
+	    SummaryType summary_type = getSummaryType(summary);   
+	    pair<Monitor*, MonitorStat*> m(nullptr, nullptr);
+	    if (isWeighted(nstat)) {
+		// loo_leverage
+		m = newLeverageMonitor<LooLeverageStat>(nodes, summary_type, rngs, 10);
+	    }
+	    else if (isTotal(nstat)) {
+		// leverage_total
+		m = newLeverageMonitor<LeverageTotalStat>(nodes, summary_type, rngs, 10);
+	    }
+	    else {
+		// Leverage
+		m = newLeverageMonitor<LeverageStat>(nodes, summary_type, rngs, 10);
+	    }
+    
+	    if (m.first) {
+		/* Set name attributes */
+		vector<string> stat_names;	  
+		if (isTotal(nstat)) {
+		    // Stats with only a single value
+		    stat_names.push_back(name + printRange(range));
+		}
+		else {
+		    // Stats with a single entry for each node
+		    for (auto p = nodes.begin(); p != nodes.end(); ++p) {
+			stat_names.push_back(model->symtab().getName(*p));
+		    }
+		}
+		m.second->setNames(stat_names);
+	    }
+
+	    return m.first;
+		
+	}
+
+	string LeverageMonitorFactory::name() const
+	{
+	    return "diag::Leverage";
+	}
+	
+    }
+}

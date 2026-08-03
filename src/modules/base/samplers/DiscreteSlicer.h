@@ -32,13 +32,13 @@ namespace base {
 	 * @param ndoubles Maximum number of doublings of slice 
 	 */
 	DiscreteSlicer(SingletonGraphView const *gv, unsigned int chain,
-                       double width=2, long ndoubles = 10);
-	void setValue(double x);
-	double value() const;
-	void getLimits(double *lower, double *upper) const;
-	void update(RNG*);
+                       double width=2, unsigned int ndoubles = 10);
+	void setValue(double x) override;
+	double value() const override;
+	void getLimits(double *lower, double *upper) const override;
+	void update(RNG*) override;
 	static bool canSample(StochasticNode const *node);
-	double logDensity() const;
+	double logDensity() const override;
     };
 
 }}

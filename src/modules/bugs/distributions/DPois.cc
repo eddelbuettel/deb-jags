@@ -9,6 +9,7 @@
 
 using std::vector;
 using std::max;
+using std::isfinite;
 
 #define LAMBDA(par) (*par[0])
 #define R_D_nonint(x)     (fabs((x) - floor((x)+0.5)) > 1e-7)
@@ -32,8 +33,8 @@ DPois::d(double x, PDFType type,
     if (type == PDF_LIKELIHOOD) {
 	//Avoid expensive normalizing constant
 	double lambda = LAMBDA(par);
-	if (x < 0 || (lambda == 0 && x != 0) || R_D_nonint(x) || 
-	    !jags_finite(lambda)) 
+	if (x < 0 || (lambda == 0 && x != 0) || R_D_nonint(x) ||
+	    !isfinite(lambda)) 
 	{
 	    return give_log ?  JAGS_NEGINF : 0;
 	}
@@ -74,6 +75,12 @@ double DPois::r(vector<double const *> const &par, RNG *rng) const
 	double lambda1 = LAMBDA(par1);
 	
 	return lambda0 * (log(lambda0) - log(lambda1)) - lambda0 + lambda1;
+    }
+
+    double DPois::score(double x, vector<double const *> const &par,
+			unsigned long i) const
+    {
+	return x/LAMBDA(par) - 1;
     }
 
 }}

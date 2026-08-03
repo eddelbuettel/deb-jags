@@ -1,0 +1,66 @@
+#include <config.h>
+
+#include "LooLeverageStat.h"
+
+#include <graph/Node.h>
+
+#include <cmath>
+
+using std::vector;
+using std::exp;
+
+namespace jags {
+    namespace diag {
+
+	LooLeverageStat::LooLeverageStat(vector<Node const *> const &nodes,
+					 vector<RNG *> const &rngs,
+					 unsigned int nrep)
+	    : MonitorStat(nodes.size()), _nodes(nodes), _rngs(rngs), _nrep(nrep)
+	{
+	}
+
+	vector<double> LooLeverageStat::value(unsigned int ch) const
+	{
+	    unsigned long n = _nodes.size();
+	    unsigned long m = _nodes[0]->nchain();
+	    
+	    vector<double> v(n);
+	    for (unsigned int k = 0; k < n; ++k) {
+		double pdsum = 0;
+		double wsum = 0;
+		for (unsigned int j = 0; j < m; ++j) {
+		    if (j != ch) {
+			double wj = exp(- _nodes[k]->logLikelihood(j));
+			pdsum += wj * _nodes[k]->KL(ch, j, _rngs[ch], _nrep);
+			wsum += wj;
+		    }
+		}
+		v[k] = pdsum / wsum;
+	    }
+	    return v;
+	}
+
+	WeightType LooLeverageStat::weighted() const
+	{
+	    return VECTOR_WEIGHT;
+	}
+	
+	vector<double> LooLeverageStat::weight(unsigned int ch) const
+	{
+	    unsigned long n = _nodes.size();
+	    unsigned long m = _nodes[0]->nchain();
+	    
+	    vector<double> w(n, 0.0);
+	    for (unsigned int k = 0; k < n; ++k) {
+		for (unsigned int j = 0; j < m; ++j) {
+		    if (j != ch) {
+			w[k] += exp(-_nodes[k]->logLikelihood(j));
+		    }
+		}
+		w[k] *= exp(-_nodes[k]->logLikelihood(ch));
+	    }
+	    return w;
+	}
+	
+    }
+}

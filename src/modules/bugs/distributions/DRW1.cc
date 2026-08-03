@@ -22,26 +22,26 @@ namespace jags {
 	    : VectorDist("drw1", 2) 
 	{}
 
-	unsigned int DRW1::length(vector<unsigned int> const &len) const
+	unsigned long DRW1::length(vector<unsigned long> const &len) const
 	{
 	    return len[1];
 	}
 
-	bool DRW1::checkParameterLength(vector<unsigned int> const &len) const
+	bool DRW1::checkParameterLength(vector<unsigned long> const &len) const
 	{
 	    return len[0] == 1 && len[1] > 1;
 	}
 
 	bool
 	DRW1::checkParameterValue(vector<double const *> const &par,
-				  vector<unsigned int> const &len) const
+				  vector<unsigned long> const &len) const
 	{
-	    unsigned int N = len[1];
+	    unsigned long N = length(len);
 	    double const *xcoords = XCOORDS(par);
 	    double tau = TAU(par);
 
 	    //Only regular random walks are supported
-	    for (unsigned int i = 1; i < N; ++i) {
+	    for (unsigned long i = 1; i < N; ++i) {
 		double delta = xcoords[i] - xcoords[i-1];
 		if (abs(delta - 1) > 1.0E-6) return false;
 	    }
@@ -51,71 +51,125 @@ namespace jags {
 	    return true;
 	}
 
-	double DRW1::logDensity(double const *x, unsigned int length,
-				PDFType type,
+	double DRW1::logDensity(double const *x,
+				PDFType ,
 				vector<double const *> const &par,
-				vector<unsigned int> const &len,
-				double const *lower, double const *upper) const
+				vector<unsigned long> const &len) const
 	{
 	    double tau = TAU(par);
 	    double sigma = 1/sqrt(tau);
 	    
 	    double loglik = 0.0;
-	    for (unsigned int i = 1; i < length; i++) {
+	    unsigned long N = length(len);
+	    for (unsigned long i = 1; i < N; i++) {
 		loglik += dnorm(x[i] - x[i-1], 0, sigma, true);
 	    }
 	    return loglik;
 	}
 
-	void DRW1::randomSample(double *x, unsigned int length,
+	void DRW1::randomSample(double *x,
 				vector<double const *> const &par,
-				vector<unsigned int> const &len,
-				double const *lower, double const *upper,
+				vector<unsigned long> const &len,
 				RNG *rng) const
 	{
 	    double tau = TAU(par);
 	    double sigma = 1/sqrt(tau);
-
+	    unsigned long N = length(len);
+	    
 	    double S = 0.0;
 	    x[0] = 0;
-	    for (unsigned int i = 1; i < length; i++) {
+	    for (unsigned long i = 1; i < N; i++) {
 		x[i] = x[i-1] + rnorm(0, sigma, rng);
 		S += x[i];
 	    }
-	    S /= length;
-	    for (unsigned int i = 0; i < length; i++) {
+	    S /= N;
+	    for (unsigned long i = 0; i < N; i++) {
 		x[i] -= S;
 	    }
 	}
 
-	void DRW1::support(double *lower, double *upper, unsigned int length,
-			   vector<double const *> const &par,
-			   vector<unsigned int> const &len) const
+	/*
+	void DRW1::randomSample(double *x, vector<bool> const &observed,
+				vector<double const *> const &par,
+				vector<unsigned long> const &len,
+				RNG *rng) const
 	{
-	    for (unsigned int i = 0; i < length; ++i) {
+	    double tau = TAU(par);
+	    double sigma = 1/sqrt(tau);
+	    unsigned long N = length(len);
+
+	    if (allFalse(observed)) {
+		randomSample(x, par, len, rng);
+	    }
+	    
+	    //Left region
+	    unsigned long l = 0;
+	    if (!observed[0]) {
+		while (l < N && !observed[l]) ++l;
+		for (unsigned long i = l; i > 0; --i) {
+		    x[i-1] = x[i] + sigma * rng->rnormal();
+		}
+	    }
+
+	    //right region
+	    unsigned long r = N-1;
+	    if (!observed[N-1]) {
+		while (r >= l && !observed[r]) --r;
+		for (unsigned long i = r; r < N-1; ++r) {
+		    x[i+1] = x[i] + sigma * rng->normal();
+		}
+	    }
+
+	    //middle region
+	    while (l < r) {
+		unsigned long m = l + 1;
+		while (m <= r) {
+		    if (observed[m++]) break;
+		}
+		midsample(l, m, x, sigma);
+	    }
+	    
+	    unsigned long l = 0, r = 0;
+	    while (!observed[r]) {
+		++r;
+	    }
+	    if (
+	    double tau = TAU(par);
+	    double sigma = 1/sqrt(tau);
+	    unsigned long N = length(len);
+	    
+	    double S = 0.0;
+	    x[0] = 0;
+	    for (unsigned long i = 1; i < N; i++) {
+		x[i] = x[i-1] + rnorm(0, sigma, rng);
+		S += x[i];
+	    }
+	    S /= N;
+	    for (unsigned long i = 0; i < N; i++) {
+		x[i] -= S;
+	    }
+	}
+	*/
+	
+	void DRW1::support(double *lower, double *upper,
+			   vector<double const *> const &,
+			   vector<unsigned long> const &len) const
+	{
+	    unsigned long N = length(len);
+	    for (unsigned long i = 0; i < N; ++i) {
 		lower[i] = JAGS_NEGINF;
 		upper[i] = JAGS_POSINF;
 	    }
 	}
 
-	void DRW1::typicalValue(double *x, unsigned int length,
-				vector<double const *> const &par,
-				vector<unsigned int> const &len,
-				double const *lower, double const *upper) const
-	{
-	    for (unsigned int i = 0; i < length; ++i) {
-		x[i] = 0;
-	    }
-	}
-
-	bool DRW1::isSupportFixed(vector<bool> const &fixmask) const
+	bool DRW1::isSupportFixed(vector<bool> const &) const
 	{
 	    return true;
 	}
 
-	unsigned int DRW1::df(vector<unsigned int> const &len) const
+	bool DRW1::fullRank() const
 	{
-	    return len[1] - 1;
+	    return false;
 	}
 
     }

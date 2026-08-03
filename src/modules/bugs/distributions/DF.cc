@@ -57,4 +57,32 @@ double DF::r(vector<double const *> const &par, RNG *rng) const
     return rF(*par[0], *par[1], rng);
 }
 
+    bool DF::hasScore(unsigned long i) const
+    {
+	return i >= 0 && i <= 2;
+    }
+    
+    double DF::score(double y, vector<double const *> const &par,
+		     unsigned long i) const
+    {
+	const double a = *par[0]/2;
+	const double b = *par[1]/2;
+
+	if (i == 0) {
+	    return (a-1)/y - (a+b)*a/(b + a*y);
+	}
+	else {
+	    double grad = 0;
+	    if (i == 1) {
+		const double z = a*y/(b + a*y);
+		grad = log(z) - (1 + b/a)*z + 1 + digamma(a + b) - digamma(a);
+	    }
+	    else if (i == 2) {
+		const double w = b/(b + a*y); // == 1 - z;
+		grad = log(w) - (1 + a/b)*w + 1 + digamma(a + b) - digamma(b);
+	    }
+	    return grad/2;
+	}
+    }
+
 }}

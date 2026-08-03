@@ -27,7 +27,7 @@ bool DNorm::checkParameterValue (vector<double const *> const &par) const
 }
 
 double
-DNorm::d(double x, PDFType type,
+DNorm::d(double x, PDFType,
          vector<double const *> const &par, bool give_log) const
 {
     return dnorm(x, MU(par), SIGMA(par), give_log);
@@ -61,8 +61,8 @@ double DNorm::randomSample(vector<double const *> const &par,
     double sigma = SIGMA(par);
 
     //Fix non-finite boundaries: ilr-normal functions do not accept them
-    if (lower && *lower == JAGS_NEGINF) lower = 0;
-    if (upper && *upper == JAGS_POSINF) upper = 0;
+    if (lower && *lower == JAGS_NEGINF) lower = nullptr;
+    if (upper && *upper == JAGS_POSINF) upper = nullptr;
     
     if (lower && upper) {
 	double left = (*lower - mu)/sigma;
@@ -93,5 +93,29 @@ double DNorm::randomSample(vector<double const *> const &par,
 	return ((mu0 - mu1) * (mu0 - mu1) * tau1 + tau1/tau0 - 1 + 
 		log(tau0/tau1)) / 2;
     }
+
+    bool DNorm::hasScore(unsigned long i) const
+    {
+	return true;
+    }
+    
+    double DNorm::score(double x, vector<double const *> const &par,
+			unsigned long i) const
+    {
+	double tau = TAU(par);
+	double mu = MU(par);
+	double y = x - mu;
+	
+	if (i == 0) {
+	    return tau*y;
+	}
+	else if (i == 1) {
+	    return (1/tau - y*y)/2;
+	}
+	else {
+	    return 0;
+	}
+    }
+
     
 }}

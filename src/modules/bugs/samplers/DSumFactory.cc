@@ -27,17 +27,25 @@ static StochasticNode const *getDSumChild(StochasticNode *node)
 	 p != node->stochasticChildren()->end(); ++p) 
     {
 	//Skip unobserved nodes
-	if (isObserved(*p) && (*p)->distribution()->name() == "dsum") 
-	    return *p;
+	if (isObserved(*p) && (*p)->distribution()->name() == "dsum") {
+	    if (isParameter(*p)) {
+		//Node is only partly observed. We can't handle this case
+		return nullptr;
+	    }
+	    else {
+		return *p;
+	    }
+	}
+	    
     }
-    return 0;
+    return nullptr;
 }
 
 Sampler * DSumFactory::makeSampler(list<StochasticNode*> const &nodes,
 				   Graph const &graph) const
 {
     //Find DSum node
-    StochasticNode const *dsum_node = 0;
+    StochasticNode const *dsum_node = nullptr;
     for (list<StochasticNode*>::const_iterator p = nodes.begin(); 
 	 p != nodes.end(); ++p) 
     {
@@ -47,7 +55,7 @@ Sampler * DSumFactory::makeSampler(list<StochasticNode*> const &nodes,
     }
     
     if (!dsum_node)
-	return 0;
+	return nullptr;
     
     //See if we can sample the parents. This can only be done if they
     //are unobserved stochastic nodes in the sample set
@@ -62,7 +70,7 @@ Sampler * DSumFactory::makeSampler(list<StochasticNode*> const &nodes,
 	    parameters.push_back(*q);
 	}
 	else {
-	    return 0;
+	    return nullptr;
 	}
     }
     
@@ -83,12 +91,12 @@ Sampler * DSumFactory::makeSampler(list<StochasticNode*> const &nodes,
 	name = "bugs::DMultiDSum";
     }
     else {
-	return 0;
+	return nullptr;
     }
     
     GraphView *gv = new GraphView(parameters, graph, true);
     unsigned int nchain = parameters[0]->nchain();
-    vector<MutableSampleMethod*> methods(nchain, 0);
+    vector<MutableSampleMethod*> methods(nchain, nullptr);
     for (unsigned int ch = 0; ch < nchain; ++ch) {
 	if (discrete) {
 	    if (multinom)

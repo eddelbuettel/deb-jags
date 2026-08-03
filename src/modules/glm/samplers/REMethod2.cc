@@ -19,8 +19,6 @@ using std::sqrt;
 using std::fill;
 using std::set;
 
-extern cholmod_common *glm_wk;
-
 namespace jags {
     namespace glm {
 
@@ -37,7 +35,7 @@ namespace jags {
 			     GLMMethod const *glmmethod)
 	    : _tau(tau), _eps(glmmethod->_view),
 	      _outcomes(glmmethod->_outcomes),
-	      _x(glmmethod->_x), _chain(glmmethod->_chain)
+	      _wk(glmmethod->workspace()), _x(glmmethod->_x), _chain(glmmethod->_chain)
 	{
 	    vector<StochasticNode*> const &enodes = _eps->nodes();
 	    vector<StochasticNode*> const &schild = tau->stochasticChildren();
@@ -45,42 +43,38 @@ namespace jags {
 	    set<StochasticNode*> sset;
 	    sset.insert(schild.begin(), schild.end());
 
+	    unsigned int xcol = 0;
 	    for (unsigned int i = 0; i < enodes.size(); ++i) {
 		if (sset.count(enodes[i])) {
 		    if (tau->isDependent(enodes[i]->parents()[0])) {
 			throwLogicError("Invalid REMethod2");
 		    }
 		    _indices.push_back(i);
+		    _xcols.push_back(xcol);
 		}
+		xcol += glmmethod->_sub_views[i]->length();
 	    }
 
 	    if (_indices.size() != schild.size()) {
 		throwLogicError("Invalid REMethod2");
 	    }
 
-	    unsigned int nrow = sumLengths(_outcomes);
-	    unsigned int ncol = tau->stochasticChildren()[0]->length();
+	    unsigned long nrow = sumLengths(_outcomes);
+	    unsigned long ncol = tau->stochasticChildren()[0]->length();
 	    _z = cholmod_allocate_dense(nrow, ncol, nrow, CHOLMOD_REAL,
-					glm_wk);
+					_wk);
 	}
 
 	REMethod2::~REMethod2()
 	{
-	    cholmod_free_dense(&_z, glm_wk);
+	    cholmod_free_dense(&_z, _wk);
 	}
 	
 	void REMethod2::calDesignSigma()
 	{
-	    //Sanity checks
-	    //unsigned int Neps = _eps->nodes().size();
 	    if (_z->nrow != _x->nrow) {
 		throwLogicError("Row mismatch in REMethod2");
 	    }
-	    /*
-	    if (_x->ncol != _z->ncol * Neps || _x->ncol != _eps->length()) {
-		throwLogicError("Column mismatch in REMethod2");
-	    }
-	    */
 	    
 	    //Set up access to sparse design matrix for eps
 	    int const *Xp = static_cast<int const*>(_x->p);
@@ -93,20 +87,26 @@ namespace jags {
 	    //Set all elements of _z to zero.
 	    fill(Zx, Zx + _z->nzmax, 0);
 
-	    //If there are m columns of _z then _z[,i] is the sum of
-	    //every mth column of _x (starting with _x[,i]),
-	    //multiplied by the corresponding random effect
+	    /* 
+	       If there are m columns of _z then _z[,c] is the sum of
+	       contributions from the columns of _x corresponding to the
+	       c'th element of each random effect. All random effect terms
+	       have the same length by construction.
 
+	       To find the column of _z corresponding to the first
+	       element of random effect j, we look up _xcols[j].
+	    */
+	       
 	    vector<StochasticNode*> const &eps=_eps->nodes();
 	    for (unsigned int j = 0; j < _indices.size(); ++j) {
 		unsigned int i = _indices[j];
 		double const *eval = eps[i]->value(_chain);
 		double const *emean = eps[i]->parents()[0]->value(_chain);
-		for (unsigned int zcol = 0; zcol < _z->ncol; ++zcol) {
-		    int xcol = i * _z->ncol + zcol;
+		for (unsigned long zcol = 0; zcol < _z->ncol; ++zcol) {
+		    unsigned long xcol = _xcols[j] + zcol;
 		    for (int xi = Xp[xcol]; xi < Xp[xcol+1]; ++xi) {
-			int row = Xi[xi];
-			int zi = _z->nrow * zcol + row;
+			int zrow = Xi[xi];
+			int zi = _z->nrow * zcol + zrow;
 			Zx[zi] += Xx[xi] * (eval[zcol] - emean[zcol]);
 		    }
 		}
@@ -117,17 +117,18 @@ namespace jags {
 
 	    updateTau(rng); //Sufficient parameterization
 	    updateSigma(rng); //Ancillary parameterization
+	    updateTau(rng); //Ancillary parameterization
 	}
 
 	void REMethod2::calCoefSigma(double *A, double *b, double const *sigma0,
-				     unsigned int m) const
+				     unsigned long m) const
 	{
 	    double const *Zx = static_cast<double const *>(_z->x);
-	    unsigned int N = _outcomes.size();
+	    unsigned long N = _outcomes.size();
 	    
-	    int xrow = 0;
-	    for (unsigned int i = 0; i < N; ++i) {
-		unsigned int n = _outcomes[i]->length();
+	    unsigned long xrow = 0;
+	    for (unsigned long i = 0; i < N; ++i) {
+		unsigned long n = _outcomes[i]->length();
 		if (n == 1) {
 		    //Scalar outcome
 		    double Y = _outcomes[i]->value();
@@ -158,7 +159,7 @@ namespace jags {
 		    
 		    //X = Scaled design matrix for outcome i
 		    vector<double> X(m*n); //n x m matrix
-		    for (unsigned int j = 0; j < m; ++j) {
+		    for (unsigned long j = 0; j < m; ++j) {
 			double const *Zj = &Zx[j * _z->nrow + xrow];
 			for (unsigned int p = 0; p < n; ++p) {
 			    X[j*n + p] = Zj[p]/sigma0[j];

@@ -1,4 +1,4 @@
-#include <config.h>
+#include  <config.h>
 
 #include <rng/RNG.h>
 #include <graph/AggNode.h>
@@ -40,9 +40,9 @@ static void calBeta(double *beta, SingletonGraphView const *gv,
     double *bp = beta;    
     for (unsigned int i = 0; i < stoch_children.size(); ++i) {
 	StochasticNode const *child = stoch_children[i];
-	unsigned int nrow = child->length();
+	unsigned long nrow = child->length();
 	double const *mu = child->parents()[0]->value(chain);
-	for (unsigned int j = 0; j < nrow; ++j) {
+	for (unsigned long j = 0; j < nrow; ++j) {
 	    bp[j] = mu[j];
 	}
 	bp += nrow;
@@ -53,9 +53,9 @@ static void calBeta(double *beta, SingletonGraphView const *gv,
     bp = beta;    
     for (unsigned int i = 0; i < stoch_children.size(); ++i) {
 	StochasticNode const *child = stoch_children[i];
-	unsigned int nrow = child->length();
+	unsigned long nrow = child->length();
 	double const *mu = child->parents()[0]->value(chain);
-	for (unsigned int j = 0; j < nrow; ++j) {
+	for (unsigned long j = 0; j < nrow; ++j) {
 	    bp[j] -= mu[j];
 	}
 	bp += nrow;
@@ -63,7 +63,7 @@ static void calBeta(double *beta, SingletonGraphView const *gv,
 }
 
 ConjugateNormal::ConjugateNormal(SingletonGraphView const *gv)
-    : ConjugateMethod(gv), _betas(0), _length_betas(0)
+    : ConjugateMethod(gv), _betas(nullptr), _length_betas(0)
 {
     if (!gv->deterministicChildren().empty()) {
 
@@ -99,7 +99,10 @@ bool ConjugateNormal::canSample(StochasticNode *snode, Graph const &graph)
     switch(getDist(snode)) {
     case NORM: case EXP:
 	break;
-    default:
+    case BERN: case BETA: case BIN: case CAT: case CHISQ: case DEXP:
+    case DIRCH: case GAMMA: case LNORM: case LOGIS: case MULTI:
+    case MNORM: case NEGBIN: case PAR: case POIS:
+    case T: case UNIF: case WEIB: case WISH: case OTHERDIST:	
 	return false;
     }
 
@@ -111,7 +114,10 @@ bool ConjugateNormal::canSample(StochasticNode *snode, Graph const &graph)
 	switch (getDist(schild[i])) {
 	case NORM: case MNORM:
 	    break;
-	default:
+	case BERN: case BETA: case BIN: case CAT: case CHISQ: case DEXP:
+	case DIRCH: case EXP: case GAMMA: case LNORM: case LOGIS: case MULTI:
+	case NEGBIN: case PAR: case POIS:
+	case T: case UNIF: case WEIB: case WISH: case OTHERDIST:	
 	    return false; //Not normal
 	}
 	if (isBounded(schild[i])) {
@@ -130,7 +136,7 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
 {
     vector<StochasticNode *> const &stoch_children = 
 	_gv->stochasticChildren();
-    unsigned int nchildren = stoch_children.size();
+    unsigned long nchildren = stoch_children.size();
     StochasticNode *snode = _gv->node();
 
     /* For convenience in the following computations, we shift the
@@ -157,7 +163,7 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
 	// This can only happen if the stochastic children are all
 	// univariate normal. We know alpha = 0, beta = 1.
 
-	for (unsigned int i = 0; i < nchildren; ++i) {
+	for (unsigned long i = 0; i < nchildren; ++i) {
 	    double Y = *stoch_children[i]->value(chain);
 	    double tau = *stoch_children[i]->parents()[1]->value(chain);
 	    A += (Y - xold) * tau;
@@ -168,7 +174,7 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
     else {
 
 	double *beta;
-	bool temp_beta = (_betas == 0);
+	bool temp_beta = (_betas == nullptr);
 	if (temp_beta) {
 	    beta = new double[_length_betas];
 	    calBeta(beta, _gv, chain);
@@ -185,11 +191,11 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
 	    double const *Y = child->value(chain);
 	    double const *tau = child->parents()[1]->value(chain);
 	    double const *alpha = child->parents()[0]->value(chain);
-	    unsigned int nrow = child->length();
+	    unsigned long nrow = child->length();
 
-	    for (unsigned int k = 0; k < nrow; ++k) {
+	    for (unsigned long k = 0; k < nrow; ++k) {
 		double tau_beta_k = 0;
-		for (unsigned int k2 = 0; k2 < nrow; ++k2) {
+		for (unsigned long k2 = 0; k2 < nrow; ++k2) {
 		    tau_beta_k += tau[k * nrow + k2] * bp[k2];
 		}
 		A += (Y[k] - alpha[k]) * tau_beta_k;
@@ -255,7 +261,10 @@ void ConjugateNormal::update(unsigned int chain, RNG *rng) const
 	    }
 	}
 	break;
-    default:
+    case BERN: case BETA: case BIN: case CAT: case CHISQ: case DEXP:
+    case DIRCH: case GAMMA: case LNORM: case LOGIS: case MULTI:
+    case MNORM: case NEGBIN: case PAR: case POIS:
+    case T: case UNIF: case WEIB: case WISH: case OTHERDIST:	
 	throwLogicError("Invalid distribution in conjugate normal method");
     }
     _gv->setValue(&xnew, 1, chain);

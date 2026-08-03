@@ -333,10 +333,10 @@ static const double Coef_v7[2][4] = {
  * (a * n^2 + b * n + 1)/(c * n + d)
  *
  */
-static void rational_approx(double n, const double (*coef)[4], int ncomp, 
-			    double *out)
+static void rational_approx(double n, const double (*coef)[4],
+			    unsigned int ncomp, double *out)
 {
-    for (int i = 0; i < ncomp; i++) {
+    for (unsigned int i = 0; i < ncomp; i++) {
 	double num = coef[i][0] * n * n + coef[i][1] * n + 1;
 	double denom = coef[i][2] * n + coef[i][3];
 	out[i] = num / denom;
@@ -382,7 +382,7 @@ namespace glm {
 	//Upper limit of range of n supported by each approximation
 	const int upper[5] = {50, 440, 1600, 10000, 30000};
 	//Number of components in each approximation
-	const int ncomp[5] = {4, 3, 2, 2, 2};
+	const unsigned int ncomp[5] = {4, 3, 2, 2, 2};
 
 	//Each element of P,M,V is a 3-dimensional ragged array.
 	//C array syntax doesn't make this evident
@@ -430,7 +430,7 @@ namespace glm {
 	double sigma2 = trigamma(n);
 	double sigma = sqrt(sigma2);
 	    
-	for (int i = 0; i < _ncomp; i++) {
+	for (unsigned int i = 0; i < _ncomp; i++) {
 	    _means[i] = _means[i] * sigma + mu;
 	    _variances[i] *= sigma2;
 	}
@@ -445,7 +445,7 @@ namespace glm {
 
 	//Log probabilities
 	vector<double> p(_ncomp);
-	for (int i = 0; i < _ncomp; i++) {
+	for (unsigned int i = 0; i < _ncomp; i++) {
 	    p[i] = dnorm(z, _means[i], sqrt(_variances[i]), true) + 
 		log(_weights[i]);
 	}
@@ -453,7 +453,7 @@ namespace glm {
 
 	//Cumulative probabilities (unnormalized)
 	double sump = 0.0;
-	for (int i = 0; i < _ncomp; i++) {
+	for (unsigned int i = 0; i < _ncomp; i++) {
 	    sump += exp(p[i] - maxp);
 	    p[i] = sump;
 	}
@@ -481,7 +481,7 @@ namespace glm {
 	means.clear();
 	variances.clear();
 
-	for (int i = 0; i < _ncomp; ++i) {
+	for (unsigned int i = 0; i < _ncomp; ++i) {
 	    weights.push_back(_weights[i]);
 	    means.push_back(_means[i]);
 	    variances.push_back(_variances[i]);

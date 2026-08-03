@@ -4,6 +4,8 @@
 #include "GLMMethod.h"
 #include <sampler/SamplerFactory.h>
 
+#include <set>
+
 namespace jags {
 
     class LinkNode;
@@ -27,24 +29,25 @@ namespace glm {
 	std::string _name;
 	SingletonGraphView * makeView(StochasticNode *snode, 
 				      Graph const &graph, bool gibbs) const;
-	bool checkDescendants(GraphView const *view) const;
+	bool checkDescendants(SingletonGraphView const *view) const;
     public:
 	GLMFactory(std::string const &name);
-	virtual ~GLMFactory();
+	~GLMFactory() override;
 	/**
 	 * Creates a newly-allocated Sampler for the set of candidate nodes,
 	 * or a NULL pointer. Sub-classes of GLMFactory only have to
 	 * implement the abstract member function newMethod.
 	 */
-	GLMSampler * makeSampler(std::list<StochasticNode*> const &free_nodes, 
+	GLMSampler * makeSampler(std::list<StochasticNode*> const &free_nodes,
+				 std::set<StochasticNode*> &skip_nodes,
 				 Graph const &graph, bool gibbs) const;
 	/**
 	 * Wraps GLMFactory#makeSampler and returns a single
 	 * newly-allocated sampler in a vector.
 	 */
 	std::vector<Sampler*> 
-	    makeSamplers(std::list<StochasticNode*> const &free_nodes, 
-			 Graph const &graph) const;
+	    makeSamplers(std::list<StochasticNode*> const &free_nodes,
+			 Graph const &graph) const override;
 	/**
 	 * Checks that an outcome variable in a GLM has the correct
 	 * family and link function.
@@ -77,7 +80,7 @@ namespace glm {
 	 * Returns the string provided as the parameter "name" in the
 	 * constructor.
 	 */
-	std::string name() const;
+	std::string name() const override;
 	/**
 	 * Returns true if the factory can only work with outcome
 	 * variables that are observed. The default implementation
@@ -114,6 +117,7 @@ namespace glm {
 	 * exploit the same data augmentation used by the GLMSampler.
 	 */
 	void makeRESamplers(std::list<StochasticNode*> const &free_nodes,
+			    std::set<StochasticNode*> &skip_nodes,
 			    GLMSampler const *s, Graph const &graph,
 			    std::vector<Sampler*> &samplers) const;
     };

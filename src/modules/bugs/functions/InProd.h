@@ -19,13 +19,18 @@ namespace bugs {
     public:
 	InProd ();
 	double scalarEval(std::vector <double const *> const &args,
-			  std::vector<unsigned int> const &lengths) const;
-	bool checkParameterLength (std::vector<unsigned int> const &len) const;
-	bool isDiscreteValued(std::vector<bool> const &mask) const;
+			  std::vector<unsigned long> const &lengths)
+	    const override;
+	bool hasGradient(unsigned long i) const override;
+	void gradient(double *x,
+		      std::vector <double const *> const &args,
+		      std::vector<unsigned long> const &lengths,
+		      unsigned long i) const override;
+	bool checkParameterLength (std::vector<unsigned long> const &len)
+	    const override;
+	bool isDiscreteValued(std::vector<bool> const &mask) const override;
 	bool isScale(std::vector<bool> const &mask,
-		     std::vector<bool> const &fix) const;
-	bool isScaleMix(std::vector<bool> const &mask,
-			std::vector<bool> const &fix) const;
+		     std::vector<bool> const &fix) const override;
     };
 
 }}

@@ -75,7 +75,7 @@
 #define yychar          zzchar
 
 /* First part of user prologue.  */
-#line 2 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 3 "../../../../mcmc-jags/src/terminal/parser.yy"
 
 #include <config.h>
 
@@ -135,12 +135,13 @@
     bool open_data_buffer(std::string const *name);
     bool open_command_buffer(std::string const *name);
     void return_to_main_buffer();
-    void setMonitor(jags::ParseTree const *var, int thin, std::string const &type);
-    void clearMonitor(jags::ParseTree const *var, std::string const &type);
-    void doCoda (jags::ParseTree const *var, std::string const &stem);
-    void doAllCoda (std::string const &stem);
-    void doDump (std::string const &file, jags::DumpType type, unsigned int chain);
-    void dumpMonitors(std::string const &file, std::string const &type);
+    void setMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary, int thin);
+    void clearMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary);
+    void doCoda (jags::ParseTree const *var, std::string const &stem, std::string const &stat, std::string const &summary);
+    void doAllCoda (std::string const &stem, std::string const &stat, std::string const &summary);
+    void dumpNodeNames (std::string const &file, std::string const &type);
+    void doDump (std::string const &file, jags::ValueType type, unsigned int chain);
+    void dumpMonitors(std::string const &file, std::string const &stat, std::string const &summary);
     void doSystem(std::string const *command);
     std::string ExpandFileName(char const *s);
 
@@ -170,7 +171,7 @@
 	// so the parent function should evaluate the value and return; if appriopriate
     
 
-#line 174 "parser.cc"
+#line 175 "parser.cc"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -242,41 +243,46 @@ extern int zzdebug;
     UPDATE = 275,                  /* UPDATE  */
     BY = 276,                      /* BY  */
     MONITORS = 277,                /* MONITORS  */
-    MONITOR = 278,                 /* MONITOR  */
-    TYPE = 279,                    /* TYPE  */
-    SET = 280,                     /* SET  */
-    CLEAR = 281,                   /* CLEAR  */
-    THIN = 282,                    /* THIN  */
-    CODA = 283,                    /* CODA  */
-    STEM = 284,                    /* STEM  */
-    EXIT = 285,                    /* EXIT  */
-    NCHAINS = 286,                 /* NCHAINS  */
-    CHAIN = 287,                   /* CHAIN  */
-    LOAD = 288,                    /* LOAD  */
-    UNLOAD = 289,                  /* UNLOAD  */
-    SAMPLER = 290,                 /* SAMPLER  */
-    SAMPLERS = 291,                /* SAMPLERS  */
-    RNGTOK = 292,                  /* RNGTOK  */
-    FACTORY = 293,                 /* FACTORY  */
-    FACTORIES = 294,               /* FACTORIES  */
-    MODULES = 295,                 /* MODULES  */
-    SEED = 296,                    /* SEED  */
-    LIST = 297,                    /* LIST  */
-    STRUCTURE = 298,               /* STRUCTURE  */
-    DIM = 299,                     /* DIM  */
-    NA = 300,                      /* NA  */
-    R_NULL = 301,                  /* R_NULL  */
-    DIMNAMES = 302,                /* DIMNAMES  */
-    ITER = 303,                    /* ITER  */
-    ARROW = 304,                   /* ARROW  */
-    ENDDATA = 305,                 /* ENDDATA  */
-    ASINTEGER = 306,               /* ASINTEGER  */
-    DOTDATA = 307,                 /* DOTDATA  */
-    DIRECTORY = 308,               /* DIRECTORY  */
-    CD = 309,                      /* CD  */
-    PWD = 310,                     /* PWD  */
-    RUN = 311,                     /* RUN  */
-    ENDSCRIPT = 312                /* ENDSCRIPT  */
+    NODENAMES = 278,               /* NODENAMES  */
+    MONITOR = 279,                 /* MONITOR  */
+    TYPE = 280,                    /* TYPE  */
+    SET = 281,                     /* SET  */
+    CLEAR = 282,                   /* CLEAR  */
+    THIN = 283,                    /* THIN  */
+    CODA = 284,                    /* CODA  */
+    STEM = 285,                    /* STEM  */
+    STAT = 286,                    /* STAT  */
+    SUMMARY = 287,                 /* SUMMARY  */
+    EXIT = 288,                    /* EXIT  */
+    NCHAINS = 289,                 /* NCHAINS  */
+    NTHREADS = 290,                /* NTHREADS  */
+    CHAIN = 291,                   /* CHAIN  */
+    LOAD = 292,                    /* LOAD  */
+    UNLOAD = 293,                  /* UNLOAD  */
+    SAMPLER = 294,                 /* SAMPLER  */
+    SAMPLERS = 295,                /* SAMPLERS  */
+    RNGTOK = 296,                  /* RNGTOK  */
+    FACTORY = 297,                 /* FACTORY  */
+    FACTORIES = 298,               /* FACTORIES  */
+    MODULES = 299,                 /* MODULES  */
+    SEED = 300,                    /* SEED  */
+    LIST = 301,                    /* LIST  */
+    STRUCTURE = 302,               /* STRUCTURE  */
+    DIM = 303,                     /* DIM  */
+    NA = 304,                      /* NA  */
+    R_NULL = 305,                  /* R_NULL  */
+    DIMNAMES = 306,                /* DIMNAMES  */
+    ITER = 307,                    /* ITER  */
+    ARROW = 308,                   /* ARROW  */
+    ENDDATA = 309,                 /* ENDDATA  */
+    ASINTEGER = 310,               /* ASINTEGER  */
+    DOTDATA = 311,                 /* DOTDATA  */
+    NREP = 312,                    /* NREP  */
+    DIRECTORY = 313,               /* DIRECTORY  */
+    CD = 314,                      /* CD  */
+    PWD = 315,                     /* PWD  */
+    RUN = 316,                     /* RUN  */
+    ENDSCRIPT = 317                /* ENDSCRIPT  */
   };
   typedef enum zztokentype zztoken_kind_t;
 #endif
@@ -305,47 +311,52 @@ extern int zzdebug;
 #define UPDATE 275
 #define BY 276
 #define MONITORS 277
-#define MONITOR 278
-#define TYPE 279
-#define SET 280
-#define CLEAR 281
-#define THIN 282
-#define CODA 283
-#define STEM 284
-#define EXIT 285
-#define NCHAINS 286
-#define CHAIN 287
-#define LOAD 288
-#define UNLOAD 289
-#define SAMPLER 290
-#define SAMPLERS 291
-#define RNGTOK 292
-#define FACTORY 293
-#define FACTORIES 294
-#define MODULES 295
-#define SEED 296
-#define LIST 297
-#define STRUCTURE 298
-#define DIM 299
-#define NA 300
-#define R_NULL 301
-#define DIMNAMES 302
-#define ITER 303
-#define ARROW 304
-#define ENDDATA 305
-#define ASINTEGER 306
-#define DOTDATA 307
-#define DIRECTORY 308
-#define CD 309
-#define PWD 310
-#define RUN 311
-#define ENDSCRIPT 312
+#define NODENAMES 278
+#define MONITOR 279
+#define TYPE 280
+#define SET 281
+#define CLEAR 282
+#define THIN 283
+#define CODA 284
+#define STEM 285
+#define STAT 286
+#define SUMMARY 287
+#define EXIT 288
+#define NCHAINS 289
+#define NTHREADS 290
+#define CHAIN 291
+#define LOAD 292
+#define UNLOAD 293
+#define SAMPLER 294
+#define SAMPLERS 295
+#define RNGTOK 296
+#define FACTORY 297
+#define FACTORIES 298
+#define MODULES 299
+#define SEED 300
+#define LIST 301
+#define STRUCTURE 302
+#define DIM 303
+#define NA 304
+#define R_NULL 305
+#define DIMNAMES 306
+#define ITER 307
+#define ARROW 308
+#define ENDDATA 309
+#define ASINTEGER 310
+#define DOTDATA 311
+#define NREP 312
+#define DIRECTORY 313
+#define CD 314
+#define PWD 315
+#define RUN 316
+#define ENDSCRIPT 317
 
 /* Value type.  */
 #if ! defined ZZSTYPE && ! defined ZZSTYPE_IS_DECLARED
 union ZZSTYPE
 {
-#line 99 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 101 "../../../../mcmc-jags/src/terminal/parser.yy"
 
   int intval;
   double val;
@@ -355,7 +366,7 @@ union ZZSTYPE
   std::vector<double> *vec;
   std::vector<long> *ivec;
 
-#line 359 "parser.cc"
+#line 370 "parser.cc"
 
 };
 typedef union ZZSTYPE ZZSTYPE;
@@ -398,112 +409,121 @@ enum yysymbol_kind_t
   YYSYMBOL_UPDATE = 20,                    /* UPDATE  */
   YYSYMBOL_BY = 21,                        /* BY  */
   YYSYMBOL_MONITORS = 22,                  /* MONITORS  */
-  YYSYMBOL_MONITOR = 23,                   /* MONITOR  */
-  YYSYMBOL_TYPE = 24,                      /* TYPE  */
-  YYSYMBOL_SET = 25,                       /* SET  */
-  YYSYMBOL_CLEAR = 26,                     /* CLEAR  */
-  YYSYMBOL_THIN = 27,                      /* THIN  */
-  YYSYMBOL_CODA = 28,                      /* CODA  */
-  YYSYMBOL_STEM = 29,                      /* STEM  */
-  YYSYMBOL_EXIT = 30,                      /* EXIT  */
-  YYSYMBOL_NCHAINS = 31,                   /* NCHAINS  */
-  YYSYMBOL_CHAIN = 32,                     /* CHAIN  */
-  YYSYMBOL_LOAD = 33,                      /* LOAD  */
-  YYSYMBOL_UNLOAD = 34,                    /* UNLOAD  */
-  YYSYMBOL_SAMPLER = 35,                   /* SAMPLER  */
-  YYSYMBOL_SAMPLERS = 36,                  /* SAMPLERS  */
-  YYSYMBOL_RNGTOK = 37,                    /* RNGTOK  */
-  YYSYMBOL_FACTORY = 38,                   /* FACTORY  */
-  YYSYMBOL_FACTORIES = 39,                 /* FACTORIES  */
-  YYSYMBOL_MODULES = 40,                   /* MODULES  */
-  YYSYMBOL_SEED = 41,                      /* SEED  */
-  YYSYMBOL_LIST = 42,                      /* LIST  */
-  YYSYMBOL_STRUCTURE = 43,                 /* STRUCTURE  */
-  YYSYMBOL_DIM = 44,                       /* DIM  */
-  YYSYMBOL_NA = 45,                        /* NA  */
-  YYSYMBOL_R_NULL = 46,                    /* R_NULL  */
-  YYSYMBOL_DIMNAMES = 47,                  /* DIMNAMES  */
-  YYSYMBOL_ITER = 48,                      /* ITER  */
-  YYSYMBOL_ARROW = 49,                     /* ARROW  */
-  YYSYMBOL_ENDDATA = 50,                   /* ENDDATA  */
-  YYSYMBOL_ASINTEGER = 51,                 /* ASINTEGER  */
-  YYSYMBOL_DOTDATA = 52,                   /* DOTDATA  */
-  YYSYMBOL_DIRECTORY = 53,                 /* DIRECTORY  */
-  YYSYMBOL_CD = 54,                        /* CD  */
-  YYSYMBOL_PWD = 55,                       /* PWD  */
-  YYSYMBOL_RUN = 56,                       /* RUN  */
-  YYSYMBOL_ENDSCRIPT = 57,                 /* ENDSCRIPT  */
-  YYSYMBOL_58_ = 58,                       /* ','  */
-  YYSYMBOL_59_ = 59,                       /* '('  */
-  YYSYMBOL_60_ = 60,                       /* ')'  */
-  YYSYMBOL_61_ = 61,                       /* '['  */
-  YYSYMBOL_62_ = 62,                       /* ']'  */
-  YYSYMBOL_63_ = 63,                       /* ':'  */
-  YYSYMBOL_64_ = 64,                       /* '*'  */
-  YYSYMBOL_65_ = 65,                       /* ';'  */
-  YYSYMBOL_66_ = 66,                       /* '`'  */
-  YYSYMBOL_67_ = 67,                       /* '='  */
-  YYSYMBOL_68_c_ = 68,                     /* 'c'  */
-  YYSYMBOL_YYACCEPT = 69,                  /* $accept  */
-  YYSYMBOL_input = 70,                     /* input  */
-  YYSYMBOL_line = 71,                      /* line  */
-  YYSYMBOL_command = 72,                   /* command  */
-  YYSYMBOL_model = 73,                     /* model  */
-  YYSYMBOL_data_in = 74,                   /* data_in  */
-  YYSYMBOL_data_to = 75,                   /* data_to  */
-  YYSYMBOL_data = 76,                      /* data  */
-  YYSYMBOL_data_clear = 77,                /* data_clear  */
-  YYSYMBOL_parameters_in = 78,             /* parameters_in  */
-  YYSYMBOL_parameters_to = 79,             /* parameters_to  */
-  YYSYMBOL_parameters = 80,                /* parameters  */
-  YYSYMBOL_compile = 81,                   /* compile  */
-  YYSYMBOL_initialize = 82,                /* initialize  */
-  YYSYMBOL_autoadapt = 83,                 /* autoadapt  */
-  YYSYMBOL_forceadapt = 84,                /* forceadapt  */
-  YYSYMBOL_adapt = 85,                     /* adapt  */
-  YYSYMBOL_update = 86,                    /* update  */
-  YYSYMBOL_exit = 87,                      /* exit  */
-  YYSYMBOL_var = 88,                       /* var  */
-  YYSYMBOL_range_list = 89,                /* range_list  */
-  YYSYMBOL_range_element = 90,             /* range_element  */
-  YYSYMBOL_index = 91,                     /* index  */
-  YYSYMBOL_monitor = 92,                   /* monitor  */
-  YYSYMBOL_monitor_set = 93,               /* monitor_set  */
-  YYSYMBOL_monitor_clear = 94,             /* monitor_clear  */
-  YYSYMBOL_monitors_to = 95,               /* monitors_to  */
-  YYSYMBOL_file_name = 96,                 /* file_name  */
-  YYSYMBOL_coda = 97,                      /* coda  */
-  YYSYMBOL_load = 98,                      /* load  */
-  YYSYMBOL_unload = 99,                    /* unload  */
-  YYSYMBOL_samplers_to = 100,              /* samplers_to  */
-  YYSYMBOL_list_factories = 101,           /* list_factories  */
-  YYSYMBOL_list_modules = 102,             /* list_modules  */
-  YYSYMBOL_set_factory = 103,              /* set_factory  */
-  YYSYMBOL_set_seed = 104,                 /* set_seed  */
-  YYSYMBOL_r_assignment_list = 105,        /* r_assignment_list  */
-  YYSYMBOL_r_assignment = 106,             /* r_assignment  */
-  YYSYMBOL_r_name = 107,                   /* r_name  */
-  YYSYMBOL_r_data = 108,                   /* r_data  */
-  YYSYMBOL_r_structure = 109,              /* r_structure  */
-  YYSYMBOL_r_attribute_list = 110,         /* r_attribute_list  */
-  YYSYMBOL_r_dim = 111,                    /* r_dim  */
-  YYSYMBOL_r_collection = 112,             /* r_collection  */
-  YYSYMBOL_r_integer_collection = 113,     /* r_integer_collection  */
-  YYSYMBOL_r_value_collection = 114,       /* r_value_collection  */
-  YYSYMBOL_r_value_list = 115,             /* r_value_list  */
-  YYSYMBOL_r_value = 116,                  /* r_value  */
-  YYSYMBOL_r_generic_attribute = 117,      /* r_generic_attribute  */
-  YYSYMBOL_r_generic_list = 118,           /* r_generic_list  */
-  YYSYMBOL_r_generic_list_element = 119,   /* r_generic_list_element  */
-  YYSYMBOL_r_generic_vector = 120,         /* r_generic_vector  */
-  YYSYMBOL_r_numeric_vector = 121,         /* r_numeric_vector  */
-  YYSYMBOL_r_double_list = 122,            /* r_double_list  */
-  YYSYMBOL_r_character_vector = 123,       /* r_character_vector  */
-  YYSYMBOL_r_string_list = 124,            /* r_string_list  */
-  YYSYMBOL_get_working_dir = 125,          /* get_working_dir  */
-  YYSYMBOL_set_working_dir = 126,          /* set_working_dir  */
-  YYSYMBOL_read_dir = 127,                 /* read_dir  */
-  YYSYMBOL_run_script = 128                /* run_script  */
+  YYSYMBOL_NODENAMES = 23,                 /* NODENAMES  */
+  YYSYMBOL_MONITOR = 24,                   /* MONITOR  */
+  YYSYMBOL_TYPE = 25,                      /* TYPE  */
+  YYSYMBOL_SET = 26,                       /* SET  */
+  YYSYMBOL_CLEAR = 27,                     /* CLEAR  */
+  YYSYMBOL_THIN = 28,                      /* THIN  */
+  YYSYMBOL_CODA = 29,                      /* CODA  */
+  YYSYMBOL_STEM = 30,                      /* STEM  */
+  YYSYMBOL_STAT = 31,                      /* STAT  */
+  YYSYMBOL_SUMMARY = 32,                   /* SUMMARY  */
+  YYSYMBOL_EXIT = 33,                      /* EXIT  */
+  YYSYMBOL_NCHAINS = 34,                   /* NCHAINS  */
+  YYSYMBOL_NTHREADS = 35,                  /* NTHREADS  */
+  YYSYMBOL_CHAIN = 36,                     /* CHAIN  */
+  YYSYMBOL_LOAD = 37,                      /* LOAD  */
+  YYSYMBOL_UNLOAD = 38,                    /* UNLOAD  */
+  YYSYMBOL_SAMPLER = 39,                   /* SAMPLER  */
+  YYSYMBOL_SAMPLERS = 40,                  /* SAMPLERS  */
+  YYSYMBOL_RNGTOK = 41,                    /* RNGTOK  */
+  YYSYMBOL_FACTORY = 42,                   /* FACTORY  */
+  YYSYMBOL_FACTORIES = 43,                 /* FACTORIES  */
+  YYSYMBOL_MODULES = 44,                   /* MODULES  */
+  YYSYMBOL_SEED = 45,                      /* SEED  */
+  YYSYMBOL_LIST = 46,                      /* LIST  */
+  YYSYMBOL_STRUCTURE = 47,                 /* STRUCTURE  */
+  YYSYMBOL_DIM = 48,                       /* DIM  */
+  YYSYMBOL_NA = 49,                        /* NA  */
+  YYSYMBOL_R_NULL = 50,                    /* R_NULL  */
+  YYSYMBOL_DIMNAMES = 51,                  /* DIMNAMES  */
+  YYSYMBOL_ITER = 52,                      /* ITER  */
+  YYSYMBOL_ARROW = 53,                     /* ARROW  */
+  YYSYMBOL_ENDDATA = 54,                   /* ENDDATA  */
+  YYSYMBOL_ASINTEGER = 55,                 /* ASINTEGER  */
+  YYSYMBOL_DOTDATA = 56,                   /* DOTDATA  */
+  YYSYMBOL_NREP = 57,                      /* NREP  */
+  YYSYMBOL_DIRECTORY = 58,                 /* DIRECTORY  */
+  YYSYMBOL_CD = 59,                        /* CD  */
+  YYSYMBOL_PWD = 60,                       /* PWD  */
+  YYSYMBOL_RUN = 61,                       /* RUN  */
+  YYSYMBOL_ENDSCRIPT = 62,                 /* ENDSCRIPT  */
+  YYSYMBOL_63_ = 63,                       /* ','  */
+  YYSYMBOL_64_ = 64,                       /* '('  */
+  YYSYMBOL_65_ = 65,                       /* ')'  */
+  YYSYMBOL_66_ = 66,                       /* '['  */
+  YYSYMBOL_67_ = 67,                       /* ']'  */
+  YYSYMBOL_68_ = 68,                       /* '*'  */
+  YYSYMBOL_69_ = 69,                       /* ':'  */
+  YYSYMBOL_70_ = 70,                       /* ';'  */
+  YYSYMBOL_71_ = 71,                       /* '`'  */
+  YYSYMBOL_72_ = 72,                       /* '='  */
+  YYSYMBOL_73_c_ = 73,                     /* 'c'  */
+  YYSYMBOL_YYACCEPT = 74,                  /* $accept  */
+  YYSYMBOL_input = 75,                     /* input  */
+  YYSYMBOL_line = 76,                      /* line  */
+  YYSYMBOL_command = 77,                   /* command  */
+  YYSYMBOL_model = 78,                     /* model  */
+  YYSYMBOL_data_in = 79,                   /* data_in  */
+  YYSYMBOL_data_to = 80,                   /* data_to  */
+  YYSYMBOL_data = 81,                      /* data  */
+  YYSYMBOL_data_clear = 82,                /* data_clear  */
+  YYSYMBOL_parameters_in = 83,             /* parameters_in  */
+  YYSYMBOL_parameters_to = 84,             /* parameters_to  */
+  YYSYMBOL_parameters = 85,                /* parameters  */
+  YYSYMBOL_compile = 86,                   /* compile  */
+  YYSYMBOL_initialize = 87,                /* initialize  */
+  YYSYMBOL_autoadapt = 88,                 /* autoadapt  */
+  YYSYMBOL_forceadapt = 89,                /* forceadapt  */
+  YYSYMBOL_adapt = 90,                     /* adapt  */
+  YYSYMBOL_update = 91,                    /* update  */
+  YYSYMBOL_exit = 92,                      /* exit  */
+  YYSYMBOL_var = 93,                       /* var  */
+  YYSYMBOL_range_list = 94,                /* range_list  */
+  YYSYMBOL_range_element = 95,             /* range_element  */
+  YYSYMBOL_monitor = 96,                   /* monitor  */
+  YYSYMBOL_monitor_set = 97,               /* monitor_set  */
+  YYSYMBOL_monitor_clear = 98,             /* monitor_clear  */
+  YYSYMBOL_monitors_to = 99,               /* monitors_to  */
+  YYSYMBOL_node_names_to = 100,            /* node_names_to  */
+  YYSYMBOL_file_name = 101,                /* file_name  */
+  YYSYMBOL_coda = 102,                     /* coda  */
+  YYSYMBOL_load = 103,                     /* load  */
+  YYSYMBOL_unload = 104,                   /* unload  */
+  YYSYMBOL_samplers_to = 105,              /* samplers_to  */
+  YYSYMBOL_list_factories = 106,           /* list_factories  */
+  YYSYMBOL_list_modules = 107,             /* list_modules  */
+  YYSYMBOL_set_factory = 108,              /* set_factory  */
+  YYSYMBOL_set_seed = 109,                 /* set_seed  */
+  YYSYMBOL_r_compact_sequence = 110,       /* r_compact_sequence  */
+  YYSYMBOL_r_assignment_list = 111,        /* r_assignment_list  */
+  YYSYMBOL_r_assignment = 112,             /* r_assignment  */
+  YYSYMBOL_r_name = 113,                   /* r_name  */
+  YYSYMBOL_r_data = 114,                   /* r_data  */
+  YYSYMBOL_r_structure = 115,              /* r_structure  */
+  YYSYMBOL_r_attribute_list = 116,         /* r_attribute_list  */
+  YYSYMBOL_r_dim = 117,                    /* r_dim  */
+  YYSYMBOL_r_collection = 118,             /* r_collection  */
+  YYSYMBOL_r_integer_collection = 119,     /* r_integer_collection  */
+  YYSYMBOL_r_value_collection = 120,       /* r_value_collection  */
+  YYSYMBOL_r_value_list = 121,             /* r_value_list  */
+  YYSYMBOL_r_value = 122,                  /* r_value  */
+  YYSYMBOL_r_real_value = 123,             /* r_real_value  */
+  YYSYMBOL_r_int_value = 124,              /* r_int_value  */
+  YYSYMBOL_r_na_value = 125,               /* r_na_value  */
+  YYSYMBOL_r_generic_attribute = 126,      /* r_generic_attribute  */
+  YYSYMBOL_r_discard_vector = 127,         /* r_discard_vector  */
+  YYSYMBOL_r_discard_arglist = 128,        /* r_discard_arglist  */
+  YYSYMBOL_r_discard_arglist_element = 129, /* r_discard_arglist_element  */
+  YYSYMBOL_r_discard_numvector = 130,      /* r_discard_numvector  */
+  YYSYMBOL_r_discard_numeric_arglist = 131, /* r_discard_numeric_arglist  */
+  YYSYMBOL_r_discard_charvector = 132,     /* r_discard_charvector  */
+  YYSYMBOL_r_discard_string_arglist = 133, /* r_discard_string_arglist  */
+  YYSYMBOL_get_working_dir = 134,          /* get_working_dir  */
+  YYSYMBOL_set_working_dir = 135,          /* set_working_dir  */
+  YYSYMBOL_read_dir = 136,                 /* read_dir  */
+  YYSYMBOL_run_script = 137                /* run_script  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -831,19 +851,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   306
+#define YYLAST   448
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  69
+#define YYNTOKENS  74
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  60
+#define YYNNTS  64
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  149
+#define YYNRULES  169
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  315
+#define YYNSTATES  380
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   312
+#define YYMAXUTOK   317
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -861,12 +881,12 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      59,    60,    64,     2,    58,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    63,    65,
-       2,    67,     2,     2,     2,     2,     2,     2,     2,     2,
+      64,    65,    68,     2,    63,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    69,    70,
+       2,    72,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    61,     2,    62,     2,     2,    66,     2,     2,    68,
+       2,    66,     2,    67,     2,     2,    71,     2,     2,    73,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -888,28 +908,30 @@ static const yytype_int8 yytranslate[] =
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
-      55,    56,    57
+      55,    56,    57,    58,    59,    60,    61,    62
 };
 
 #if ZZDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   181,   181,   185,   191,   192,   193,   194,   195,   196,
-     199,   200,   201,   202,   203,   204,   205,   206,   207,   208,
-     209,   210,   211,   212,   213,   214,   215,   216,   217,   218,
-     219,   220,   221,   222,   223,   224,   227,   239,   244,   252,
-     258,   264,   276,   282,   308,   322,   325,   329,   335,   344,
-     356,   360,   366,   373,   377,   382,   386,   391,   395,   400,
-     404,   409,   412,   415,   421,   424,   429,   432,   438,   441,
-     442,   445,   448,   451,   454,   457,   461,   465,   471,   474,
-     480,   486,   498,   499,   502,   505,   508,   511,   516,   519,
-     522,   529,   534,   539,   545,   551,   558,   565,   573,   581,
-     584,   587,   592,   595,   600,   608,   609,   610,   615,   616,
-     620,   627,   635,   636,   637,   638,   641,   644,   649,   650,
-     653,   656,   660,   666,   667,   670,   671,   677,   680,   681,
-     684,   685,   688,   689,   690,   691,   692,   693,   696,   697,
-     700,   701,   704,   705,   708,   709,   714,   725,   733,   757
+       0,   188,   188,   192,   198,   199,   200,   201,   202,   203,
+     206,   207,   208,   209,   210,   211,   212,   213,   214,   215,
+     216,   217,   218,   219,   220,   221,   222,   223,   224,   225,
+     226,   227,   228,   229,   230,   231,   232,   235,   247,   252,
+     260,   266,   272,   284,   290,   316,   330,   333,   337,   343,
+     352,   364,   368,   372,   380,   385,   390,   397,   401,   406,
+     410,   415,   419,   424,   428,   433,   436,   439,   445,   448,
+     453,   454,   457,   458,   461,   465,   469,   473,   477,   482,
+     487,   493,   501,   504,   508,   512,   519,   525,   533,   539,
+     551,   552,   555,   558,   561,   565,   568,   571,   576,   579,
+     582,   589,   594,   599,   605,   611,   618,   625,   633,   641,
+     646,   649,   652,   657,   662,   667,   672,   680,   681,   682,
+     687,   688,   692,   701,   708,   709,   710,   711,   714,   717,
+     722,   723,   726,   729,   733,   739,   740,   743,   744,   745,
+     748,   751,   754,   760,   763,   764,   765,   766,   767,   768,
+     771,   772,   775,   776,   779,   780,   781,   782,   785,   786,
+     787,   788,   791,   792,   795,   796,   801,   812,   820,   844
 };
 #endif
 
@@ -928,26 +950,29 @@ static const char *const yytname[] =
   "\"end of file\"", "error", "\"invalid token\"", "INT", "DOUBLE",
   "NAME", "STRING", "SYSCMD", "ENDCMD", "MODEL", "DATA", "IN", "TO",
   "INITS", "PARAMETERS", "COMPILE", "INITIALIZE", "ADAPT", "AUTOADAPT",
-  "FORCEADAPT", "UPDATE", "BY", "MONITORS", "MONITOR", "TYPE", "SET",
-  "CLEAR", "THIN", "CODA", "STEM", "EXIT", "NCHAINS", "CHAIN", "LOAD",
-  "UNLOAD", "SAMPLER", "SAMPLERS", "RNGTOK", "FACTORY", "FACTORIES",
-  "MODULES", "SEED", "LIST", "STRUCTURE", "DIM", "NA", "R_NULL",
-  "DIMNAMES", "ITER", "ARROW", "ENDDATA", "ASINTEGER", "DOTDATA",
-  "DIRECTORY", "CD", "PWD", "RUN", "ENDSCRIPT", "','", "'('", "')'", "'['",
-  "']'", "':'", "'*'", "';'", "'`'", "'='", "'c'", "$accept", "input",
-  "line", "command", "model", "data_in", "data_to", "data", "data_clear",
-  "parameters_in", "parameters_to", "parameters", "compile", "initialize",
-  "autoadapt", "forceadapt", "adapt", "update", "exit", "var",
-  "range_list", "range_element", "index", "monitor", "monitor_set",
-  "monitor_clear", "monitors_to", "file_name", "coda", "load", "unload",
+  "FORCEADAPT", "UPDATE", "BY", "MONITORS", "NODENAMES", "MONITOR", "TYPE",
+  "SET", "CLEAR", "THIN", "CODA", "STEM", "STAT", "SUMMARY", "EXIT",
+  "NCHAINS", "NTHREADS", "CHAIN", "LOAD", "UNLOAD", "SAMPLER", "SAMPLERS",
+  "RNGTOK", "FACTORY", "FACTORIES", "MODULES", "SEED", "LIST", "STRUCTURE",
+  "DIM", "NA", "R_NULL", "DIMNAMES", "ITER", "ARROW", "ENDDATA",
+  "ASINTEGER", "DOTDATA", "NREP", "DIRECTORY", "CD", "PWD", "RUN",
+  "ENDSCRIPT", "','", "'('", "')'", "'['", "']'", "'*'", "':'", "';'",
+  "'`'", "'='", "'c'", "$accept", "input", "line", "command", "model",
+  "data_in", "data_to", "data", "data_clear", "parameters_in",
+  "parameters_to", "parameters", "compile", "initialize", "autoadapt",
+  "forceadapt", "adapt", "update", "exit", "var", "range_list",
+  "range_element", "monitor", "monitor_set", "monitor_clear",
+  "monitors_to", "node_names_to", "file_name", "coda", "load", "unload",
   "samplers_to", "list_factories", "list_modules", "set_factory",
-  "set_seed", "r_assignment_list", "r_assignment", "r_name", "r_data",
-  "r_structure", "r_attribute_list", "r_dim", "r_collection",
-  "r_integer_collection", "r_value_collection", "r_value_list", "r_value",
-  "r_generic_attribute", "r_generic_list", "r_generic_list_element",
-  "r_generic_vector", "r_numeric_vector", "r_double_list",
-  "r_character_vector", "r_string_list", "get_working_dir",
-  "set_working_dir", "read_dir", "run_script", YY_NULLPTR
+  "set_seed", "r_compact_sequence", "r_assignment_list", "r_assignment",
+  "r_name", "r_data", "r_structure", "r_attribute_list", "r_dim",
+  "r_collection", "r_integer_collection", "r_value_collection",
+  "r_value_list", "r_value", "r_real_value", "r_int_value", "r_na_value",
+  "r_generic_attribute", "r_discard_vector", "r_discard_arglist",
+  "r_discard_arglist_element", "r_discard_numvector",
+  "r_discard_numeric_arglist", "r_discard_charvector",
+  "r_discard_string_arglist", "get_working_dir", "set_working_dir",
+  "read_dir", "run_script", YY_NULLPTR
 };
 
 static const char *
@@ -957,7 +982,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-206)
+#define YYPACT_NINF (-283)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -971,38 +996,44 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-    -206,   100,  -206,    97,   104,  -206,    -7,    77,    29,   140,
-     -45,  -206,    20,    80,   121,   129,    81,     7,   -13,    15,
-    -206,   158,   130,   149,   126,  -206,   158,  -206,   158,   133,
-    -206,   161,  -206,  -206,  -206,    21,  -206,  -206,  -206,    21,
-    -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,
-    -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,
-    -206,  -206,  -206,  -206,  -206,   158,  -206,   158,   158,  -206,
-     158,   158,   158,   139,   113,   114,   115,   116,   158,   117,
-     170,   170,   118,   162,   174,   122,   123,  -206,  -206,  -206,
-    -206,   158,   124,  -206,  -206,  -206,  -206,  -206,  -206,  -206,
-     178,    32,  -206,   135,    61,  -206,  -206,  -206,  -206,  -206,
-     127,   120,   165,   166,   167,   168,   132,   188,   136,   137,
-      75,   187,   191,  -206,   164,   169,  -206,   173,   138,  -206,
-      21,  -206,     5,   141,   171,   197,   142,   143,   146,   147,
-     183,  -206,   -27,  -206,   145,   182,   186,   152,   153,   155,
-     156,   157,   159,   160,  -206,  -206,  -206,  -206,   163,  -206,
-     172,   175,  -206,  -206,  -206,  -206,  -206,   185,   176,   177,
-     212,   217,   218,   220,   179,   188,  -206,   188,   180,   181,
-     219,   222,   202,   203,   158,   158,   108,    26,     4,    39,
-     184,   225,  -206,   189,   190,   192,   193,   224,  -206,  -206,
-     227,   228,   194,   195,   198,   199,   196,   200,   201,   204,
-     205,   206,   -24,  -206,   207,    46,  -206,   229,   208,  -206,
-    -206,  -206,  -206,   209,   210,   211,   214,   221,    -8,   213,
-    -206,  -206,  -206,  -206,  -206,    17,    85,  -206,  -206,    39,
-    -206,   215,  -206,  -206,  -206,  -206,   223,   226,   216,   230,
-     231,  -206,   232,   233,    79,  -206,  -206,  -206,  -206,   239,
-     241,  -206,  -206,  -206,    18,     2,    85,  -206,   234,   235,
-    -206,  -206,   237,   238,  -206,   242,   243,  -206,  -206,  -206,
-    -206,  -206,  -206,  -206,  -206,  -206,    12,    12,     6,   134,
-     236,    86,  -206,  -206,    89,   245,   246,  -206,  -206,    90,
-     102,    18,    12,  -206,  -206,   240,  -206,   247,  -206,   253,
-    -206,  -206,  -206,  -206,  -206
+    -283,   123,  -283,     9,    22,  -283,    93,    83,    43,   162,
+      49,    56,    75,   125,   141,   145,    94,   142,    81,     0,
+      21,  -283,    87,   166,   163,    91,  -283,    87,  -283,    87,
+     182,  -283,   183,  -283,  -283,  -283,    19,  -283,  -283,  -283,
+      19,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,
+    -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,
+    -283,  -283,  -283,  -283,  -283,  -283,  -283,    87,  -283,    87,
+      87,  -283,    87,    87,    87,   158,   136,   131,   132,   133,
+     134,    87,    87,   135,   193,   193,   137,   153,   196,   139,
+     140,  -283,  -283,  -283,  -283,    87,   143,  -283,  -283,  -283,
+    -283,  -283,  -283,  -283,   199,    46,  -283,   152,    55,  -283,
+    -283,  -283,  -283,  -283,   144,   146,   148,   187,   188,   190,
+     192,   151,   154,   212,   156,   157,    90,   211,   213,  -283,
+     191,   194,  -283,   197,   159,  -283,    19,  -283,    10,   160,
+     189,   223,   224,   164,   165,   167,   168,   202,   209,  -283,
+     -28,  -283,  -283,   169,   207,   155,   172,   173,   176,   178,
+     179,   180,   181,   184,  -283,  -283,  -283,  -283,   186,  -283,
+     195,   198,  -283,  -283,  -283,  -283,  -283,  -283,  -283,   169,
+    -283,   203,   200,   201,    36,   240,   243,   244,   246,   204,
+     205,   212,  -283,   212,   206,   208,   210,   248,   247,   249,
+     228,   230,    87,    87,    -1,    18,    15,    33,   214,   253,
+     222,   255,  -283,   215,   216,   217,   218,   256,   258,  -283,
+    -283,   257,   260,   262,   219,   220,   221,   225,   226,   227,
+     229,   231,   232,   233,   234,    48,  -283,  -283,   235,    64,
+    -283,   268,   236,   238,   239,  -283,  -283,  -283,  -283,   242,
+     245,   250,   251,   252,  -283,   241,  -283,   -14,   237,   264,
+     272,  -283,  -283,  -283,    30,    57,  -283,  -283,    33,  -283,
+     254,  -283,   274,  -283,   259,  -283,  -283,   261,  -283,   263,
+     265,   266,   267,   269,   270,  -283,   271,   273,    92,  -283,
+    -283,  -283,  -283,   275,   277,   278,   282,  -283,  -283,  -283,
+     283,   294,    25,    30,    57,  -283,  -283,   300,   303,   279,
+     281,   284,   285,  -283,  -283,   286,   287,  -283,   288,   289,
+    -283,  -283,  -283,  -283,  -283,   169,  -283,  -283,   290,   291,
+     292,   280,   293,   276,     3,     3,     8,   147,  -283,  -283,
+     295,   296,   297,  -283,   298,  -283,    99,  -283,   102,   299,
+     301,  -283,  -283,  -283,   103,   107,   306,   308,   309,    25,
+       3,  -283,  -283,   175,  -283,   185,  -283,   305,  -283,   302,
+     304,   307,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -1011,59 +1042,67 @@ static const yytype_int16 yypact[] =
 static const yytype_uint8 yydefact[] =
 {
        2,     0,     1,     0,     0,     4,     0,     0,     0,     0,
-      50,    52,     0,     0,     0,     0,     0,     0,     0,     0,
-      61,     0,     0,     0,     0,   148,     0,   146,     0,     0,
-       3,     0,    10,    11,    12,    39,    13,    14,    15,    45,
-      16,    17,    19,    20,    18,    21,    27,    22,    69,    70,
-      23,    24,    25,    26,    31,    32,    33,    34,    35,    29,
-      30,    28,     7,     6,     9,     0,    37,     0,     0,    42,
-       0,     0,     0,     0,    57,    53,    55,    59,     0,    62,
-       0,     0,    73,     0,     0,    86,    84,    82,    83,    88,
-      89,     0,     0,    94,   147,   149,     8,     5,   106,   105,
-       0,     0,    99,     0,     0,    36,    41,    40,    49,    48,
-      46,     0,     0,     0,     0,     0,    80,     0,    71,    78,
-       0,     0,     0,    98,     0,     0,    90,     0,     0,    38,
-       0,   100,     0,    43,     0,     0,     0,     0,     0,     0,
-       0,    68,     0,    64,    66,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,   107,   101,   125,   104,     0,   126,
-       0,     0,   102,   103,   118,   119,   121,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    63,     0,     0,     0,
+      51,    54,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    65,     0,     0,     0,     0,   168,     0,   166,     0,
+       0,     3,     0,    10,    11,    12,    40,    13,    14,    15,
+      46,    16,    17,    19,    20,    18,    21,    28,    22,    72,
+      73,    23,    24,    25,    26,    27,    32,    33,    34,    35,
+      36,    30,    31,    29,     7,     6,     9,     0,    38,     0,
+       0,    43,     0,     0,     0,     0,     0,    61,    57,    59,
+      63,     0,     0,    66,     0,     0,    76,     0,     0,    95,
+      92,    90,    91,    98,    99,     0,     0,   104,   167,   169,
+       8,     5,   118,   117,     0,     0,   110,     0,     0,    37,
+      42,    41,    50,    49,    47,     0,     0,     0,     0,     0,
+       0,    86,    88,     0,    74,    82,     0,     0,     0,   108,
+       0,     0,   100,     0,     0,    39,     0,   111,     0,    44,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,   141,
+       0,    68,    71,    70,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,   119,   112,   140,   116,     0,   142,
+       0,     0,   115,   113,   114,   130,   131,   133,   137,   138,
+     139,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    67,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,    51,     0,     0,     0,     0,     0,    65,    67,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,   108,     0,     0,   123,     0,     0,    58,
-      54,    56,    60,     0,     0,     0,    75,    74,     0,     0,
-      87,    85,    93,    91,    92,     0,     0,   111,   120,     0,
-     122,     0,    47,    81,    72,    79,     0,     0,     0,     0,
-       0,   109,     0,     0,     0,   112,   113,   124,    44,     0,
-       0,    97,    96,    95,     0,     0,     0,   110,     0,     0,
-     138,   142,     0,     0,   137,     0,     0,   127,   132,   134,
-     117,   116,   115,   114,    76,    77,     0,     0,     0,     0,
-       0,     0,   128,   130,     0,     0,     0,   140,   144,     0,
-       0,     0,     0,   135,   136,     0,   133,     0,   139,     0,
-     143,   131,   129,   141,   145
+      52,     0,    55,     0,     0,     0,     0,     0,     0,    69,
+     109,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,   120,   138,     0,     0,
+     135,     0,     0,     0,     0,    62,    58,    60,    64,     0,
+       0,     0,     0,     0,    77,    78,    79,     0,     0,    96,
+      93,   103,   101,   102,     0,     0,   123,   132,     0,   134,
+       0,    48,     0,    56,     0,    89,    75,    83,    84,     0,
+       0,     0,     0,     0,     0,   121,     0,     0,     0,   124,
+     125,   136,    45,     0,     0,     0,     0,   107,   106,   105,
+       0,     0,     0,     0,     0,   122,    53,     0,     0,     0,
+       0,     0,   155,   154,   162,     0,     0,   149,     0,     0,
+     143,   144,   146,   129,   128,    70,   126,   127,     0,     0,
+      80,     0,     0,     0,     0,     0,     0,     0,    87,    85,
+       0,     0,     0,   156,     0,   152,     0,   150,     0,     0,
+       0,   159,   158,   164,     0,     0,     0,     0,     0,     0,
+       0,   147,   148,     0,   145,     0,   157,     0,   163,     0,
+       0,     0,   153,   151,   161,   160,   165,    81,    97,    94
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,
-    -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,  -206,    -5,
-    -206,  -174,    59,  -206,  -206,  -206,  -206,   -26,  -206,  -206,
-    -206,  -206,  -206,  -206,  -206,  -206,   244,    -9,  -206,  -206,
-    -206,  -206,   -19,  -184,  -206,    74,  -206,  -182,    -3,   -21,
-     -30,  -205,   -14,  -206,  -206,  -206,  -206,  -206,  -206,  -206
+    -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,
+    -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,  -283,    12,
+    -283,  -189,  -283,  -283,  -283,  -283,  -283,   -26,  -283,  -283,
+    -283,  -283,  -283,  -283,  -283,  -283,   310,   317,   -21,  -283,
+    -283,  -283,  -283,   -29,  -201,  -283,   112,  -283,  -202,  -283,
+    -123,  -283,    17,  -282,   -13,   -37,   -12,  -283,  -283,  -283,
+    -283,  -283,  -283,  -283
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
-       0,     1,    30,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    42,    43,    44,    45,    46,    82,
-     142,   143,   144,    47,    48,    49,    50,    89,    51,    52,
-      53,    54,    55,    56,    57,    58,   101,   102,   103,   212,
-     162,   254,   255,   163,   164,   165,   215,   166,   256,   291,
-     292,   293,   278,   299,   279,   300,    59,    60,    61,    62
+       0,     1,    31,    32,    33,    34,    35,    36,    37,    38,
+      39,    40,    41,    42,    43,    44,    45,    46,    47,    86,
+     150,   151,    48,    49,    50,    51,    52,    93,    53,    54,
+      55,    56,    57,    58,    59,    60,   152,   105,   106,   107,
+     235,   173,   288,   289,   174,   175,   176,   239,   177,   178,
+     237,   180,   290,   345,   346,   347,   321,   354,   322,   355,
+      61,    62,    63,    64
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -1071,130 +1110,166 @@ static const yytype_int16 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      94,   198,    95,   213,    65,   141,   156,   216,   156,   156,
-     270,   157,    79,    73,    86,   248,   270,   290,   271,    66,
-      79,   156,   270,    74,   271,    83,    98,    99,    84,   249,
-     156,   175,    80,    81,   236,   176,   237,    98,    99,   105,
-      70,   106,   107,   156,   108,   109,   110,   159,   158,   159,
-     159,   251,   116,   160,   272,   273,   160,   257,   274,   277,
-     272,   273,   159,   275,   274,   126,    98,    99,   160,   275,
-     161,   159,   161,   161,   295,   118,   119,   160,   211,    85,
-     276,   281,   129,    75,   159,   161,   276,   100,    67,    68,
-     252,   280,   131,    78,   161,   131,   311,   130,   100,   147,
-       2,     3,   148,    69,   239,    63,   240,     4,     5,     6,
-       7,   133,    64,     8,     9,    10,    11,    12,    13,    14,
-      15,   155,    16,    17,    76,    18,   130,   100,    19,   253,
-      20,   208,    77,    21,    22,    90,    23,   266,   297,   267,
-     298,    96,    24,   209,   302,   210,   303,   302,   307,   304,
-     308,    71,    72,    25,    26,    27,    28,    29,   206,   207,
-     309,    91,   310,    87,    88,    92,    93,   121,   122,    97,
-     111,   112,   113,   114,   115,    79,   120,   123,   117,   135,
-     124,   125,   127,   128,   132,   134,   136,   137,   138,   139,
-     140,   141,   149,   151,   145,   146,   150,   153,   152,   167,
-     169,   170,   171,   168,   154,   172,   173,   174,   177,   178,
-     179,   180,   181,   182,   183,   193,   184,   190,   185,   186,
-     194,   195,   187,   196,   202,   203,   204,   205,   218,   223,
-     224,   188,   241,   225,   189,   191,   199,   192,   197,   200,
-     201,   246,   268,   217,   297,   247,   269,   282,   250,   219,
-     220,   313,   221,   222,   226,   227,   230,   228,   229,   314,
-     231,   232,   214,   283,   233,   234,   294,   238,   242,   243,
-     244,   245,   312,   235,   296,   258,   261,     0,     0,     0,
-       0,     0,   259,   104,     0,   260,     0,     0,     0,     0,
-     262,   263,     0,     0,   284,   285,   286,   287,     0,   264,
-     265,   288,   289,   301,   305,     0,   306
+     153,    98,   219,    99,   236,   240,   312,   313,   344,   314,
+     280,   312,   313,   149,   166,   179,   167,    65,   149,   166,
+     320,   149,   166,   231,   102,   103,    83,   281,   312,   313,
+      66,   314,    90,   149,   166,   191,   149,   166,   232,   192,
+     233,   109,    87,   110,   111,    88,   112,   113,   114,   315,
+     316,   102,   103,   317,    72,   121,   122,   168,   318,   169,
+     102,   103,   286,   285,   169,   170,   291,   169,   153,   132,
+     220,   315,   316,   170,   234,   317,   319,   372,    77,   169,
+     318,   349,   169,   171,   137,   170,    83,   137,   171,    89,
+     104,   171,    91,    92,    69,    70,   124,   125,   319,   211,
+     135,   212,   324,   171,    67,   287,    81,    84,    85,   139,
+      71,   265,    75,   266,   323,   165,   136,   104,   156,    76,
+      68,   157,   158,     2,     3,   136,   104,   268,    78,   269,
+       4,     5,     6,     7,    96,    97,     8,     9,    10,    11,
+      12,    13,    14,    15,    79,    16,    17,    18,    80,    19,
+     351,   352,    20,   353,    82,   304,    21,   305,   127,   128,
+      22,    23,   360,    24,   361,   360,   365,   362,   366,    25,
+     367,    94,   368,    73,    74,    95,   229,   230,   351,   352,
+     325,    26,    27,    28,    29,    30,   195,   196,   374,   375,
+     100,   101,   115,   116,   117,   118,   119,   120,    83,   129,
+     126,   123,   130,   131,   134,   138,   133,   140,   143,   144,
+     141,   145,   142,   146,   147,   149,   159,   148,   160,   154,
+     155,   161,   163,   181,   162,   182,   183,   184,   185,   186,
+     164,   187,   188,   189,   190,   194,   197,   198,   193,   208,
+     199,   200,   201,   213,   202,   203,   214,   215,   204,   216,
+     205,   224,   225,   227,   226,   228,   242,   243,   244,   206,
+     251,   249,   207,   250,   209,   252,   210,   253,   217,   218,
+     221,   270,   222,   279,   223,   326,   282,   293,   241,   343,
+     245,   246,   247,   248,   254,   255,   256,   309,   310,   257,
+     258,   294,   259,   295,   260,   283,   261,   262,   263,   311,
+     267,   271,   272,   284,   273,   328,   264,   274,   329,   369,
+     275,   376,   341,   370,   371,   276,   277,   278,   238,   292,
+     340,   327,   348,   373,   350,   342,     0,   296,     0,     0,
+     297,   298,   299,   300,   301,     0,     0,     0,     0,     0,
+     306,   307,   308,   302,   330,   303,   331,     0,     0,   332,
+     334,   335,   336,   337,   333,   338,   339,   108,     0,   356,
+     357,   358,     0,   363,     0,     0,   364,   377,     0,   378,
+     359,     0,   379,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,   172
 };
 
 static const yytype_int16 yycheck[] =
 {
-      26,   175,    28,   187,    11,     3,     4,   189,     4,     4,
-       4,     6,     5,    58,    19,    23,     4,     5,     6,    26,
-       5,     4,     4,     3,     6,    38,     5,     6,    41,    37,
-       4,    58,    25,    26,    58,    62,    60,     5,     6,    65,
-      11,    67,    68,     4,    70,    71,    72,    45,    43,    45,
-      45,   235,    78,    51,    42,    43,    51,   239,    46,   264,
-      42,    43,    45,    51,    46,    91,     5,     6,    51,    51,
-      68,    45,    68,    68,    68,    80,    81,    51,    52,    64,
-      68,   265,    50,     3,    45,    68,    68,    66,    11,    12,
-       5,   265,   101,    12,    68,   104,   301,    65,    66,    24,
-       0,     1,    27,    26,    58,     8,    60,     7,     8,     9,
-      10,    50,     8,    13,    14,    15,    16,    17,    18,    19,
-      20,   130,    22,    23,     3,    25,    65,    66,    28,    44,
-      30,    23,     3,    33,    34,     5,    36,    58,     4,    60,
-       6,     8,    42,    35,    58,    37,    60,    58,    58,    60,
-      60,    11,    12,    53,    54,    55,    56,    57,   184,   185,
-      58,    12,    60,     5,     6,    39,    40,     5,     6,     8,
-      31,    58,    58,    58,    58,     5,    58,     3,    61,    59,
-      58,    58,    58,     5,    49,    58,    21,    21,    21,    21,
-      58,     3,     5,    29,    58,    58,     5,    24,    29,    58,
-       3,    59,    59,    32,    66,    59,    59,    24,    63,    27,
-      24,    59,    59,    58,    58,     3,    59,    32,    59,    59,
-       3,     3,    59,     3,     5,     3,    24,    24,     3,     5,
-       3,    59,     3,     5,    59,    59,   177,    60,    59,    59,
-      59,    27,     3,    59,     4,    24,     5,   266,    35,    60,
-      60,     4,    60,    60,    60,    60,    60,    59,    59,     6,
-      60,    60,   188,   266,    60,    60,   287,    60,    60,    60,
-      60,    60,   302,    67,   288,    60,    60,    -1,    -1,    -1,
-      -1,    -1,    59,    39,    -1,    59,    -1,    -1,    -1,    -1,
-      60,    60,    -1,    -1,    60,    60,    59,    59,    -1,    67,
-      67,    59,    59,    67,    59,    -1,    60
+     123,    27,   191,    29,   205,   207,     3,     4,     5,     6,
+      24,     3,     4,     3,     4,   138,     6,     8,     3,     4,
+     302,     3,     4,    24,     5,     6,     5,    41,     3,     4,
+       8,     6,    20,     3,     4,    63,     3,     4,    39,    67,
+      41,    67,    42,    69,    70,    45,    72,    73,    74,    46,
+      47,     5,     6,    50,    11,    81,    82,    47,    55,    49,
+       5,     6,     5,   264,    49,    55,   268,    49,   191,    95,
+     193,    46,    47,    55,    56,    50,    73,   359,     3,    49,
+      55,    73,    49,    73,   105,    55,     5,   108,    73,    68,
+      71,    73,     5,     6,    11,    12,    84,    85,    73,    63,
+      54,    65,   303,    73,    11,    48,    12,    26,    27,    54,
+      27,    63,    63,    65,   303,   136,    70,    71,    28,    63,
+      27,    31,    32,     0,     1,    70,    71,    63,     3,    65,
+       7,     8,     9,    10,    43,    44,    13,    14,    15,    16,
+      17,    18,    19,    20,     3,    22,    23,    24,     3,    26,
+       3,     4,    29,     6,    12,    63,    33,    65,     5,     6,
+      37,    38,    63,    40,    65,    63,    63,    65,    65,    46,
+      63,     5,    65,    11,    12,    12,   202,   203,     3,     4,
+     303,    58,    59,    60,    61,    62,    31,    32,     3,     4,
+       8,     8,    34,    57,    63,    63,    63,    63,     5,     3,
+      63,    66,    63,    63,     5,    53,    63,    63,    21,    21,
+      64,    21,    64,    21,    63,     3,     5,    63,     5,    63,
+      63,    30,    25,    63,    30,    36,     3,     3,    64,    64,
+      71,    64,    64,    31,    25,    28,    64,    64,    69,    36,
+      64,    63,    63,     3,    64,    64,     3,     3,    64,     3,
+      64,     3,     5,    25,     5,    25,     3,    35,     3,    64,
+       3,     5,    64,     5,    64,     5,    65,     5,    64,    64,
+      64,     3,    64,    32,    64,   304,    39,     3,    64,     3,
+      65,    65,    65,    65,    65,    65,    65,     5,     5,    64,
+      64,    32,    65,    32,    65,    31,    65,    65,    65,     5,
+      65,    65,    64,    31,    65,     5,    72,    65,     5,     3,
+      65,     6,    32,     5,     5,    65,    65,    65,   206,    65,
+      28,   304,   335,   360,   336,    32,    -1,    64,    -1,    -1,
+      65,    65,    65,    64,    64,    -1,    -1,    -1,    -1,    -1,
+      65,    64,    64,    72,    65,    72,    65,    -1,    -1,    65,
+      64,    64,    64,    64,    69,    65,    65,    40,    -1,    64,
+      64,    64,    -1,    64,    -1,    -1,    65,    65,    -1,    65,
+      72,    -1,    65,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,   138
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    70,     0,     1,     7,     8,     9,    10,    13,    14,
-      15,    16,    17,    18,    19,    20,    22,    23,    25,    28,
-      30,    33,    34,    36,    42,    53,    54,    55,    56,    57,
-      71,    72,    73,    74,    75,    76,    77,    78,    79,    80,
-      81,    82,    83,    84,    85,    86,    87,    92,    93,    94,
-      95,    97,    98,    99,   100,   101,   102,   103,   104,   125,
-     126,   127,   128,     8,     8,    11,    26,    11,    12,    26,
-      11,    11,    12,    58,     3,     3,     3,     3,    12,     5,
-      25,    26,    88,    38,    41,    64,    88,     5,     6,    96,
-       5,    12,    39,    40,    96,    96,     8,     8,     5,     6,
-      66,   105,   106,   107,   105,    96,    96,    96,    96,    96,
-      96,    31,    58,    58,    58,    58,    96,    61,    88,    88,
-      58,     5,     6,     3,    58,    58,    96,    58,     5,    50,
-      65,   106,    49,    50,    58,    59,    21,    21,    21,    21,
-      58,     3,    89,    90,    91,    58,    58,    24,    27,     5,
-       5,    29,    29,    24,    66,   106,     4,     6,    43,    45,
-      51,    68,   109,   112,   113,   114,   116,    58,    32,     3,
-      59,    59,    59,    59,    24,    58,    62,    63,    27,    24,
-      59,    59,    58,    58,    59,    59,    59,    59,    59,    59,
-      32,    59,    60,     3,     3,     3,     3,    59,    90,    91,
-      59,    59,     5,     3,    24,    24,    96,    96,    23,    35,
-      37,    52,   108,   112,   114,   115,   116,    59,     3,    60,
-      60,    60,    60,     5,     3,     5,    60,    60,    59,    59,
-      60,    60,    60,    60,    60,    67,    58,    60,    60,    58,
-      60,     3,    60,    60,    60,    60,    27,    24,    23,    37,
-      35,   112,     5,    44,   110,   111,   117,   116,    60,    59,
-      59,    60,    60,    60,    67,    67,    58,    60,     3,     5,
-       4,     6,    42,    43,    46,    51,    68,   120,   121,   123,
-      90,   112,   111,   117,    60,    60,    59,    59,    59,    59,
-       5,   118,   119,   120,   118,    68,   121,     4,     6,   122,
-     124,    67,    58,    60,    60,    59,    60,    58,    60,    58,
-      60,   120,   119,     4,     6
+       0,    75,     0,     1,     7,     8,     9,    10,    13,    14,
+      15,    16,    17,    18,    19,    20,    22,    23,    24,    26,
+      29,    33,    37,    38,    40,    46,    58,    59,    60,    61,
+      62,    76,    77,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    96,    97,
+      98,    99,   100,   102,   103,   104,   105,   106,   107,   108,
+     109,   134,   135,   136,   137,     8,     8,    11,    27,    11,
+      12,    27,    11,    11,    12,    63,    63,     3,     3,     3,
+       3,    12,    12,     5,    26,    27,    93,    42,    45,    68,
+      93,     5,     6,   101,     5,    12,    43,    44,   101,   101,
+       8,     8,     5,     6,    71,   111,   112,   113,   111,   101,
+     101,   101,   101,   101,   101,    34,    57,    63,    63,    63,
+      63,   101,   101,    66,    93,    93,    63,     5,     6,     3,
+      63,    63,   101,    63,     5,    54,    70,   112,    53,    54,
+      63,    64,    64,    21,    21,    21,    21,    63,    63,     3,
+      94,    95,   110,   124,    63,    63,    28,    31,    32,     5,
+       5,    30,    30,    25,    71,   112,     4,     6,    47,    49,
+      55,    73,   110,   115,   118,   119,   120,   122,   123,   124,
+     125,    63,    36,     3,     3,    64,    64,    64,    64,    31,
+      25,    63,    67,    69,    28,    31,    32,    64,    64,    64,
+      63,    63,    64,    64,    64,    64,    64,    64,    36,    64,
+      65,    63,    65,     3,     3,     3,     3,    64,    64,    95,
+     124,    64,    64,    64,     3,     5,     5,    25,    25,   101,
+     101,    24,    39,    41,    56,   114,   118,   124,   120,   121,
+     122,    64,     3,    35,     3,    65,    65,    65,    65,     5,
+       5,     3,     5,     5,    65,    65,    65,    64,    64,    65,
+      65,    65,    65,    65,    72,    63,    65,    65,    63,    65,
+       3,    65,    64,    65,    65,    65,    65,    65,    65,    32,
+      24,    41,    39,    31,    31,   118,     5,    48,   116,   117,
+     126,   122,    65,     3,    32,    32,    64,    65,    65,    65,
+      64,    64,    72,    72,    63,    65,    65,    64,    64,     5,
+       5,     5,     3,     4,     6,    46,    47,    50,    55,    73,
+     127,   130,   132,    95,   118,   124,   117,   126,     5,     5,
+      65,    65,    65,    69,    64,    64,    64,    64,    65,    65,
+      28,    32,    32,     3,     5,   127,   128,   129,   128,    73,
+     130,     3,     4,     6,   131,   133,    64,    64,    64,    72,
+      63,    65,    65,    64,    65,    63,    65,    63,    65,     3,
+       5,     5,   127,   129,     3,     4,     6,    65,    65,    65
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    69,    70,    70,    71,    71,    71,    71,    71,    71,
-      72,    72,    72,    72,    72,    72,    72,    72,    72,    72,
-      72,    72,    72,    72,    72,    72,    72,    72,    72,    72,
-      72,    72,    72,    72,    72,    72,    73,    73,    74,    74,
-      75,    76,    77,    78,    78,    78,    79,    79,    80,    80,
-      81,    81,    82,    83,    83,    84,    84,    85,    85,    86,
-      86,    87,    88,    88,    89,    89,    90,    90,    91,    92,
-      92,    93,    93,    93,    93,    93,    93,    93,    94,    94,
-      95,    95,    96,    96,    97,    97,    97,    97,    98,    99,
-     100,   101,   101,   101,   102,   103,   103,   103,   104,   105,
-     105,   105,   106,   106,   106,   107,   107,   107,   108,   108,
-     109,   109,   110,   110,   110,   110,   111,   111,   112,   112,
-     113,   114,   114,   115,   115,   116,   116,   117,   118,   118,
-     119,   119,   120,   120,   120,   120,   120,   120,   121,   121,
-     122,   122,   123,   123,   124,   124,   125,   126,   127,   128
+       0,    74,    75,    75,    76,    76,    76,    76,    76,    76,
+      77,    77,    77,    77,    77,    77,    77,    77,    77,    77,
+      77,    77,    77,    77,    77,    77,    77,    77,    77,    77,
+      77,    77,    77,    77,    77,    77,    77,    78,    78,    79,
+      79,    80,    81,    82,    83,    83,    83,    84,    84,    85,
+      85,    86,    86,    86,    87,    87,    87,    88,    88,    89,
+      89,    90,    90,    91,    91,    92,    93,    93,    94,    94,
+      95,    95,    96,    96,    97,    97,    97,    97,    97,    97,
+      97,    97,    98,    98,    98,    98,    99,    99,   100,   100,
+     101,   101,   102,   102,   102,   102,   102,   102,   103,   104,
+     105,   106,   106,   106,   107,   108,   108,   108,   109,   110,
+     111,   111,   111,   112,   112,   112,   112,   113,   113,   113,
+     114,   114,   115,   115,   116,   116,   116,   116,   117,   117,
+     118,   118,   119,   120,   120,   121,   121,   122,   122,   122,
+     123,   124,   125,   126,   127,   127,   127,   127,   127,   127,
+     128,   128,   129,   129,   130,   130,   130,   130,   131,   131,
+     131,   131,   132,   132,   133,   133,   134,   135,   136,   137
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -1203,18 +1278,20 @@ static const yytype_int8 yyr2[] =
        0,     2,     0,     2,     1,     2,     2,     1,     2,     2,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     3,     2,     3,     1,
-       3,     3,     2,     3,     8,     1,     3,     8,     3,     3,
-       1,     6,     1,     2,     7,     2,     7,     2,     7,     2,
-       7,     1,     1,     4,     1,     3,     1,     3,     1,     1,
-       1,     3,     8,     2,     7,     7,    11,    11,     3,     8,
-       3,     8,     1,     1,     2,     7,     2,     7,     2,     2,
-       3,     7,     7,     7,     2,     9,     9,     9,     3,     1,
-       2,     3,     3,     3,     3,     1,     1,     3,     1,     3,
-       6,     4,     1,     1,     3,     3,     3,     3,     1,     1,
-       4,     1,     4,     1,     3,     1,     1,     3,     1,     3,
-       1,     3,     1,     4,     1,     4,     4,     1,     1,     4,
-       1,     3,     1,     4,     1,     3,     1,     2,     1,     2
+       1,     1,     1,     1,     1,     1,     1,     3,     2,     3,
+       1,     3,     3,     2,     3,     8,     1,     3,     8,     3,
+       3,     1,     6,    10,     1,     6,     8,     2,     7,     2,
+       7,     2,     7,     2,     7,     1,     1,     4,     1,     3,
+       1,     1,     1,     1,     3,     8,     2,     7,     7,     7,
+      11,    15,     3,     8,     8,    12,     3,    12,     3,     8,
+       1,     1,     2,     7,    15,     2,     7,    15,     2,     2,
+       3,     7,     7,     7,     2,     9,     9,     9,     3,     3,
+       1,     2,     3,     3,     3,     3,     3,     1,     1,     3,
+       1,     3,     6,     4,     1,     1,     3,     3,     3,     3,
+       1,     1,     4,     1,     4,     1,     3,     1,     1,     1,
+       1,     1,     1,     3,     1,     4,     1,     4,     4,     1,
+       1,     3,     1,     3,     1,     1,     3,     4,     1,     1,
+       3,     3,     1,     4,     1,     3,     1,     2,     1,     2
 };
 
 
@@ -1678,61 +1755,61 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* input: %empty  */
-#line 181 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-       {
+#line 188 "../../../../mcmc-jags/src/terminal/parser.yy"
+              {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
 }
-#line 1687 "parser.cc"
+#line 1764 "parser.cc"
     break;
 
   case 3: /* input: input line  */
-#line 185 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 192 "../../../../mcmc-jags/src/terminal/parser.yy"
              {
     if (interactive && command_buffer_count == 0) 
 	std::cout << ". " << std::flush;
 }
-#line 1696 "parser.cc"
+#line 1773 "parser.cc"
     break;
 
   case 4: /* line: ENDCMD  */
-#line 191 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 198 "../../../../mcmc-jags/src/terminal/parser.yy"
              {}
-#line 1702 "parser.cc"
+#line 1779 "parser.cc"
     break;
 
   case 5: /* line: command ENDCMD  */
-#line 192 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 199 "../../../../mcmc-jags/src/terminal/parser.yy"
                  {}
-#line 1708 "parser.cc"
+#line 1785 "parser.cc"
     break;
 
   case 6: /* line: error ENDCMD  */
-#line 193 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 200 "../../../../mcmc-jags/src/terminal/parser.yy"
                {if(interactive) yyerrok; else exit(1); }
-#line 1714 "parser.cc"
+#line 1791 "parser.cc"
     break;
 
   case 7: /* line: run_script  */
-#line 194 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 201 "../../../../mcmc-jags/src/terminal/parser.yy"
              {}
-#line 1720 "parser.cc"
+#line 1797 "parser.cc"
     break;
 
   case 8: /* line: ENDSCRIPT ENDCMD  */
-#line 195 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 202 "../../../../mcmc-jags/src/terminal/parser.yy"
                    {}
-#line 1726 "parser.cc"
+#line 1803 "parser.cc"
     break;
 
   case 9: /* line: SYSCMD ENDCMD  */
-#line 196 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 203 "../../../../mcmc-jags/src/terminal/parser.yy"
                 { doSystem((yyvsp[-1].stringptr)); delete (yyvsp[-1].stringptr);}
-#line 1732 "parser.cc"
+#line 1809 "parser.cc"
     break;
 
-  case 36: /* model: MODEL IN file_name  */
-#line 227 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 37: /* model: MODEL IN file_name  */
+#line 235 "../../../../mcmc-jags/src/terminal/parser.yy"
                           {
     std::FILE *file = std::fopen(ExpandFileName(((yyvsp[0].stringptr))->c_str()).c_str(), "r");
     if (!file) {
@@ -1745,19 +1822,19 @@ yyreduce:
     }
     delete (yyvsp[0].stringptr);
  }
-#line 1749 "parser.cc"
+#line 1826 "parser.cc"
     break;
 
-  case 37: /* model: MODEL CLEAR  */
-#line 239 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 38: /* model: MODEL CLEAR  */
+#line 247 "../../../../mcmc-jags/src/terminal/parser.yy"
               {
     console->clearModel();
  }
-#line 1757 "parser.cc"
+#line 1834 "parser.cc"
     break;
 
-  case 38: /* data_in: data r_assignment_list ENDDATA  */
-#line 244 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 39: /* data_in: data r_assignment_list ENDDATA  */
+#line 252 "../../../../mcmc-jags/src/terminal/parser.yy"
                                         {
     std::string rngname;
     readRData((yyvsp[-1].pvec), _data_table, rngname);
@@ -1766,29 +1843,29 @@ yyreduce:
     }
     delete_pvec((yyvsp[-1].pvec));
  }
-#line 1770 "parser.cc"
+#line 1847 "parser.cc"
     break;
 
-  case 39: /* data_in: data  */
-#line 252 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 40: /* data_in: data  */
+#line 260 "../../../../mcmc-jags/src/terminal/parser.yy"
        {
     // Failed to open the data file 
     if (!interactive) exit(1);
   }
-#line 1779 "parser.cc"
+#line 1856 "parser.cc"
     break;
 
-  case 40: /* data_to: DATA TO file_name  */
-#line 258 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 41: /* data_to: DATA TO file_name  */
+#line 266 "../../../../mcmc-jags/src/terminal/parser.yy"
                            {
-    doDump(*(yyvsp[0].stringptr), jags::DUMP_DATA, 1);
+    doDump(*(yyvsp[0].stringptr), jags::DATA_VALUES, 1);
     delete (yyvsp[0].stringptr);
 }
-#line 1788 "parser.cc"
+#line 1865 "parser.cc"
     break;
 
-  case 41: /* data: DATA IN file_name  */
-#line 264 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 42: /* data: DATA IN file_name  */
+#line 272 "../../../../mcmc-jags/src/terminal/parser.yy"
                         {
     if(open_data_buffer((yyvsp[0].stringptr))) {
 	std::cout << "Reading data file " << *(yyvsp[0].stringptr) << std::endl;
@@ -1799,20 +1876,20 @@ yyreduce:
     }
     delete (yyvsp[0].stringptr);
  }
-#line 1803 "parser.cc"
+#line 1880 "parser.cc"
     break;
 
-  case 42: /* data_clear: DATA CLEAR  */
-#line 276 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 43: /* data_clear: DATA CLEAR  */
+#line 284 "../../../../mcmc-jags/src/terminal/parser.yy"
                        {
     std::cout << "Clearing data table " << std::endl;
     _data_table.clear();
 }
-#line 1812 "parser.cc"
+#line 1889 "parser.cc"
     break;
 
-  case 43: /* parameters_in: parameters r_assignment_list ENDDATA  */
-#line 283 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 44: /* parameters_in: parameters r_assignment_list ENDDATA  */
+#line 291 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     std::map<std::string, jags::SArray> parameter_table;
     std::string rngname;
@@ -1838,11 +1915,11 @@ yyreduce:
     print_unused_variables(parameter_table, false);
 
 }
-#line 1842 "parser.cc"
+#line 1919 "parser.cc"
     break;
 
-  case 44: /* parameters_in: parameters r_assignment_list ENDDATA ',' CHAIN '(' INT ')'  */
-#line 309 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 45: /* parameters_in: parameters r_assignment_list ENDDATA ',' CHAIN '(' INT ')'  */
+#line 317 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     std::map<std::string, jags::SArray> parameter_table;
     std::string rngname;
@@ -1856,35 +1933,35 @@ yyreduce:
     Jtry(console->setParameters(parameter_table, (yyvsp[-1].intval)));
     print_unused_variables(parameter_table, false);
 }
-#line 1860 "parser.cc"
+#line 1937 "parser.cc"
     break;
 
-  case 45: /* parameters_in: parameters  */
-#line 322 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 46: /* parameters_in: parameters  */
+#line 330 "../../../../mcmc-jags/src/terminal/parser.yy"
              {}
-#line 1866 "parser.cc"
+#line 1943 "parser.cc"
     break;
 
-  case 46: /* parameters_to: PARAMETERS TO file_name  */
-#line 325 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 47: /* parameters_to: PARAMETERS TO file_name  */
+#line 333 "../../../../mcmc-jags/src/terminal/parser.yy"
                                        {
-    doDump(*(yyvsp[0].stringptr), jags::DUMP_PARAMETERS, 1);
+    doDump(*(yyvsp[0].stringptr), jags::PARAMETER_VALUES, 1);
     delete (yyvsp[0].stringptr);
 }
-#line 1875 "parser.cc"
+#line 1952 "parser.cc"
     break;
 
-  case 47: /* parameters_to: PARAMETERS TO file_name ',' CHAIN '(' INT ')'  */
-#line 329 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 48: /* parameters_to: PARAMETERS TO file_name ',' CHAIN '(' INT ')'  */
+#line 337 "../../../../mcmc-jags/src/terminal/parser.yy"
                                                 {
-    doDump(*(yyvsp[-5].stringptr), jags::DUMP_PARAMETERS, (yyvsp[-1].intval));
+    doDump(*(yyvsp[-5].stringptr), jags::PARAMETER_VALUES, (yyvsp[-1].intval));
     delete (yyvsp[-5].stringptr);
 }
-#line 1884 "parser.cc"
+#line 1961 "parser.cc"
     break;
 
-  case 48: /* parameters: PARAMETERS IN file_name  */
-#line 335 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 49: /* parameters: PARAMETERS IN file_name  */
+#line 343 "../../../../mcmc-jags/src/terminal/parser.yy"
                                     {
   if(open_data_buffer((yyvsp[0].stringptr))) {
     std::cout << "Reading parameter file " << *(yyvsp[0].stringptr) << std::endl;
@@ -1894,11 +1971,11 @@ yyreduce:
   }
   delete (yyvsp[0].stringptr);
 }
-#line 1898 "parser.cc"
+#line 1975 "parser.cc"
     break;
 
-  case 49: /* parameters: INITS IN file_name  */
-#line 344 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 50: /* parameters: INITS IN file_name  */
+#line 352 "../../../../mcmc-jags/src/terminal/parser.yy"
                      {
   /* Legacy option to not break existing scripts */
   if(open_data_buffer((yyvsp[0].stringptr))) {
@@ -1909,673 +1986,807 @@ yyreduce:
   }
   delete (yyvsp[0].stringptr);
 }
-#line 1913 "parser.cc"
+#line 1990 "parser.cc"
     break;
 
-  case 50: /* compile: COMPILE  */
-#line 356 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 51: /* compile: COMPILE  */
+#line 364 "../../../../mcmc-jags/src/terminal/parser.yy"
                  {
-    Jtry(console->compile(_data_table, 1, true));
+    Jtry(console->compile(_data_table, 1U, true));
     print_unused_variables(_data_table, true);
  }
-#line 1922 "parser.cc"
+#line 1999 "parser.cc"
     break;
 
-  case 51: /* compile: COMPILE ',' NCHAINS '(' INT ')'  */
-#line 360 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 52: /* compile: COMPILE ',' NCHAINS '(' INT ')'  */
+#line 368 "../../../../mcmc-jags/src/terminal/parser.yy"
                                   {
     Jtry(console->compile(_data_table, (yyvsp[-1].intval), true));
     print_unused_variables(_data_table, true);
 }
-#line 1931 "parser.cc"
+#line 2008 "parser.cc"
     break;
 
-  case 52: /* initialize: INITIALIZE  */
-#line 366 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 53: /* compile: COMPILE ',' NCHAINS '(' INT ')' NTHREADS '(' INT ')'  */
+#line 372 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                       {
+    Jtry(console->compile(_data_table, (yyvsp[-5].intval), true));
+    console->setNThread((yyvsp[-1].intval));
+    print_unused_variables(_data_table, true);
+}
+#line 2018 "parser.cc"
+    break;
+
+  case 54: /* initialize: INITIALIZE  */
+#line 380 "../../../../mcmc-jags/src/terminal/parser.yy"
                        {
-    if (!console->initialize()) {
+    if (!console->initialize(10000U, 10000U)) {
 	errordump();
     }
 }
-#line 1941 "parser.cc"
+#line 2028 "parser.cc"
     break;
 
-  case 53: /* autoadapt: AUTOADAPT INT  */
-#line 373 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                         {
-    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
-    autoadaptstar((yyvsp[0].intval), refresh, 50);
+  case 55: /* initialize: INITIALIZE ',' NREP '(' INT ')'  */
+#line 385 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                  {
+    if (!console->initialize((yyvsp[-1].intval), (yyvsp[-1].intval))) {
+	errordump();
+    }
 }
-#line 1950 "parser.cc"
+#line 2038 "parser.cc"
     break;
 
-  case 54: /* autoadapt: AUTOADAPT INT ',' BY '(' INT ')'  */
-#line 377 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                   {
-    autoadaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
-}
-#line 1958 "parser.cc"
-    break;
-
-  case 55: /* forceadapt: FORCEADAPT INT  */
-#line 382 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                           {
-    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
-    adaptstar((yyvsp[0].intval), refresh, 50, true);
-}
-#line 1967 "parser.cc"
-    break;
-
-  case 56: /* forceadapt: FORCEADAPT INT ',' BY '(' INT ')'  */
-#line 386 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                    {
-    adaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50, true);
-}
-#line 1975 "parser.cc"
-    break;
-
-  case 57: /* adapt: ADAPT INT  */
-#line 391 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                 {
-    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
-    adaptstar((yyvsp[0].intval), refresh, 50, false);
-}
-#line 1984 "parser.cc"
-    break;
-
-  case 58: /* adapt: ADAPT INT ',' BY '(' INT ')'  */
-#line 395 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                               {
-    adaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50, false);
-}
-#line 1992 "parser.cc"
-    break;
-
-  case 59: /* update: UPDATE INT  */
-#line 400 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                   {
-    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
-    updatestar((yyvsp[0].intval), refresh, 50);
-}
-#line 2001 "parser.cc"
-    break;
-
-  case 60: /* update: UPDATE INT ',' BY '(' INT ')'  */
-#line 404 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                {
-  updatestar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
-}
-#line 2009 "parser.cc"
-    break;
-
-  case 61: /* exit: EXIT  */
-#line 409 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-           { return 0; }
-#line 2015 "parser.cc"
-    break;
-
-  case 62: /* var: NAME  */
-#line 412 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-          {
-  (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[0].stringptr));
-}
-#line 2023 "parser.cc"
-    break;
-
-  case 63: /* var: NAME '[' range_list ']'  */
-#line 415 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                          {
-  (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[-3].stringptr));
-  setParameters((yyval.ptree), (yyvsp[-1].pvec));
-}
-#line 2032 "parser.cc"
-    break;
-
-  case 64: /* range_list: range_element  */
-#line 421 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                          {
-  (yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree)); 
-}
-#line 2040 "parser.cc"
-    break;
-
-  case 65: /* range_list: range_list ',' range_element  */
-#line 424 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                               {
-  (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
+  case 56: /* initialize: INITIALIZE ',' NREP '(' INT ',' INT ')'  */
+#line 390 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                          {
+    if (!console->initialize((yyvsp[-3].intval), (yyvsp[-1].intval))) {
+	errordump();
+    }
 }
 #line 2048 "parser.cc"
     break;
 
-  case 66: /* range_element: index  */
-#line 429 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                     {
-  (yyval.ptree) = new jags::ParseTree(jags::P_RANGE); setParameters((yyval.ptree), (yyvsp[0].ptree));
+  case 57: /* autoadapt: AUTOADAPT INT  */
+#line 397 "../../../../mcmc-jags/src/terminal/parser.yy"
+                         {
+    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
+    autoadaptstar((yyvsp[0].intval), refresh, 50);
 }
-#line 2056 "parser.cc"
+#line 2057 "parser.cc"
     break;
 
-  case 67: /* range_element: index ':' index  */
-#line 432 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                  {
-  (yyval.ptree) = new jags::ParseTree(jags::P_RANGE); setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
+  case 58: /* autoadapt: AUTOADAPT INT ',' BY '(' INT ')'  */
+#line 401 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                   {
+    autoadaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
 }
-#line 2064 "parser.cc"
+#line 2065 "parser.cc"
     break;
 
-  case 68: /* index: INT  */
-#line 438 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-           {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].intval));}
-#line 2070 "parser.cc"
-    break;
-
-  case 71: /* monitor_set: MONITOR SET var  */
-#line 445 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                              { 
-    setMonitor((yyvsp[0].ptree), 1, "trace"); delete (yyvsp[0].ptree);
+  case 59: /* forceadapt: FORCEADAPT INT  */
+#line 406 "../../../../mcmc-jags/src/terminal/parser.yy"
+                           {
+    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
+    adaptstar((yyvsp[0].intval), refresh, 50, true);
 }
-#line 2078 "parser.cc"
+#line 2074 "parser.cc"
     break;
 
-  case 72: /* monitor_set: MONITOR SET var ',' THIN '(' INT ')'  */
-#line 448 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                       { 
-    setMonitor((yyvsp[-5].ptree), (yyvsp[-1].intval), "trace"); delete (yyvsp[-5].ptree);
-}
-#line 2086 "parser.cc"
-    break;
-
-  case 73: /* monitor_set: MONITOR var  */
-#line 451 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-              {
-    setMonitor((yyvsp[0].ptree), 1, "trace"); delete (yyvsp[0].ptree);
-}
-#line 2094 "parser.cc"
-    break;
-
-  case 74: /* monitor_set: MONITOR var ',' THIN '(' INT ')'  */
-#line 454 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                   { 
-    setMonitor((yyvsp[-5].ptree), (yyvsp[-1].intval), "trace"); delete (yyvsp[-5].ptree);
-}
-#line 2102 "parser.cc"
-    break;
-
-  case 75: /* monitor_set: MONITOR var ',' TYPE '(' NAME ')'  */
-#line 457 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 60: /* forceadapt: FORCEADAPT INT ',' BY '(' INT ')'  */
+#line 410 "../../../../mcmc-jags/src/terminal/parser.yy"
                                     {
-    setMonitor((yyvsp[-5].ptree), 1, *(yyvsp[-1].stringptr));
-    delete (yyvsp[-1].stringptr);
+    adaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50, true);
 }
-#line 2111 "parser.cc"
+#line 2082 "parser.cc"
     break;
 
-  case 76: /* monitor_set: MONITOR var ',' TYPE '(' NAME ')' THIN '(' INT ')'  */
-#line 461 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                                     {
-    setMonitor((yyvsp[-9].ptree), (yyvsp[-1].intval), *(yyvsp[-5].stringptr)); 
-    delete (yyvsp[-5].stringptr);
+  case 61: /* adapt: ADAPT INT  */
+#line 415 "../../../../mcmc-jags/src/terminal/parser.yy"
+                 {
+    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
+    adaptstar((yyvsp[0].intval), refresh, 50, false);
 }
-#line 2120 "parser.cc"
+#line 2091 "parser.cc"
     break;
 
-  case 77: /* monitor_set: MONITOR var ',' THIN '(' INT ')' TYPE '(' NAME ')'  */
-#line 465 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                                     {
-    setMonitor((yyvsp[-9].ptree), (yyvsp[-5].intval), *(yyvsp[-1].stringptr)); 
-    delete (yyvsp[-1].stringptr);
+  case 62: /* adapt: ADAPT INT ',' BY '(' INT ')'  */
+#line 419 "../../../../mcmc-jags/src/terminal/parser.yy"
+                               {
+    adaptstar((yyvsp[-5].intval),(yyvsp[-1].intval), 50, false);
 }
-#line 2129 "parser.cc"
+#line 2099 "parser.cc"
     break;
 
-  case 78: /* monitor_clear: MONITOR CLEAR var  */
-#line 471 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                 {
-    clearMonitor((yyvsp[0].ptree), "trace"); delete (yyvsp[0].ptree);
+  case 63: /* update: UPDATE INT  */
+#line 424 "../../../../mcmc-jags/src/terminal/parser.yy"
+                   {
+    long refresh = interactive ? (yyvsp[0].intval)/50 : 0;
+    updatestar((yyvsp[0].intval), refresh, 50);
 }
-#line 2137 "parser.cc"
+#line 2108 "parser.cc"
     break;
 
-  case 79: /* monitor_clear: MONITOR CLEAR var ',' TYPE '(' NAME ')'  */
-#line 474 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                          {
-    clearMonitor((yyvsp[-5].ptree), *(yyvsp[-1].stringptr));
-    delete (yyvsp[-1].stringptr);
+  case 64: /* update: UPDATE INT ',' BY '(' INT ')'  */
+#line 428 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                {
+  updatestar((yyvsp[-5].intval),(yyvsp[-1].intval), 50);
 }
-#line 2146 "parser.cc"
+#line 2116 "parser.cc"
     break;
 
-  case 80: /* monitors_to: MONITORS TO file_name  */
-#line 481 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-{
-    dumpMonitors(*(yyvsp[0].stringptr), "trace");
-    delete (yyvsp[0].stringptr);
+  case 65: /* exit: EXIT  */
+#line 433 "../../../../mcmc-jags/src/terminal/parser.yy"
+           { return 0; }
+#line 2122 "parser.cc"
+    break;
+
+  case 66: /* var: NAME  */
+#line 436 "../../../../mcmc-jags/src/terminal/parser.yy"
+          {
+  (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[0].stringptr));
+}
+#line 2130 "parser.cc"
+    break;
+
+  case 67: /* var: NAME '[' range_list ']'  */
+#line 439 "../../../../mcmc-jags/src/terminal/parser.yy"
+                          {
+  (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[-3].stringptr));
+  setParameters((yyval.ptree), (yyvsp[-1].pvec));
+}
+#line 2139 "parser.cc"
+    break;
+
+  case 68: /* range_list: range_element  */
+#line 445 "../../../../mcmc-jags/src/terminal/parser.yy"
+                          {
+  (yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree)); 
+}
+#line 2147 "parser.cc"
+    break;
+
+  case 69: /* range_list: range_list ',' range_element  */
+#line 448 "../../../../mcmc-jags/src/terminal/parser.yy"
+                               {
+  (yyval.pvec)=(yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
 #line 2155 "parser.cc"
     break;
 
-  case 81: /* monitors_to: MONITORS TO file_name ',' TYPE '(' NAME ')'  */
-#line 486 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                            {
-    dumpMonitors(*(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr));
-    delete (yyvsp[-5].stringptr);
-    delete (yyvsp[-1].stringptr); 
+  case 74: /* monitor_set: MONITOR SET var  */
+#line 461 "../../../../mcmc-jags/src/terminal/parser.yy"
+                              { 
+    setMonitor((yyvsp[0].ptree), "value", "trace", 1);
+    delete (yyvsp[0].ptree);
 }
-#line 2165 "parser.cc"
+#line 2164 "parser.cc"
     break;
 
-  case 82: /* file_name: NAME  */
-#line 498 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                { (yyval.stringptr) = (yyvsp[0].stringptr);}
-#line 2171 "parser.cc"
-    break;
-
-  case 83: /* file_name: STRING  */
-#line 499 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-         { (yyval.stringptr) = (yyvsp[0].stringptr); }
-#line 2177 "parser.cc"
-    break;
-
-  case 84: /* coda: CODA var  */
-#line 502 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-               {
-  doCoda ((yyvsp[0].ptree), "CODA"); delete (yyvsp[0].ptree);
+  case 75: /* monitor_set: MONITOR SET var ',' THIN '(' INT ')'  */
+#line 465 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                       { 
+    setMonitor((yyvsp[-5].ptree), "value", "trace", (yyvsp[-1].intval));
+    delete (yyvsp[-5].ptree);
 }
-#line 2185 "parser.cc"
+#line 2173 "parser.cc"
     break;
 
-  case 85: /* coda: CODA var ',' STEM '(' file_name ')'  */
-#line 505 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                      {
-  doCoda ((yyvsp[-5].ptree), *(yyvsp[-1].stringptr)); delete (yyvsp[-5].ptree); delete (yyvsp[-1].stringptr);
+  case 76: /* monitor_set: MONITOR var  */
+#line 469 "../../../../mcmc-jags/src/terminal/parser.yy"
+              {
+    setMonitor((yyvsp[0].ptree), "value", "trace", 1);
+    delete (yyvsp[0].ptree);
 }
-#line 2193 "parser.cc"
+#line 2182 "parser.cc"
     break;
 
-  case 86: /* coda: CODA '*'  */
-#line 508 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-           {
-  doAllCoda ("CODA"); 
+  case 77: /* monitor_set: MONITOR var ',' THIN '(' INT ')'  */
+#line 473 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                   { 
+    setMonitor((yyvsp[-5].ptree), "value", "trace", (yyvsp[-1].intval));
+    delete (yyvsp[-5].ptree);
+}
+#line 2191 "parser.cc"
+    break;
+
+  case 78: /* monitor_set: MONITOR var ',' STAT '(' NAME ')'  */
+#line 477 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                     {
+    setMonitor((yyvsp[-5].ptree), *(yyvsp[-1].stringptr), "trace", 1);
+    delete (yyvsp[-5].ptree);
+    delete (yyvsp[-1].stringptr);
 }
 #line 2201 "parser.cc"
     break;
 
-  case 87: /* coda: CODA '*' ',' STEM '(' file_name ')'  */
-#line 511 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                      {
-  doAllCoda (*(yyvsp[-1].stringptr)); delete (yyvsp[-1].stringptr); 
+  case 79: /* monitor_set: MONITOR var ',' SUMMARY '(' NAME ')'  */
+#line 482 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                       {
+    setMonitor((yyvsp[-5].ptree), "value", *(yyvsp[-1].stringptr), 1);
+    delete (yyvsp[-5].ptree);
+    delete (yyvsp[-1].stringptr);
 }
-#line 2209 "parser.cc"
+#line 2211 "parser.cc"
     break;
 
-  case 88: /* load: LOAD file_name  */
-#line 516 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 80: /* monitor_set: MONITOR var ',' STAT '(' NAME ')' SUMMARY '(' NAME ')'  */
+#line 487 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                         {
+    setMonitor((yyvsp[-9].ptree), *(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr), 1); 
+    delete (yyvsp[-9].ptree);
+    delete (yyvsp[-5].stringptr);
+    delete (yyvsp[-1].stringptr);
+}
+#line 2222 "parser.cc"
+    break;
+
+  case 81: /* monitor_set: MONITOR var ',' STAT '(' NAME ')' SUMMARY '(' NAME ')' THIN '(' INT ')'  */
+#line 493 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                                          {
+    setMonitor((yyvsp[-13].ptree), *(yyvsp[-9].stringptr), *(yyvsp[-5].stringptr), (yyvsp[-1].intval));
+    delete (yyvsp[-13].ptree);
+    delete (yyvsp[-9].stringptr);
+    delete (yyvsp[-5].stringptr);
+}
+#line 2233 "parser.cc"
+    break;
+
+  case 82: /* monitor_clear: MONITOR CLEAR var  */
+#line 501 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                 {
+    clearMonitor((yyvsp[0].ptree), "value", "trace"); delete (yyvsp[0].ptree);
+}
+#line 2241 "parser.cc"
+    break;
+
+  case 83: /* monitor_clear: MONITOR CLEAR var ',' STAT '(' NAME ')'  */
+#line 504 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                          {
+    clearMonitor((yyvsp[-5].ptree), *(yyvsp[-1].stringptr), "trace");
+    delete (yyvsp[-1].stringptr);
+}
+#line 2250 "parser.cc"
+    break;
+
+  case 84: /* monitor_clear: MONITOR CLEAR var ',' SUMMARY '(' NAME ')'  */
+#line 508 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                             {
+    clearMonitor((yyvsp[-5].ptree), "value", *(yyvsp[-1].stringptr));
+    delete (yyvsp[-1].stringptr);
+}
+#line 2259 "parser.cc"
+    break;
+
+  case 85: /* monitor_clear: MONITOR CLEAR var ',' STAT '(' NAME ')' SUMMARY '(' NAME ')'  */
+#line 512 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                               {
+    clearMonitor((yyvsp[-9].ptree), *(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr));
+    delete (yyvsp[-5].stringptr);
+}
+#line 2268 "parser.cc"
+    break;
+
+  case 86: /* monitors_to: MONITORS TO file_name  */
+#line 520 "../../../../mcmc-jags/src/terminal/parser.yy"
+{
+    dumpMonitors(*(yyvsp[0].stringptr), "value", "trace");
+    delete (yyvsp[0].stringptr);
+}
+#line 2277 "parser.cc"
+    break;
+
+  case 87: /* monitors_to: MONITORS TO file_name ',' STAT '(' NAME ')' SUMMARY '(' NAME ')'  */
+#line 525 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                                 {
+    dumpMonitors(*(yyvsp[-9].stringptr), *(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr));
+    delete (yyvsp[-9].stringptr);
+    delete (yyvsp[-5].stringptr);
+    delete (yyvsp[-1].stringptr);
+}
+#line 2288 "parser.cc"
+    break;
+
+  case 88: /* node_names_to: NODENAMES TO file_name  */
+#line 534 "../../../../mcmc-jags/src/terminal/parser.yy"
+{
+    dumpNodeNames(*(yyvsp[0].stringptr), "all");
+    delete (yyvsp[0].stringptr);
+}
+#line 2297 "parser.cc"
+    break;
+
+  case 89: /* node_names_to: NODENAMES TO file_name ',' TYPE '(' NAME ')'  */
+#line 539 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                             {
+    dumpNodeNames(*(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr));
+    delete (yyvsp[-5].stringptr);
+    delete (yyvsp[-1].stringptr); 
+}
+#line 2307 "parser.cc"
+    break;
+
+  case 90: /* file_name: NAME  */
+#line 551 "../../../../mcmc-jags/src/terminal/parser.yy"
+                { (yyval.stringptr) = (yyvsp[0].stringptr);}
+#line 2313 "parser.cc"
+    break;
+
+  case 91: /* file_name: STRING  */
+#line 552 "../../../../mcmc-jags/src/terminal/parser.yy"
+         { (yyval.stringptr) = (yyvsp[0].stringptr); }
+#line 2319 "parser.cc"
+    break;
+
+  case 92: /* coda: CODA var  */
+#line 555 "../../../../mcmc-jags/src/terminal/parser.yy"
+               {
+    doCoda ((yyvsp[0].ptree), "CODA", "*", "*"); delete (yyvsp[0].ptree);
+}
+#line 2327 "parser.cc"
+    break;
+
+  case 93: /* coda: CODA var ',' STEM '(' file_name ')'  */
+#line 558 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                      {
+    doCoda ((yyvsp[-5].ptree), *(yyvsp[-1].stringptr), "*", "*"); delete (yyvsp[-5].ptree); delete (yyvsp[-1].stringptr);
+}
+#line 2335 "parser.cc"
+    break;
+
+  case 94: /* coda: CODA var ',' STEM '(' file_name ')' STAT '(' NAME ')' SUMMARY '(' NAME ')'  */
+#line 561 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                                             {
+    doCoda ((yyvsp[-13].ptree), *(yyvsp[-9].stringptr), *(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr));
+    delete (yyvsp[-13].ptree); delete (yyvsp[-9].stringptr); delete (yyvsp[-5].stringptr); delete (yyvsp[-1].stringptr);
+}
+#line 2344 "parser.cc"
+    break;
+
+  case 95: /* coda: CODA '*'  */
+#line 565 "../../../../mcmc-jags/src/terminal/parser.yy"
+           {
+  doAllCoda ("CODA", "*", "*"); 
+}
+#line 2352 "parser.cc"
+    break;
+
+  case 96: /* coda: CODA '*' ',' STEM '(' file_name ')'  */
+#line 568 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                      {
+    doAllCoda (*(yyvsp[-1].stringptr), "*", "*" ); delete (yyvsp[-1].stringptr); 
+}
+#line 2360 "parser.cc"
+    break;
+
+  case 97: /* coda: CODA '*' ',' STEM '(' file_name ')' STAT '(' NAME ')' SUMMARY '(' NAME ')'  */
+#line 571 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                                             {
+    doAllCoda (*(yyvsp[-9].stringptr), *(yyvsp[-5].stringptr), *(yyvsp[-1].stringptr)); delete (yyvsp[-9].stringptr); delete (yyvsp[-5].stringptr); delete (yyvsp[-1].stringptr);
+}
+#line 2368 "parser.cc"
+    break;
+
+  case 98: /* load: LOAD file_name  */
+#line 576 "../../../../mcmc-jags/src/terminal/parser.yy"
                      { loadModule(*(yyvsp[0].stringptr)); }
-#line 2215 "parser.cc"
+#line 2374 "parser.cc"
     break;
 
-  case 89: /* unload: UNLOAD NAME  */
-#line 519 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 99: /* unload: UNLOAD NAME  */
+#line 579 "../../../../mcmc-jags/src/terminal/parser.yy"
                     { unloadModule(*(yyvsp[0].stringptr)); }
-#line 2221 "parser.cc"
+#line 2380 "parser.cc"
     break;
 
-  case 90: /* samplers_to: SAMPLERS TO file_name  */
-#line 523 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 100: /* samplers_to: SAMPLERS TO file_name  */
+#line 583 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     dumpSamplers(*(yyvsp[0].stringptr));
     delete (yyvsp[0].stringptr);
 }
-#line 2230 "parser.cc"
+#line 2389 "parser.cc"
     break;
 
-  case 91: /* list_factories: LIST FACTORIES ',' TYPE '(' SAMPLER ')'  */
-#line 530 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 101: /* list_factories: LIST FACTORIES ',' TYPE '(' SAMPLER ')'  */
+#line 590 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     listFactories(jags::SAMPLER_FACTORY);
 }
-#line 2238 "parser.cc"
+#line 2397 "parser.cc"
     break;
 
-  case 92: /* list_factories: LIST FACTORIES ',' TYPE '(' RNGTOK ')'  */
-#line 535 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 102: /* list_factories: LIST FACTORIES ',' TYPE '(' RNGTOK ')'  */
+#line 595 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     listFactories(jags::RNG_FACTORY);
 }
-#line 2246 "parser.cc"
+#line 2405 "parser.cc"
     break;
 
-  case 93: /* list_factories: LIST FACTORIES ',' TYPE '(' MONITOR ')'  */
-#line 540 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 103: /* list_factories: LIST FACTORIES ',' TYPE '(' MONITOR ')'  */
+#line 600 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     listFactories(jags::MONITOR_FACTORY);
 }
-#line 2254 "parser.cc"
+#line 2413 "parser.cc"
     break;
 
-  case 94: /* list_modules: LIST MODULES  */
-#line 546 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 104: /* list_modules: LIST MODULES  */
+#line 606 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     listModules();
 }
-#line 2262 "parser.cc"
+#line 2421 "parser.cc"
     break;
 
-  case 95: /* set_factory: SET FACTORY STRING NAME ',' TYPE '(' SAMPLER ')'  */
-#line 552 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 105: /* set_factory: SET FACTORY STRING NAME ',' TYPE '(' SAMPLER ')'  */
+#line 612 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     setFactory(*(yyvsp[-6].stringptr), jags::SAMPLER_FACTORY, *(yyvsp[-5].stringptr));
     delete (yyvsp[-6].stringptr);
     delete (yyvsp[-5].stringptr);
 }
-#line 2272 "parser.cc"
+#line 2431 "parser.cc"
     break;
 
-  case 96: /* set_factory: SET FACTORY NAME NAME ',' TYPE '(' RNGTOK ')'  */
-#line 559 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 106: /* set_factory: SET FACTORY NAME NAME ',' TYPE '(' RNGTOK ')'  */
+#line 619 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     setFactory(*(yyvsp[-6].stringptr), jags::RNG_FACTORY, *(yyvsp[-5].stringptr));
     delete (yyvsp[-6].stringptr);
     delete (yyvsp[-5].stringptr);
 }
-#line 2282 "parser.cc"
+#line 2441 "parser.cc"
     break;
 
-  case 97: /* set_factory: SET FACTORY NAME NAME ',' TYPE '(' MONITOR ')'  */
-#line 566 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 107: /* set_factory: SET FACTORY NAME NAME ',' TYPE '(' MONITOR ')'  */
+#line 626 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     setFactory(*(yyvsp[-6].stringptr), jags::MONITOR_FACTORY, *(yyvsp[-5].stringptr));
     delete (yyvsp[-6].stringptr);
     delete (yyvsp[-5].stringptr);
 }
-#line 2292 "parser.cc"
+#line 2451 "parser.cc"
     break;
 
-  case 98: /* set_seed: SET SEED INT  */
-#line 574 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 108: /* set_seed: SET SEED INT  */
+#line 634 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     setSeed((yyvsp[0].intval));
 }
-#line 2300 "parser.cc"
+#line 2459 "parser.cc"
     break;
 
-  case 99: /* r_assignment_list: r_assignment  */
-#line 581 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 109: /* r_compact_sequence: r_int_value ':' r_int_value  */
+#line 641 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                {
+    (yyval.ptree) = new jags::ParseTree(jags::P_FUNCTION); (yyval.ptree)->setName(":");
+    setParameters((yyval.ptree), (yyvsp[-2].ptree), (yyvsp[0].ptree));
+ }
+#line 2468 "parser.cc"
+    break;
+
+  case 110: /* r_assignment_list: r_assignment  */
+#line 646 "../../../../mcmc-jags/src/terminal/parser.yy"
                                 {
   (yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree));
 }
-#line 2308 "parser.cc"
+#line 2476 "parser.cc"
     break;
 
-  case 100: /* r_assignment_list: r_assignment_list r_assignment  */
-#line 584 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 111: /* r_assignment_list: r_assignment_list r_assignment  */
+#line 649 "../../../../mcmc-jags/src/terminal/parser.yy"
                                  {
   (yyval.pvec) = (yyvsp[-1].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 2316 "parser.cc"
+#line 2484 "parser.cc"
     break;
 
-  case 101: /* r_assignment_list: r_assignment_list ';' r_assignment  */
-#line 587 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 112: /* r_assignment_list: r_assignment_list ';' r_assignment  */
+#line 652 "../../../../mcmc-jags/src/terminal/parser.yy"
                                      {
   (yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));
 }
-#line 2324 "parser.cc"
+#line 2492 "parser.cc"
     break;
 
-  case 102: /* r_assignment: r_name ARROW r_structure  */
-#line 592 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 113: /* r_assignment: r_name ARROW r_structure  */
+#line 657 "../../../../mcmc-jags/src/terminal/parser.yy"
                                        {
-  (yyval.ptree) = (yyvsp[0].ptree); setName((yyval.ptree), (yyvsp[-2].stringptr));
+    (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
+    setName((yyval.ptree), (yyvsp[-2].stringptr));
+    setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
-#line 2332 "parser.cc"
+#line 2502 "parser.cc"
     break;
 
-  case 103: /* r_assignment: r_name ARROW r_collection  */
-#line 595 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 114: /* r_assignment: r_name ARROW r_collection  */
+#line 662 "../../../../mcmc-jags/src/terminal/parser.yy"
                             {
-  (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
-  setName((yyval.ptree), (yyvsp[-2].stringptr));
-  setParameters((yyval.ptree), (yyvsp[0].ptree));
+    (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
+    setName((yyval.ptree), (yyvsp[-2].stringptr));
+    setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
-#line 2342 "parser.cc"
+#line 2512 "parser.cc"
     break;
 
-  case 104: /* r_assignment: r_name ARROW STRING  */
-#line 600 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 115: /* r_assignment: r_name ARROW r_compact_sequence  */
+#line 667 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                  {
+    (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
+    setName((yyval.ptree), (yyvsp[-2].stringptr));
+    setParameters((yyval.ptree), (yyvsp[0].ptree));
+}
+#line 2522 "parser.cc"
+    break;
+
+  case 116: /* r_assignment: r_name ARROW STRING  */
+#line 672 "../../../../mcmc-jags/src/terminal/parser.yy"
                       {
-  /* Allow this for setting the NAME of the random number generator */
-  (yyval.ptree) = new jags::ParseTree(jags::P_VAR); setName((yyval.ptree), (yyvsp[-2].stringptr));
-  jags::ParseTree *p = new jags::ParseTree(jags::P_VAR); setName(p, (yyvsp[0].stringptr));
-  setParameters((yyval.ptree), p);
+    /* Allow this for setting the NAME of the random number generator */
+    (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY); setName((yyval.ptree), (yyvsp[-2].stringptr));
+    jags::ParseTree *p = new jags::ParseTree(jags::P_VAR); setName(p, (yyvsp[0].stringptr));
+    setParameters((yyval.ptree), p);
 }
-#line 2353 "parser.cc"
+#line 2533 "parser.cc"
     break;
 
-  case 107: /* r_name: '`' NAME '`'  */
-#line 610 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 119: /* r_name: '`' NAME '`'  */
+#line 682 "../../../../mcmc-jags/src/terminal/parser.yy"
                {
     /* R >= 2.4.0 uses backticks for quoted names */
     (yyval.stringptr) = (yyvsp[-1].stringptr);
 }
-#line 2362 "parser.cc"
+#line 2542 "parser.cc"
     break;
 
-  case 109: /* r_data: DOTDATA '=' r_collection  */
-#line 616 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 121: /* r_data: DOTDATA '=' r_collection  */
+#line 688 "../../../../mcmc-jags/src/terminal/parser.yy"
                            {
     (yyval.ptree) = (yyvsp[0].ptree);
 }
-#line 2370 "parser.cc"
+#line 2550 "parser.cc"
     break;
 
-  case 110: /* r_structure: STRUCTURE '(' r_data ',' r_attribute_list ')'  */
-#line 620 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 122: /* r_structure: STRUCTURE '(' r_data ',' r_attribute_list ')'  */
+#line 692 "../../../../mcmc-jags/src/terminal/parser.yy"
                                                            {
-  (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY); 
-  if ((yyvsp[-1].ptree)) 
-    setParameters((yyval.ptree), (yyvsp[-3].ptree), (yyvsp[-1].ptree));
-  else
-    setParameters((yyval.ptree), (yyvsp[-3].ptree));
+    if ((yyvsp[-1].ptree)) {
+	(yyval.ptree) = new jags::ParseTree(jags::P_STRUCT); 
+	setParameters((yyval.ptree), (yyvsp[-3].ptree), (yyvsp[-1].ptree));
+    }
+    else {
+	(yyval.ptree) = (yyvsp[-3].ptree);
+    }
 }
-#line 2382 "parser.cc"
+#line 2564 "parser.cc"
     break;
 
-  case 111: /* r_structure: STRUCTURE '(' r_data ')'  */
-#line 627 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 123: /* r_structure: STRUCTURE '(' r_data ')'  */
+#line 701 "../../../../mcmc-jags/src/terminal/parser.yy"
                            {
-    (yyval.ptree) = new jags::ParseTree(jags::P_ARRAY);
-    setParameters((yyval.ptree), (yyvsp[-1].ptree));
+    (yyval.ptree) = (yyvsp[-1].ptree);
 }
-#line 2391 "parser.cc"
+#line 2572 "parser.cc"
     break;
 
-  case 113: /* r_attribute_list: r_generic_attribute  */
-#line 636 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 125: /* r_attribute_list: r_generic_attribute  */
+#line 709 "../../../../mcmc-jags/src/terminal/parser.yy"
                       {(yyval.ptree)=0;}
-#line 2397 "parser.cc"
+#line 2578 "parser.cc"
     break;
 
-  case 115: /* r_attribute_list: r_attribute_list ',' r_dim  */
-#line 638 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 126: /* r_attribute_list: r_attribute_list ',' r_dim  */
+#line 710 "../../../../mcmc-jags/src/terminal/parser.yy"
                              {(yyval.ptree)=(yyvsp[0].ptree);}
-#line 2403 "parser.cc"
+#line 2584 "parser.cc"
     break;
 
-  case 116: /* r_dim: DIM '=' r_collection  */
-#line 641 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 128: /* r_dim: DIM '=' r_collection  */
+#line 714 "../../../../mcmc-jags/src/terminal/parser.yy"
                             {
   (yyval.ptree) = (yyvsp[0].ptree);
 }
-#line 2411 "parser.cc"
+#line 2592 "parser.cc"
     break;
 
-  case 117: /* r_dim: DIM '=' range_element  */
-#line 644 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 129: /* r_dim: DIM '=' range_element  */
+#line 717 "../../../../mcmc-jags/src/terminal/parser.yy"
                         {
   (yyval.ptree) = (yyvsp[0].ptree);
 }
-#line 2419 "parser.cc"
+#line 2600 "parser.cc"
     break;
 
-  case 120: /* r_integer_collection: ASINTEGER '(' r_value_collection ')'  */
-#line 653 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 132: /* r_integer_collection: ASINTEGER '(' r_value_collection ')'  */
+#line 726 "../../../../mcmc-jags/src/terminal/parser.yy"
                                                            {(yyval.ptree) = (yyvsp[-1].ptree);}
-#line 2425 "parser.cc"
+#line 2606 "parser.cc"
     break;
 
-  case 121: /* r_value_collection: r_value  */
-#line 656 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 133: /* r_value_collection: r_value  */
+#line 729 "../../../../mcmc-jags/src/terminal/parser.yy"
                             { 
   (yyval.ptree) = new jags::ParseTree(jags::P_VECTOR); 
   setParameters((yyval.ptree), (yyvsp[0].ptree));
 }
-#line 2434 "parser.cc"
+#line 2615 "parser.cc"
     break;
 
-  case 122: /* r_value_collection: 'c' '(' r_value_list ')'  */
-#line 660 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 134: /* r_value_collection: 'c' '(' r_value_list ')'  */
+#line 733 "../../../../mcmc-jags/src/terminal/parser.yy"
                            {
   (yyval.ptree) = new jags::ParseTree(jags::P_VECTOR);
   setParameters((yyval.ptree), (yyvsp[-1].pvec));
 }
-#line 2443 "parser.cc"
+#line 2624 "parser.cc"
     break;
 
-  case 123: /* r_value_list: r_value  */
-#line 666 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 135: /* r_value_list: r_value  */
+#line 739 "../../../../mcmc-jags/src/terminal/parser.yy"
                       {(yyval.pvec) = new std::vector<jags::ParseTree*>(1, (yyvsp[0].ptree)); }
-#line 2449 "parser.cc"
+#line 2630 "parser.cc"
     break;
 
-  case 124: /* r_value_list: r_value_list ',' r_value  */
-#line 667 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 136: /* r_value_list: r_value_list ',' r_value  */
+#line 740 "../../../../mcmc-jags/src/terminal/parser.yy"
                            {(yyval.pvec) = (yyvsp[-2].pvec); (yyval.pvec)->push_back((yyvsp[0].ptree));}
-#line 2455 "parser.cc"
+#line 2636 "parser.cc"
     break;
 
-  case 125: /* r_value: DOUBLE  */
-#line 670 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].val));}
-#line 2461 "parser.cc"
+  case 140: /* r_real_value: DOUBLE  */
+#line 748 "../../../../mcmc-jags/src/terminal/parser.yy"
+                     {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].val));}
+#line 2642 "parser.cc"
     break;
 
-  case 126: /* r_value: NA  */
-#line 671 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-     {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
-#line 2467 "parser.cc"
+  case 141: /* r_int_value: INT  */
+#line 751 "../../../../mcmc-jags/src/terminal/parser.yy"
+                 {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue((yyvsp[0].intval));}
+#line 2648 "parser.cc"
     break;
 
-  case 127: /* r_generic_attribute: NAME '=' r_generic_vector  */
-#line 677 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                               {;}
-#line 2473 "parser.cc"
+  case 142: /* r_na_value: NA  */
+#line 754 "../../../../mcmc-jags/src/terminal/parser.yy"
+               {(yyval.ptree) = new jags::ParseTree(jags::P_VALUE); (yyval.ptree)->setValue(JAGS_NA);}
+#line 2654 "parser.cc"
     break;
 
-  case 128: /* r_generic_list: r_generic_list_element  */
-#line 680 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                       {;}
-#line 2479 "parser.cc"
+  case 143: /* r_generic_attribute: NAME '=' r_discard_vector  */
+#line 760 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                               {}
+#line 2660 "parser.cc"
     break;
 
-  case 129: /* r_generic_list: r_generic_list ',' r_generic_list_element  */
-#line 681 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                            {;}
-#line 2485 "parser.cc"
+  case 144: /* r_discard_vector: r_discard_numvector  */
+#line 763 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                      {}
+#line 2666 "parser.cc"
     break;
 
-  case 130: /* r_generic_list_element: r_generic_vector  */
-#line 684 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                         {;}
-#line 2491 "parser.cc"
+  case 145: /* r_discard_vector: ASINTEGER '(' r_discard_numvector ')'  */
+#line 764 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                        {}
+#line 2672 "parser.cc"
     break;
 
-  case 131: /* r_generic_list_element: NAME '=' r_generic_vector  */
-#line 685 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                            {;}
-#line 2497 "parser.cc"
+  case 146: /* r_discard_vector: r_discard_charvector  */
+#line 765 "../../../../mcmc-jags/src/terminal/parser.yy"
+                       {}
+#line 2678 "parser.cc"
     break;
 
-  case 132: /* r_generic_vector: r_numeric_vector  */
-#line 688 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                   {;}
-#line 2503 "parser.cc"
+  case 147: /* r_discard_vector: LIST '(' r_discard_arglist ')'  */
+#line 766 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                 {}
+#line 2684 "parser.cc"
     break;
 
-  case 133: /* r_generic_vector: ASINTEGER '(' r_numeric_vector ')'  */
-#line 689 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                     {;}
-#line 2509 "parser.cc"
+  case 148: /* r_discard_vector: STRUCTURE '(' r_discard_arglist ')'  */
+#line 767 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                      {}
+#line 2690 "parser.cc"
     break;
 
-  case 134: /* r_generic_vector: r_character_vector  */
-#line 690 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                     {;}
-#line 2515 "parser.cc"
+  case 149: /* r_discard_vector: R_NULL  */
+#line 768 "../../../../mcmc-jags/src/terminal/parser.yy"
+         {}
+#line 2696 "parser.cc"
     break;
 
-  case 135: /* r_generic_vector: LIST '(' r_generic_list ')'  */
-#line 691 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                              {;}
-#line 2521 "parser.cc"
+  case 150: /* r_discard_arglist: r_discard_arglist_element  */
+#line 771 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                             {}
+#line 2702 "parser.cc"
     break;
 
-  case 136: /* r_generic_vector: STRUCTURE '(' r_generic_list ')'  */
-#line 692 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                                   {;}
-#line 2527 "parser.cc"
+  case 151: /* r_discard_arglist: r_discard_arglist ',' r_discard_arglist_element  */
+#line 772 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                                  {}
+#line 2708 "parser.cc"
     break;
 
-  case 137: /* r_generic_vector: R_NULL  */
-#line 693 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-         {;}
-#line 2533 "parser.cc"
+  case 152: /* r_discard_arglist_element: r_discard_vector  */
+#line 775 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                            {}
+#line 2714 "parser.cc"
     break;
 
-  case 138: /* r_numeric_vector: DOUBLE  */
-#line 696 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                         {;}
-#line 2539 "parser.cc"
+  case 153: /* r_discard_arglist_element: NAME '=' r_discard_vector  */
+#line 776 "../../../../mcmc-jags/src/terminal/parser.yy"
+                            {}
+#line 2720 "parser.cc"
     break;
 
-  case 140: /* r_double_list: DOUBLE  */
-#line 700 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                      {;}
-#line 2545 "parser.cc"
+  case 154: /* r_discard_numvector: DOUBLE  */
+#line 779 "../../../../mcmc-jags/src/terminal/parser.yy"
+                            {}
+#line 2726 "parser.cc"
     break;
 
-  case 141: /* r_double_list: r_double_list ',' DOUBLE  */
-#line 701 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                           {;}
-#line 2551 "parser.cc"
+  case 155: /* r_discard_numvector: INT  */
+#line 780 "../../../../mcmc-jags/src/terminal/parser.yy"
+      {}
+#line 2732 "parser.cc"
     break;
 
-  case 142: /* r_character_vector: STRING  */
-#line 704 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                           {;}
-#line 2557 "parser.cc"
+  case 156: /* r_discard_numvector: INT ':' INT  */
+#line 781 "../../../../mcmc-jags/src/terminal/parser.yy"
+              {}
+#line 2738 "parser.cc"
     break;
 
-  case 143: /* r_character_vector: 'c' '(' r_string_list ')'  */
-#line 705 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                            {;}
-#line 2563 "parser.cc"
+  case 158: /* r_discard_numeric_arglist: DOUBLE  */
+#line 785 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                  {}
+#line 2744 "parser.cc"
     break;
 
-  case 144: /* r_string_list: STRING  */
-#line 708 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                      {;}
-#line 2569 "parser.cc"
+  case 159: /* r_discard_numeric_arglist: INT  */
+#line 786 "../../../../mcmc-jags/src/terminal/parser.yy"
+      {}
+#line 2750 "parser.cc"
     break;
 
-  case 145: /* r_string_list: r_string_list ',' STRING  */
-#line 709 "../../../../jags-4-3_patched/src/terminal/parser.yy"
-                           {;}
-#line 2575 "parser.cc"
+  case 160: /* r_discard_numeric_arglist: r_discard_numeric_arglist ',' DOUBLE  */
+#line 787 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                       {}
+#line 2756 "parser.cc"
     break;
 
-  case 146: /* get_working_dir: PWD  */
-#line 715 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 161: /* r_discard_numeric_arglist: r_discard_numeric_arglist ',' INT  */
+#line 788 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                    {}
+#line 2762 "parser.cc"
+    break;
+
+  case 162: /* r_discard_charvector: STRING  */
+#line 791 "../../../../mcmc-jags/src/terminal/parser.yy"
+                             {}
+#line 2768 "parser.cc"
+    break;
+
+  case 163: /* r_discard_charvector: 'c' '(' r_discard_string_arglist ')'  */
+#line 792 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                       {}
+#line 2774 "parser.cc"
+    break;
+
+  case 164: /* r_discard_string_arglist: STRING  */
+#line 795 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                 {}
+#line 2780 "parser.cc"
+    break;
+
+  case 165: /* r_discard_string_arglist: r_discard_string_arglist ',' STRING  */
+#line 796 "../../../../mcmc-jags/src/terminal/parser.yy"
+                                      {}
+#line 2786 "parser.cc"
+    break;
+
+  case 166: /* get_working_dir: PWD  */
+#line 802 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     std::string name;
     if (getWorkingDirectory(name)) {
@@ -2585,22 +2796,22 @@ yyreduce:
 	std::cout << "ERROR: " << name << std::endl;
     }
 }
-#line 2589 "parser.cc"
+#line 2800 "parser.cc"
     break;
 
-  case 147: /* set_working_dir: CD file_name  */
-#line 726 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 167: /* set_working_dir: CD file_name  */
+#line 813 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     if (chdir(((yyvsp[0].stringptr))->c_str()) == -1) {
 	std::cout << "ERROR: Cannot change working directory" << std::endl;
     }
     delete (yyvsp[0].stringptr);
 }
-#line 2600 "parser.cc"
+#line 2811 "parser.cc"
     break;
 
-  case 148: /* read_dir: DIRECTORY  */
-#line 734 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 168: /* read_dir: DIRECTORY  */
+#line 821 "../../../../mcmc-jags/src/terminal/parser.yy"
 {
     std::string name;
     if (!getWorkingDirectory(name)) {
@@ -2623,11 +2834,11 @@ yyreduce:
 	std::cerr << "Unable to open working directory" << std::endl;
     }
 }
-#line 2627 "parser.cc"
+#line 2838 "parser.cc"
     break;
 
-  case 149: /* run_script: RUN file_name  */
-#line 757 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+  case 169: /* run_script: RUN file_name  */
+#line 844 "../../../../mcmc-jags/src/terminal/parser.yy"
                           {
     if(open_command_buffer((yyvsp[0].stringptr))) {
 	std::cout << "Running script file " << *(yyvsp[0].stringptr) << std::endl;
@@ -2637,11 +2848,11 @@ yyreduce:
     }
     delete (yyvsp[0].stringptr);
  }
-#line 2641 "parser.cc"
+#line 2852 "parser.cc"
     break;
 
 
-#line 2645 "parser.cc"
+#line 2856 "parser.cc"
 
       default: break;
     }
@@ -2834,7 +3045,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 768 "../../../../jags-4-3_patched/src/terminal/parser.yy"
+#line 855 "../../../../mcmc-jags/src/terminal/parser.yy"
 
 
 int zzerror (const char *s)
@@ -2851,58 +3062,60 @@ static jags::Range getRange(jags::ParseTree const *var)
   */
   unsigned int size = var->parameters().size();
 
-  std::vector<int>  ind_lower(size), ind_upper(size);
+  std::vector<unsigned long>  ind_lower(size), ind_upper(size);
   for (unsigned int i = 0; i < size; ++i) {
     jags::ParseTree const *range_element = var->parameters()[i];
-    switch(range_element->parameters().size()) {
-    case 1:
-      ind_lower[i] = (int) (range_element->parameters()[0]->value() + 1.0E-6);
-      ind_upper[i] = ind_lower[i];
-      break;
-    case 2:
-      ind_lower[i] = (int) (range_element->parameters()[0]->value() + 1.0E-6);  
-      ind_upper[i] = (int) (range_element->parameters()[1]->value() + 1.0E-6);
-      break;
-    default:
-      //Error! FIXME
-      break;
+    if (range_element->treeClass() == jags::P_VALUE) {
+	ind_lower[i] = static_cast<int>(range_element->value());
+	ind_upper[i] = ind_lower[i];
+    }
+    else if (range_element->treeClass() == jags::P_FUNCTION &&
+	     range_element->name() == ":")
+    {
+	ind_lower[i] = static_cast<int>(range_element->parameters()[0]->value());
+	ind_upper[i] = static_cast<int>(range_element->parameters()[1]->value());
+    }
+    else {
+	std::cerr << "Unable to parse subset expression for " << var->name() << 
+	    ". Taking whole node instead" << std::endl;
+	return jags::Range();
     }
   }
   return jags::SimpleRange(ind_lower, ind_upper);
 }
 
-void setMonitor(jags::ParseTree const *var, int thin, std::string const &type)
+void setMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary, int thin)
 {
     std::string const &name = var->name();
     if (var->parameters().empty()) {
 	/* Requesting the whole node */
-	console->setMonitor(name, jags::Range(), thin, type);
+	console->setMonitor(name, jags::Range(), thin, stat, summary);
     }
     else {
 	/* Requesting subset of a multivariate node */
-	console->setMonitor(name, getRange(var), thin, type);
+	console->setMonitor(name, getRange(var), thin, stat, summary);
     }
 }
 
-void clearMonitor(jags::ParseTree const *var, std::string const &type)
+void clearMonitor(jags::ParseTree const *var, std::string const &stat, std::string const &summary)
 {
     std::string const &name = var->name();
     if (var->parameters().empty()) {
-	/* Requesting the whole node */
-	console->clearMonitor(name, jags::Range(), type);
+	/* Requesting a whole array */
+	console->clearMonitor(name, jags::Range(), stat, summary);
     }
     else {
-	/* Requesting subset of a multivariate node */
-	console->clearMonitor(name, getRange(var), type);
+	/* Requesting subset of an array */
+	console->clearMonitor(name, getRange(var), stat, summary);
     }
 }
 
-void doAllCoda (std::string const &stem)
+void doAllCoda (std::string const &stem, std::string const &stat, std::string const &summary)
 {
-    console->coda(stem);
+    console->coda(stem, stat, summary);
 }
 
-void doCoda (jags::ParseTree const *var, std::string const &stem)
+void doCoda (jags::ParseTree const *var, std::string const &stem, std::string const &stat, std::string const &summary)
 {
     //FIXME: Allow list of several nodes
 
@@ -2915,7 +3128,7 @@ void doCoda (jags::ParseTree const *var, std::string const &stem)
 	/* Requesting subset of a multivariate node */
 	dmp.push_back(std::pair<std::string,jags::Range>(var->name(), getRange(var)));
     }
-    console->coda(dmp, stem);
+    console->coda(dmp, stem, stat, summary);
 }
 
 /* Helper function for doDump that handles all the special cases
@@ -2924,13 +3137,13 @@ static void writeValue(double x, std::ostream &out, bool isdiscrete)
 {
   using namespace std;
 
-  if (x == JAGS_NA) {
+  if (jags_isna(x)) {
     out << "NA";
   }
-  else if (jags_isnan(x)) {
+  else if (isnan(x)) {
     out << "NaN";
   }
-  else if (!jags_finite(x)) {
+  else if (!isfinite(x)) {
     if (x > 0)
       out << "Inf";
     else
@@ -2944,7 +3157,7 @@ static void writeValue(double x, std::ostream &out, bool isdiscrete)
   }
 }
 
-void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
+void doDump(std::string const &file, jags::ValueType type, unsigned int chain)
 {
     std::map<std::string,jags::SArray> data_table;
     std::string rng_name;
@@ -2970,7 +3183,7 @@ void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
 	std::vector<double> const &value = sarray.value();
 	long length = sarray.length();
 	out << "`" << name << "` <- " << std::endl;
-	std::vector<unsigned int> const &dim = sarray.dim(false);
+	std::vector<unsigned long> const &dim = sarray.dim(false);
 	bool discrete = sarray.isDiscreteValued();
 
 	if (dim.size() == 1) {
@@ -3000,7 +3213,7 @@ void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
 		}
 		writeValue(value[i], out, discrete);
 	    }
-	    out << "), .Dim = c(";
+	    out << "), dim = c(";
 	    for (unsigned int j = 0; j < dim.size(); ++j) {
 		if (j > 0) {
 		    out << ",";
@@ -3014,11 +3227,12 @@ void doDump(std::string const &file, jags::DumpType type, unsigned int chain)
     out.close();
 }  
 
-void dumpMonitors(std::string const &file, std::string const &type)
+void dumpMonitors(std::string const &file, std::string const &stat,
+		  std::string const &summary)
 {
     std::map<std::string,jags::SArray> data_table;
 
-    if (!console->dumpMonitors(data_table, type, false)) {
+    if (!console->dumpMonitors(data_table, stat, summary, false)) {
 	return;
     }
 
@@ -3029,7 +3243,8 @@ void dumpMonitors(std::string const &file, std::string const &type)
 	return;
     }
 
-    out << "`" << type << "` <-\nstructure(list(";
+    //FIXME: Use recursive list here
+    out << "`" << stat << "_" << summary << "` <-\nstructure(list(";
 
     std::map<std::string, jags::SArray>::const_iterator p;
     for (p = data_table.begin(); p != data_table.end(); ++p) {
@@ -3042,9 +3257,9 @@ void dumpMonitors(std::string const &file, std::string const &type)
 	    out << ", \n";
 	}
 	out << "\"" << name << "\" = ";
-	std::vector<unsigned int> const &dim = sarray.dim(false);
+	std::vector<unsigned long> const &dim = sarray.dim(false);
 	bool discrete = sarray.isDiscreteValued();
-	bool named = !sarray.dimNames().empty();
+	bool named = !sarray.dimTags().empty();
 
 	if (dim.size() == 1 && !named) {
 	    // Vector 
@@ -3086,13 +3301,13 @@ void dumpMonitors(std::string const &file, std::string const &type)
 	    }
 	    out << ")";
 	    if (named) {
-		std::vector<std::string> const &dnames = sarray.dimNames();
+		std::vector<jags::DimTag> const &dnames = sarray.dimTags();
 		out << ", .Names = c(";
 		for (unsigned int k = 0; k < dnames.size(); ++k) {
 		    if (k > 0) {
 			out << ",";
 		    }
-		    out << "\"" << dnames[k] << "\"";
+		    out << "\"" << asChar(dnames[k]) << "\"";
 		}
 		out << "))";
 	    }
@@ -3112,7 +3327,65 @@ void dumpMonitors(std::string const &file, std::string const &type)
     out.close();
 }
 
-void setParameters(jags::ParseTree *p, std::vector<jags::ParseTree*> *parameters)
+void dumpNodeNames(std::string const &file, std::string const &type)
+{
+    std::vector<std::string> node_names;
+
+    /* Open output file */
+    std::ofstream out(file.c_str());
+    if (!out) {
+	std::cerr << "Failed to open file " << file << std::endl;
+	return;
+    }
+
+	std::vector<std::string> alltypes;
+	
+	// Special rule for "all" types:
+	if ( type == "all" ) {
+		alltypes.push_back("constant");
+		alltypes.push_back("deterministic");
+		alltypes.push_back("stochastic");
+		alltypes.push_back("fixed");
+		alltypes.push_back("observations");
+	}
+	else {
+		alltypes.push_back(type);
+	}
+	
+	for ( unsigned int i=0; i < alltypes.size(); i++ ){
+	
+	    out << "`" << alltypes[i] << "` <-\n";
+	
+		console->dumpNodeNames(node_names, alltypes[i]);
+
+		// If no matching names just write an empty character vector:
+	    if ( node_names.size() == 0 ) {
+			out << "character(0)\n" << std::endl;
+			out.close();
+			return;
+	    }
+	
+		out << "c(";
+		unsigned int r = 0;
+	    for (unsigned int i = 0;  i < node_names.size(); i++) {
+			out << "\"" << node_names[i] << "\"";
+			if( (i+1) < node_names.size() ) {
+				out << ", ";
+			}
+			r++;
+			if( r == 5 ) {
+				out << "\n";
+				r = 0;
+			}
+		}
+		out << ")\n\n";
+	
+	}
+	
+	out.close();
+}
+
+static void setParameters(jags::ParseTree *p, std::vector<jags::ParseTree*> *parameters)
 {
   /* 
      The parser dynamically allocates vectors of (pointers to)
@@ -3123,7 +3396,7 @@ void setParameters(jags::ParseTree *p, std::vector<jags::ParseTree*> *parameters
   delete parameters; 
 }
 
-void setParameters(jags::ParseTree *p, jags::ParseTree *param1)
+static void setParameters(jags::ParseTree *p, jags::ParseTree *param1)
 {
   /*
     Wrapper function that creates a vector containing param1
@@ -3133,7 +3406,7 @@ void setParameters(jags::ParseTree *p, jags::ParseTree *param1)
   p->setParameters(parameters);
 }
 
-void setParameters(jags::ParseTree *p, jags::ParseTree *param1, jags::ParseTree *param2)
+static void setParameters(jags::ParseTree *p, jags::ParseTree *param1, jags::ParseTree *param2)
 {
   /*
     Wrapper function that creates a vector containing param1
@@ -3160,7 +3433,7 @@ static void errordump()
 	    std::cout << "Dumping chain " << i << " at iteration " 
 		      << console->iter() << " to file " << fname.str() 
 		      << std::endl;
-	    doDump(fname.str(), jags::DUMP_ALL, i);
+	    doDump(fname.str(), jags::ALL_VALUES, i);
 	    fname.str("");
 	}
 	// Moved clearModel from Console.cc CATCH_ERRORS to here
@@ -3420,6 +3693,12 @@ static void adaptstar(long niter, long refresh, int width, bool force)
 
 static void loadModule(std::string const &name)
 {
+    if (name == "dic") {
+	// For backward-compatibility. Turn this into a warning later.
+	std::cout << "The dic module is now a stub." << std::endl;
+	std::cout << "Deviance-based diagnostics are in the pre-loaded diag module." << std::endl;
+    }
+    
     std::cout << "Loading module: " << name;
     lt_dlhandle mod = lt_dlopenext(name.c_str());
     if (mod == NULL) {
@@ -3438,8 +3717,14 @@ static void unloadModule(std::string const &name)
     jags::Console::unloadModule(name);
 }
 
+void exiting() {
+	std::cout << "Exiting JAGS" << std::endl;
+}
+
 int main (int argc, char **argv)
 {
+  std::atexit(exiting);
+
   extern std::FILE *zzin;
 
   std::FILE *cmdfile = 0;
@@ -3494,7 +3779,8 @@ int main (int argc, char **argv)
             << std::endl;
   loadModule("basemod");
   loadModule("bugs");
-
+  loadModule("diag");
+  
   console = new jags::Console(std::cout, std::cerr);
 
   zzparse();
@@ -3514,6 +3800,7 @@ int main (int argc, char **argv)
   for (unsigned int i = 0; i < _dyn_lib.size(); ++i) {
       lt_dlclose(_dyn_lib[i]);
   }
+  
   lt_dlexit();
 }
 

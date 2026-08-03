@@ -1,6 +1,7 @@
 #include <module/Module.h>
 #include <RngStreamFactory.h>
 
+
 using std::vector;
 
 namespace jags {
@@ -10,7 +11,7 @@ namespace lecuyer {
 
     public:
 	LecuyerModule();
-	~LecuyerModule();
+	~LecuyerModule() override;
     };
 
     LecuyerModule::LecuyerModule() 
@@ -21,7 +22,7 @@ namespace lecuyer {
 	
     }
     
-    LecuyerModule::~LecuyerModule() {
+    LecuyerModule::~LecuyerModule(){
 	
 	vector<RNGFactory*> const &rvec = rngFactories();
 	for (unsigned int i = 0; i < rvec.size(); ++i) {

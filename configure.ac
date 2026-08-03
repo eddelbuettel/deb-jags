@@ -1,12 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.63)
+AC_PREREQ([2.71])
 
-AC_INIT([JAGS],[4.3.2],[martyn_plummer@users.sourceforge.net],[JAGS])
+AC_INIT([JAGS],[5.0.0],[martyn_plummer@users.sourceforge.net],[JAGS])
 
-JAGS_MAJOR=4
-JAGS_MINOR=3
-JAGS_PATCH=2
+JAGS_MAJOR=5
+JAGS_MINOR=0
+JAGS_PATCH=0
 
 AC_SUBST(JAGS_MAJOR)
 AC_DEFINE_UNQUOTED([JAGS_MAJOR], [$JAGS_MAJOR], [Major version of JAGS library])
@@ -14,7 +14,11 @@ AC_DEFINE_UNQUOTED([JAGS_MAJOR], [$JAGS_MAJOR], [Major version of JAGS library])
 AC_SUBST(JAGS_MINOR)
 AC_DEFINE_UNQUOTED([JAGS_MINOR], [$JAGS_MINOR], [Minor version of JAGS library])
 
+AC_SUBST(JAGS_PATCH)
 AC_DEFINE_UNQUOTED([JAGS_PATCH], [$JAGS_PATCH], [Patch level of JAGS])
+
+jagsmoddir=${libdir}/JAGS/modules-${JAGS_MAJOR}
+AC_SUBST(jagsmoddir)
 
 define([hgversion],
        esyscmd([sh -c 'hg parent --template "r{node|short} {date|shortdate}"']))
@@ -48,8 +52,10 @@ LTDL_INIT([recursive])
 
 AC_PROG_CC
 AC_PROG_CXX
+AX_CXX_COMPILE_STDCXX([11], [ext], [mandatory])
 AC_PROG_F77
-AM_PROG_LEX
+AC_PROG_FC
+AC_PROG_LEX([noyywrap])
 AC_PROG_YACC
 
 dnl IEEE 754 arithmetic
@@ -70,15 +76,38 @@ case "${host_os}" in
 esac
 AM_CONDITIONAL(WINDOWS, test x$win = xtrue)
 
-dnl fortran stuff
-AC_F77_WRAPPERS
-AC_F77_LIBRARY_LDFLAGS
-ACX_LAPACK([],[
+## Testing for OpenMP flags
+AC_LANG_PUSH([C++])
+AC_OPENMP
+CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+AC_LANG_POP([C++])
+AC_LANG_PUSH([C])
+AC_OPENMP
+CFLAGS="$CFLAGS $OPENMP_CFLAGS"
+AC_LANG_POP([C])
+
+## MinGW on Windows needs a nudge to correctly link the
+## OpenMP runtime library. This is a hack since none of the
+## Fortran source code uses OpenMP, but it triggers the
+## correct values for FCLIBS at link time. See below.
+if test "${win}" = "true"; then
+FCFLAGS="$FCFLAGS -fopenmp"
+fi
+
+JAGS_GCD
+
+## Mixed C++ and Fortran libraries must be linked with C++, but
+## the C++ compiler knows nothing about the runtime Fortran
+## libraries. This macros finds  the appropriate libraries and
+## stores them in FCLIBS for use at link time.
+AC_FC_LIBRARY_LDFLAGS
+
+## Testing for both blas and lapack
+AX_LAPACK([],[
 	AC_MSG_ERROR("You need to install the LAPACK library")
 ])
 
-jagsmoddir=${libdir}/JAGS/modules-${JAGS_MAJOR}
-AC_SUBST(jagsmoddir)
+AC_C_BIGENDIAN
 
 AC_CONFIG_FILES([
   Makefile
@@ -99,8 +128,24 @@ AC_CONFIG_FILES([
   src/lib/module/Makefile
   src/lib/compiler/Makefile
   src/lib/rng/Makefile
+  src/lib/matrix/Makefile
+  src/lib/SSparse/Makefile
+  src/lib/SSparse/config/Makefile
+  src/lib/SSparse/AMD/Makefile
+  src/lib/SSparse/CAMD/Makefile
+  src/lib/SSparse/CCOLAMD/Makefile
+  src/lib/SSparse/COLAMD/Makefile
+  src/lib/SSparse/CHOLMOD/Makefile
+  src/lib/SSparse/CHOLMOD/Check/Makefile
+  src/lib/SSparse/CHOLMOD/Cholesky/Makefile
+  src/lib/SSparse/CHOLMOD/Core/Makefile
+  src/lib/SSparse/CHOLMOD/Include/Makefile
+  src/lib/SSparse/CHOLMOD/MatrixOps/Makefile
+  src/lib/SSparse/CHOLMOD/Modify/Makefile
+  src/lib/SSparse/CHOLMOD/Supernodal/Makefile
   src/jrmath/Makefile	
   src/include/Makefile
+  src/include/version.h
   src/include/util/Makefile
   src/include/sarray/Makefile
   src/include/function/Makefile
@@ -111,6 +156,7 @@ AC_CONFIG_FILES([
   src/include/module/Makefile
   src/include/compiler/Makefile
   src/include/rng/Makefile
+  src/include/matrix/Makefile
   src/modules/Makefile
   src/modules/base/Makefile
   src/modules/base/functions/Makefile
@@ -121,7 +167,6 @@ AC_CONFIG_FILES([
   src/modules/bugs/functions/Makefile	
   src/modules/bugs/distributions/Makefile	
   src/modules/bugs/samplers/Makefile	
-  src/modules/bugs/matrix/Makefile	
   src/modules/msm/Makefile	
   src/modules/msm/functions/Makefile	
   src/modules/msm/distributions/Makefile	
@@ -129,23 +174,10 @@ AC_CONFIG_FILES([
   src/modules/mix/Makefile	
   src/modules/mix/distributions/Makefile	
   src/modules/mix/samplers/Makefile	
-  src/modules/dic/Makefile
+  src/modules/diag/Makefile
+  src/modules/dic/Makefile	
   src/modules/lecuyer/Makefile
   src/modules/glm/Makefile
-  src/modules/glm/SSparse/Makefile
-  src/modules/glm/SSparse/config/Makefile
-  src/modules/glm/SSparse/AMD/Makefile
-  src/modules/glm/SSparse/CAMD/Makefile
-  src/modules/glm/SSparse/CCOLAMD/Makefile
-  src/modules/glm/SSparse/COLAMD/Makefile
-  src/modules/glm/SSparse/CHOLMOD/Makefile
-  src/modules/glm/SSparse/CHOLMOD/Check/Makefile
-  src/modules/glm/SSparse/CHOLMOD/Cholesky/Makefile
-  src/modules/glm/SSparse/CHOLMOD/Core/Makefile
-  src/modules/glm/SSparse/CHOLMOD/Include/Makefile
-  src/modules/glm/SSparse/CHOLMOD/MatrixOps/Makefile
-  src/modules/glm/SSparse/CHOLMOD/Modify/Makefile
-  src/modules/glm/SSparse/CHOLMOD/Supernodal/Makefile
   src/modules/glm/samplers/Makefile
   src/modules/glm/distributions/Makefile
   src/terminal/Makefile
@@ -153,6 +185,8 @@ AC_CONFIG_FILES([
   win/runtime64/Makefile
   doc/Makefile
   doc/manual/Makefile
+  doc/manual/version
+  doc/manual/figures/Makefile
   test/Makefile
 ])
 AC_OUTPUT

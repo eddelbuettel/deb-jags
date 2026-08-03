@@ -24,7 +24,7 @@ class Range;
 class Function
 {
     const std::string _name;
-    const unsigned int _npar;
+    const unsigned long _npar;
 public:
     /**
      * Constructor.
@@ -32,7 +32,7 @@ public:
      * @param npar number of parameters. If npar == 0 then the function
      * takes a variable number of parameters.
      */
-    Function(std::string const &name, unsigned int npar);
+    Function(std::string const &name, unsigned long npar);
     virtual ~Function ();
     /**
      * Returns the  BUGS language name of the function
@@ -48,7 +48,7 @@ public:
     /**
      * Returns the number of parameters. A variadic function returns 0. 
      */
-    unsigned int npar() const;
+    unsigned long npar() const;
     /**
      * Returns true if the function returns integer values. The
      * default implementation returns false. A function that returns
@@ -147,13 +147,31 @@ public:
      * fixed values
      */
     virtual bool checkParameterFixed(std::vector<bool> const &mask) const;
+    /**
+     * Returns true if the function is differentiable with respect to
+     * its ith argument. The default implementation returns false.
+     * Differentiable functions must override this member function.
+     *
+     * If this function returns true then it guarantees that the
+     * functions ScalarFunction#gradient, VectorFunction#gradient, and
+     * ArrayFunction#gradient will correctly calculate the gradient of
+     * the function.
+     *
+     * False negatives are allowed, i.e. the function may return false
+     * even if it is differentiable. This means that the corresponding
+     * gradient function is not implemented.
+     *
+     * @param i Index of the parameter to take the derivative
+     * (starting from zero).
+     */
+    virtual bool hasGradient(unsigned long i) const;
 };
 
 /**
  * Checks that a vector of parameters of length npar is consistent
  * with the function.
  */
-inline bool checkNPar(Function const *func, unsigned int npar)
+inline bool checkNPar(Function const *func, unsigned long npar)
 {
     return (func->npar() == 0 && npar > 0) || func->npar() == npar;
 }
