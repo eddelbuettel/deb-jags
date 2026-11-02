@@ -1,17 +1,4 @@
-jags: non-dev-pkg-with-shlib-symlink usr/lib/libjrmath.so.0.0.0 usr/lib/libjrmath.so
 jags: hardening-no-relro usr/lib/jags/jags-terminal
-jags: package-name-doesnt-match-sonames libjags4 libjrmath0
-jags: hardening-no-relro usr/lib/JAGS/modules-4/basemod.so
-jags: hardening-no-relro usr/lib/JAGS/modules-4/bugs.so
-jags: hardening-no-relro usr/lib/JAGS/modules-4/dic.so
-jags: hardening-no-relro usr/lib/JAGS/modules-4/glm.so
-jags: hardening-no-relro usr/lib/JAGS/modules-4/lecuyer.so
-jags: hardening-no-relro usr/lib/JAGS/modules-4/mix.so
-jags: hardening-no-relro usr/lib/JAGS/modules-4/msm.so
-jags: hardening-no-relro usr/lib/libjrmath.so.0.0.0
-jags: hardening-no-relro usr/lib/libjags.so.4.0.1
-jags: non-dev-pkg-with-shlib-symlink usr/lib/libjags.so.4.0.2 usr/lib/libjags.so
-jags: maintscript-calls-ldconfig postinst
-jags: non-dev-pkg-with-shlib-symlink usr/lib/x86_64-linux-gnu/libjags.so.4.0.3 usr/lib/x86_64-linux-gnu/libjags.so
-jags: non-dev-pkg-with-shlib-symlink usr/lib/x86_64-linux-gnu/libjrmath.so.0.0.0 usr/lib/x86_64-linux-gnu/libjrmath.so
-jags: sharedobject-in-library-directory-missing-soname usr/lib/x86_64-linux-gnu/jags-terminal
+jags: package-name-doesnt-match-sonames libjags5 libjrmath0
+jags: link-to-shared-library-in-wrong-package usr/lib/x86_64-linux-gnu/libjags.so.5.0.0 [usr/lib/x86_64-linux-gnu/libjags.so]
+jags: link-to-shared-library-in-wrong-package usr/lib/x86_64-linux-gnu/libjrmath.so.0.0.0 [usr/lib/x86_64-linux-gnu/libjrmath.so]

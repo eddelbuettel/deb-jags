@@ -1,3 +1,9 @@
+jags (5.0.1-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Mon, 02 Nov 2026 13:20:13 -0600
+
 jags (5.0.0-2) experimental; urgency=medium
 
   * debian/watch: Adjust regular expression to not match e.g. 5.0.0.beta

@@ -1,1 +1,2 @@
-jags source: debian-watch-lacks-sourceforge-redirector https://sourceforge.net/projects/mcmc-jags/files/JAGS/5.x/Source/JAGS-(.+)\.tar\.gz.* [debian/watch:2]
+jags source: debian-watch-lacks-sourceforge-redirector
+
