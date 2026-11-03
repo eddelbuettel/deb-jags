@@ -1,8 +1,17 @@
+jags (5.0.1-2) unstable; urgency=medium
+
+  * No change source-only upload
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Tue, 03 Nov 2026 09:12:32 -0600
+
 jags (5.0.1-1) unstable; urgency=medium
 
   * New upstream release
 
- -- Dirk Eddelbuettel <edd@debian.org>  Mon, 02 Nov 2026 13:20:13 -0600
+  * debian/jags.lintian-overrides: Updated
+  * debian/source.lintian-overrides: Idem
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Mon, 02 Nov 2026 14:24:05 -0600
 
 jags (5.0.0-2) experimental; urgency=medium
 
