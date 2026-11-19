@@ -1,3 +1,9 @@
+jags (5.0.2-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Thu, 19 Nov 2026 11:59:41 -0600
+
 jags (5.0.1-2) unstable; urgency=medium
 
   * No change source-only upload
