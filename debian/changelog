@@ -1,3 +1,10 @@
+jags (5.0.2.1-1) unstable; urgency=medium
+
+  * New (pseudo-)upstream release: 5.0.2.1 is 5.0.2 upstream; a 'uscan'
+    error lead to 5.0.1 being used so clean break with pristine version
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sun, 22 Nov 2026 10:10:04 -0600
+
 jags (5.0.2-1) unstable; urgency=medium
 
   * New upstream release
