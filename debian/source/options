@@ -1,0 +1,9 @@
+# Exclude from the .orig.tar / native .tar archive (supports wildcards)
+tar-ignore = .github/workflows
+tar-ignore = .github/workflows/*
+tar-ignore = .git
+tar-ignore = .git/*
+
+# Exclude from the .debian.tar diff against upstream (uses Perl regex)
+diff-ignore = ^\.github/workflows(/|$)
+diff = ^\.git(/|$)
