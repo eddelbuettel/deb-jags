@@ -28,6 +28,6 @@ jobs:
         run: tar cvzf ../jags_5.0.2.orig.tar.gz --exclude='.git*' --exclude='debian' .
 
       - name: Build
-        run: dpkg-buildpackage -us -uc -tc -rfakeroot
+        run: dpkg-buildpackage -us -uc -tc -rfakeroot -i -I
         
         
