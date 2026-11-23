@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  build:
     runs-on: ubuntu-26.04
 
     steps:
@@ -31,5 +31,12 @@ jobs:
 
       - name: Build
         run: cd jags && rm -rf .github && dpkg-buildpackage -us -uc -tc -rfakeroot -i -I
-        
+
+      - name: Move
+        run: |
+          DIST=$(cd jags; dpkg-parsechangelog -S Distribution)
+          VER=$(cd jags; dpkg-parsechangelog -S Version)
+          ARCH=$(dpkg-architecture -qDEB_BUILD_ARCH)
+          mkdir -p ${DIST}
+          mv -v jags_${VER}_${ARCH}.deb ${DIST}
         
