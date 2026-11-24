@@ -41,14 +41,14 @@ jobs:
       - name: Upgrade
         run: sudo apt upgrade -y --no-install-recommends
         
+      - name: Debhelper
+        run: sudo apt install -y --no-install-recommends debhelper
+
       - name: Dependencies 
-        run: sudo apt build-dep --no-install-recommends
+        run: cd jags && sudo apt build-dep --no-install-recommends .
 
       - name: Tarball
         run: cd jags && tar cvzf ../${PKG}_${VER}.orig.tar.gz --exclude='.git*' --exclude='debian' .
-
-      - name: Debhelper
-        run: sudo apt install -y --no-install-recommends debhelper
 
       - name: Changelog
         run: cd jags && dch --package ${PKG} --newversion "${DEBVER}.${{ matrix.config.ver }}" --distribution "${{ matrix.config.tag }}" "Backport to ${{ matrix.config.ver }}"
