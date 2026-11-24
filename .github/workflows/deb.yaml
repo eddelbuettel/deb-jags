@@ -13,8 +13,11 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          # { ver: '24.04', tag: 'focal',    cpu: 'amd64', runs: 'ubuntu-24.04' }
           - { ver: '24.04', tag: 'focal',    cpu: 'amd64', runs: 'ubuntu-24.04' }
+          - { ver: '24.04', tag: 'focal',    cpu: 'arm64', runs: 'ubuntu-24.04-arm' }
           - { ver: '26.04', tag: 'resolute', cpu: 'amd64', runs: 'ubuntu-26.04' }
+          - { ver: '26.04', tag: 'resolute', cpu: 'arm64', runs: 'ubuntu-26.04-arm' }
       
     runs-on: ${{ matrix.config.runs }}
     
