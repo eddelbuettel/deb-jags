@@ -20,7 +20,10 @@ jobs:
           - { ver: '26.04', tag: 'resolute', cpu: 'arm64', runs: 'ubuntu-26.04-arm' }
       
     runs-on: ${{ matrix.config.runs }}
-    
+
+    permissions:
+      contents: write
+      
     steps:
 
       - name: Checkout
@@ -63,7 +66,7 @@ jobs:
         run: mkdir -p repo/${DIST} && mv -v ${PKG}_${DEBVER}.${{ matrix.config.ver }}.1_${ARCH}.deb repo/${DIST}
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: repo/*/*.deb
           make_latest: true
