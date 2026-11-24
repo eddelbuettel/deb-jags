@@ -42,7 +42,7 @@ jobs:
         run: sudo apt upgrade -y --no-install-recommends
         
       - name: Debhelper
-        run: sudo apt install -y --no-install-recommends debhelper
+        run: sudo apt install -y --no-install-recommends devscripts
 
       - name: Dependencies 
         run: cd jags && sudo apt build-dep --no-install-recommends .
