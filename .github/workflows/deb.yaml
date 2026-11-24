@@ -23,11 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          path: jags
+          path: pkg
 
       - name: Versions
         run: |
-          cd jags
+          cd pkg
           echo "PKG=$(dpkg-parsechangelog -S Source)" >> $GITHUB_ENV
           echo "DIST=$(dpkg-parsechangelog -S Distribution)" >> $GITHUB_ENV
           echo "DEBVER=$(dpkg-parsechangelog -S Version)" >> $GITHUB_ENV
@@ -41,21 +41,21 @@ jobs:
       - name: Upgrade
         run: sudo apt upgrade -y --no-install-recommends
         
-      - name: Debhelper
+      - name: Devscripts
         run: sudo apt install -y --no-install-recommends devscripts
 
       - name: Dependencies 
-        run: cd jags && sudo apt build-dep --no-install-recommends .
+        run: cd pkg && sudo apt build-dep --no-install-recommends .
 
       - name: Tarball
-        run: cd jags && tar cvzf ../${PKG}_${VER}.orig.tar.gz --exclude='.git*' --exclude='debian' .
+        run: cd pkg && tar cvzf ../${PKG}_${VER}.orig.tar.gz --exclude='.git*' --exclude='debian' .
 
       - name: Changelog
-        run: cd jags && dch --package ${PKG} --newversion "${DEBVER}.${{ matrix.config.ver }}" --distribution "${{ matrix.config.tag }}" "Backport to ${{ matrix.config.ver }}"
+        run: cd pkg && dch --package ${PKG} --newversion "${DEBVER}.${{ matrix.config.ver }}.1" --distribution "${{ matrix.config.tag }}" "Backport to ${{ matrix.config.ver }}"
         
       - name: Build
-        run: cd jags && rm -rf .github && dpkg-buildpackage -us -uc -tc -rfakeroot -i -I
+        run: cd pkg && rm -rf .github && dpkg-buildpackage -us -uc -tc -rfakeroot -i -I
 
       - name: Move
-        run: mkdir -p ${DIST} && mv -v ${PKG}_${DEBVER}_${ARCH}.deb ${DIST}
+        run: mkdir -p ${DIST} && mv -v ${PKG}_${DEBVER}.${{ matrix.config.ver }}.1_${ARCH}.deb ${DIST}
         
