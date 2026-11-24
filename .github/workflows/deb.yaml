@@ -60,5 +60,14 @@ jobs:
         run: cd pkg && rm -rf .github && dpkg-buildpackage -us -uc -tc -rfakeroot -i -I
 
       - name: Move
-        run: mkdir -p ${DIST} && mv -v ${PKG}_${DEBVER}.${{ matrix.config.ver }}.1_${ARCH}.deb ${DIST}
-        
+        run: mkdir -p repo/${DIST} && mv -v ${PKG}_${DEBVER}.${{ matrix.config.ver }}.1_${ARCH}.deb repo/${DIST}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: repo/*/*.deb
+          make_latest: true
+          prerelease: true
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
